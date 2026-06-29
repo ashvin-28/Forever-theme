@@ -1,0 +1,123 @@
+<?php
+/**
+ * Hyva-compatible mini search for the Forever furniture header.
+ */
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Search\Helper\Data as SearchHelper;
+use Magento\Search\ViewModel\ConfigProvider as SearchConfig;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$helper = $this->helper(SearchHelper::class);
+$searchConfig = $viewModels->require(SearchConfig::class);
+?>
+<script>
+    function initForeverMiniSearch() {
+        return {
+            minSearchLength: <?= (int) $helper->getMinQueryLength() ?>,
+            suggestions: [],
+            suggestionsAllowed: <?= $searchConfig->isSuggestionsAllowed() ? 'true' : 'false' ?>,
+            search(term) {
+                const search = this.$refs.searchInput;
+                term = term && typeof term === 'string' ? term : search.value;
+                if (term.length < this.minSearchLength) {
+                    search.setCustomValidity('<?= $escaper->escapeJs(
+                        __('Minimum Search query length is %1', $helper->getMinQueryLength())
+                    ) ?>');
+                    search.reportValidity();
+                    return;
+                }
+
+                search.setCustomValidity('');
+                search.value = term;
+                this.$refs.form.submit();
+            },
+            suggest() {
+                const search = this.$refs.searchInput;
+                if (!this.suggestionsAllowed || search.value.length < this.minSearchLength) {
+                    this.suggestions = [];
+                    return;
+                }
+
+                fetch(window.BASE_URL + 'search/ajax/suggest?' + new URLSearchParams({q: search.value}), {
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                })
+                    .then(response => response.json())
+                    .then(result => this.suggestions = result)
+                    .catch(() => this.suggestions = []);
+            },
+            focusSearch() {
+                this.$refs.searchInput.focus();
+            },
+            focusAfterOpen() {
+                this.$refs.searchInput.focus();
+                this.$refs.searchInput.select();
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initForeverMiniSearch', initForeverMiniSearch)
+    }, {once: true})
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div class="forever-search-shell container py-3 mx-auto text-black" x-data="initForeverMiniSearch">
+    <search title="<?= $escaper->escapeHtmlAttr(__('Store')) ?>" role="search">
+        <form id="search_mini_form"
+              class="forever-search-form form minisearch input-group"
+              action="<?= $escaper->escapeUrl($helper->getResultUrl()) ?>"
+              method="get"
+              @submit.prevent="search"
+              x-ref="form">
+            <label class="sr-only" for="search">
+                <?= $escaper->escapeHtml(__('Search')) ?>
+            </label>
+            <input id="search"
+                   x-ref="searchInput"
+                   type="search"
+                   name="<?= $escaper->escapeHtmlAttr($helper->getQueryParamName()) ?>"
+                   value="<?= /** @noEscape */ $helper->getEscapedQueryText() ?>"
+                   placeholder="<?= $escaper->escapeHtmlAttr(__('Search...')) ?>"
+                   maxlength="<?= $escaper->escapeHtmlAttr($helper->getMaxQueryLength()) ?>"
+                   class="forever-search-input form-input"
+                   autocomplete="off"
+                   @search-open.window.debounce.10="focusAfterOpen"
+                   @focus.once="suggest"
+                   @input.debounce.300="suggest"
+                   @keydown.arrow-down.prevent="focusSearch">
+            <button type="submit"
+                    class="forever-search-submit btn btn-primary"
+                    title="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Search')) ?>">
+                <span class="forever-search-submit-text"><?= $escaper->escapeHtml(__('Search')) ?></span>
+                <?= $lucideIcons->searchHtml('', 20, 20, ['aria-hidden' => 'true']) ?>
+            </button>
+        </form>
+    </search>
+    <template x-if="suggestions.length">
+        <nav class="forever-search-suggestions"
+             aria-label="<?= $escaper->escapeHtmlAttr(__('Search Suggestions')) ?>">
+            <template x-for="suggestion in suggestions">
+                <button type="button"
+                        class="forever-search-suggestion"
+                        @click="search(suggestion.title)"
+                        @keydown.enter="search(suggestion.title)">
+                    <span x-text="suggestion.title"></span>
+                    <span x-text="suggestion.num_results"></span>
+                </button>
+            </template>
+        </nav>
+    </template>
+</div>

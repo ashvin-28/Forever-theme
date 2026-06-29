@@ -1,0 +1,130 @@
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Forever\Map\ViewModel\DataConfig|null $viewModel
+ */
+$viewModel = $block->getData('view_model');
+
+if (!$viewModel instanceof \Forever\Map\ViewModel\DataConfig || !$viewModel->isEnabled()) {
+    return;
+}
+
+$mapConfig = [
+    'apiKey' => (string) $viewModel->getConfigValue('fgooglemaps/map_setting/api_key'),
+    'latitude' => (string) $viewModel->getConfigValue('fgooglemaps/map_setting/location_setting/latitude'),
+    'longitude' => (string) $viewModel->getConfigValue('fgooglemaps/map_setting/location_setting/longitude'),
+    'address' => (string) $viewModel->getConfigValue('fgooglemaps/map_setting/location_setting/address'),
+    'zoom' => 5,
+];
+?>
+<section id="map-frame" class="forever-map-frame">
+    <div id="forever-google-map"
+         class="forever-google-map"
+         data-forever-google-map='<?= $block->escapeHtmlAttr(json_encode($mapConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)) ?>'>
+        <div class="forever-google-map-status"><?= $block->escapeHtml(__('Loading map...')) ?></div>
+    </div>
+</section>
+<script>
+    (function () {
+        var element = document.getElementById('forever-google-map');
+
+        if (!element || element.dataset.foreverMapInitialized === 'true') {
+            return;
+        }
+
+        element.dataset.foreverMapInitialized = 'true';
+
+        var status = element.querySelector('.forever-google-map-status');
+        var config = {};
+
+        try {
+            config = JSON.parse(element.getAttribute('data-forever-google-map') || '{}');
+        } catch (error) {
+            config = {};
+        }
+
+        function setStatus(message) {
+            if (status) {
+                status.textContent = message;
+            }
+        }
+
+        function loadGoogleMaps(apiKey) {
+            if (window.google && window.google.maps) {
+                return Promise.resolve(window.google.maps);
+            }
+
+            if (window.foreverGoogleMapsPromise) {
+                return window.foreverGoogleMapsPromise;
+            }
+
+            window.foreverGoogleMapsPromise = new Promise(function (resolve, reject) {
+                var callbackName = 'foreverMapInitCallback';
+                var script = document.createElement('script');
+
+                window[callbackName] = function () {
+                    resolve(window.google.maps);
+                };
+
+                script.src = 'https://maps.googleapis.com/maps/api/js?key='
+                    + encodeURIComponent(apiKey)
+                    + '&callback='
+                    + callbackName;
+                script.async = true;
+                script.defer = true;
+                script.onerror = function () {
+                    reject(new Error('Google Maps script failed to load.'));
+                };
+
+                document.head.appendChild(script);
+            });
+
+            return window.foreverGoogleMapsPromise;
+        }
+
+        var latitude = parseFloat(config.latitude);
+        var longitude = parseFloat(config.longitude);
+        var zoom = parseInt(config.zoom, 10) || 5;
+        var address = config.address || '';
+
+        if (!config.apiKey) {
+            setStatus(address || '<?= $block->escapeJs(__('Google Maps API key is not configured.')) ?>');
+            return;
+        }
+
+        if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+            setStatus(address || '<?= $block->escapeJs(__('Map coordinates are not configured.')) ?>');
+            return;
+        }
+
+        loadGoogleMaps(config.apiKey).then(function () {
+            var mapLatLng = new window.google.maps.LatLng(latitude, longitude);
+
+            element.innerHTML = '';
+
+            var map = new window.google.maps.Map(element, {
+                zoom: zoom,
+                center: mapLatLng,
+                mapTypeId: window.google.maps.MapTypeId.ROADMAP
+            });
+
+            var marker = new window.google.maps.Marker({
+                position: mapLatLng,
+                animation: window.google.maps.Animation.DROP,
+                map: map
+            });
+
+            if (address) {
+                var infoWindow = new window.google.maps.InfoWindow({
+                    content: address
+                });
+
+                marker.addListener('click', function () {
+                    infoWindow.open(map, marker);
+                });
+            }
+        }).catch(function () {
+            setStatus(address || '<?= $block->escapeJs(__('Unable to load Google Maps right now.')) ?>');
+        });
+    }());
+</script>

@@ -1,0 +1,212 @@
+<?php
+declare(strict_types=1);
+
+use Forever\Brand\Block\Home\Brand;
+use Magento\Framework\Escaper;
+
+/** @var Brand $block */
+/** @var Escaper $escaper */
+
+if ((int) $block->getConfigValue() !== 1) {
+    return;
+}
+
+$items = $block->getItems();
+
+if (!$items) {
+    return;
+}
+
+$brands = [];
+foreach ($items as $brand) {
+    $imageUrl = $block->getBrandImageUrl($brand->getImage());
+    if (!$imageUrl) {
+        continue;
+    }
+
+    $brands[] = [
+        'image_url' => $imageUrl,
+    ];
+}
+
+$brandCount = count($brands);
+if (!$brandCount) {
+    return;
+}
+
+$carouselBrands = [];
+$repeatCount = $brandCount > 1 ? 9 : 1;
+if ($brandCount > 1) {
+    for ($i = 0; $i < $repeatCount; $i++) {
+        $carouselBrands = array_merge($carouselBrands, $brands);
+    }
+} else {
+    $carouselBrands = $brands;
+}
+$carouselCount = count($carouselBrands);
+$middleGroup = $brandCount > 1 ? intdiv($repeatCount, 2) : 0;
+?>
+<section class="brand-holder-container forever-brand-home reveal"
+    x-data="{
+        perView: 4,
+        total: <?= (int) $carouselCount ?>,
+        uniqueTotal: <?= (int) $brandCount ?>,
+        repeatCount: <?= (int) $repeatCount ?>,
+        middleGroup: <?= (int) $middleGroup ?>,
+        dragging: false,
+        dragStartX: 0,
+        dragStartScroll: 0,
+        dragPointerId: null,
+        dragElement: null,
+        skipClick: false,
+        init() {
+            this.updatePerView();
+            this.$nextTick(() => this.centerLoop());
+        },
+        updatePerView() {
+            const width = window.innerWidth || document.documentElement.clientWidth || 1280;
+            this.perView = width >= 1024 ? 4 : (width >= 768 ? 3 : (width >= 520 ? 2 : 1));
+            this.$nextTick(() => this.centerLoop());
+        },
+        groupWidth() {
+            return this.$refs.track && this.repeatCount ? this.$refs.track.scrollWidth / this.repeatCount : 0;
+        },
+        centerLoop() {
+            if (this.isLocked() || !this.$refs.viewport) {
+                return;
+            }
+            const width = this.groupWidth();
+            if (width > 0) {
+                this.$refs.viewport.scrollLeft = width * this.middleGroup;
+            }
+        },
+        slideWidth() {
+            return this.$refs.viewport ? this.$refs.viewport.clientWidth / this.perView : 0;
+        },
+        snapToNearest() {
+            if (this.isLocked() || !this.$refs.viewport) {
+                return;
+            }
+            const width = this.slideWidth();
+            if (width <= 0) {
+                return;
+            }
+            const target = Math.round(this.$refs.viewport.scrollLeft / width) * width;
+            this.$refs.viewport.scrollTo({ left: target, behavior: 'smooth' });
+        },
+        loopScroll() {
+            if (!this.dragging || this.isLocked() || !this.$refs.viewport || !this.$refs.track) {
+                return;
+            }
+            const width = this.groupWidth();
+            if (width <= 0) {
+                return;
+            }
+            const min = width * (this.middleGroup - 1);
+            const max = width * (this.middleGroup + 1);
+            if (this.$refs.viewport.scrollLeft < min) {
+                this.$refs.viewport.scrollLeft += width;
+            } else if (this.$refs.viewport.scrollLeft >= max) {
+                this.$refs.viewport.scrollLeft -= width;
+            }
+        },
+        isLocked() {
+            return this.uniqueTotal <= 1;
+        },
+        startDrag(event) {
+            if (this.isLocked() || (event.button !== undefined && event.button !== 0)) {
+                return;
+            }
+            this.dragging = true;
+            this.dragStartX = event.clientX;
+            this.dragStartScroll = event.currentTarget.scrollLeft;
+            this.dragPointerId = event.pointerId;
+            this.dragElement = event.currentTarget;
+            this.skipClick = false;
+            if (this.dragElement.setPointerCapture) {
+                this.dragElement.setPointerCapture(event.pointerId);
+            }
+        },
+        moveDrag(event) {
+            if (!this.dragging || event.pointerId !== this.dragPointerId) {
+                return;
+            }
+            const delta = event.clientX - this.dragStartX;
+            event.preventDefault();
+            this.dragElement.scrollLeft = this.dragStartScroll - delta;
+            this.loopScroll();
+            if (Math.abs(delta) > 6) {
+                this.skipClick = true;
+            }
+        },
+        endDrag(event) {
+            if (!this.dragging || event.pointerId !== this.dragPointerId) {
+                return;
+            }
+            this.releaseDrag();
+            this.snapToNearest();
+            if (this.skipClick) {
+                window.setTimeout(() => { this.skipClick = false; }, 350);
+            }
+        },
+        releaseDrag() {
+            if (this.dragElement && this.dragElement.releasePointerCapture && this.dragPointerId !== null) {
+                try {
+                    this.dragElement.releasePointerCapture(this.dragPointerId);
+                } catch (error) {}
+            }
+            this.dragging = false;
+            this.dragPointerId = null;
+            this.dragElement = null;
+        },
+        blockClick(event) {
+            if (!this.skipClick) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.skipClick = false;
+        }
+    }"
+    x-init="init()"
+    @resize.window="updatePerView()"
+    @pointermove.window="moveDrag($event)"
+    @pointerup.window="endDrag($event)"
+    @pointercancel.window="releaseDrag()">
+    <div class="brand-title">
+        <h3><?= $escaper->escapeHtml(__('Brands')) ?></h3>
+    </div>
+
+    <div class="brand-slider brand-section forever-brand-viewport"
+        x-ref="viewport"
+        :class="{ 'is-dragging': dragging }"
+        @scroll="dragging && loopScroll()"
+        @pointerdown="startDrag($event)"
+        @click.capture="blockClick($event)"
+        @dragstart.prevent>
+        <div class="forever-brand-track"
+            x-ref="track"
+            :style="'--forever-brand-per-view: ' + perView + ';'">
+        <?php foreach ($carouselBrands as $brand): ?>
+            <div class="item">
+                <div class="brand-wraper d-flex align-items-center justify-content-center">
+                    <a class="brand-link" href="<?= $escaper->escapeUrl($block->getUrl('brand')) ?>" target="_self">
+                        <img class="brand-image-hover"
+                            src="<?= $escaper->escapeUrl($brand['image_url']) ?>"
+                            alt="<?= $escaper->escapeHtmlAttr(__('Brand')) ?>"
+                            width="210"
+                            height="83"
+                            loading="lazy">
+                    </a>
+                </div>
+            </div>
+        <?php endforeach; ?>
+        </div>
+    </div>
+
+    <div class="view-all">
+        <a class="view-all-btn action primary" href="<?= $escaper->escapeUrl($block->getUrl('brand')) ?>">
+            <?= $escaper->escapeHtml(__('View All')) ?>
+        </a>
+    </div>
+</section>

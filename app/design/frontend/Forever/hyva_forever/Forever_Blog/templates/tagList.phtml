@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+/** @var \Forever\Blog\Block\TagList $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$viewModel = $block->getViewModel();
+$isEnableModule = (int) $viewModel->getConfig();
+$tags = $block->getTagList();
+$tagItems = [];
+if ($tags && $tags->getSize()) {
+    foreach ($tags as $tag) {
+        $tagItems[] = [
+            'title' => (string) $tag->getTitle(),
+            'size' => method_exists($block, 'getTagSize') ? (int) $block->getTagSize($tag) : 12,
+        ];
+    }
+}
+?>
+<?php if ($isEnableModule === 1): ?>
+    <div class="mp-sidebar mpcss forever-blog-sidebar-block forever-blog-tags-block">
+        <div class="row">
+            <div class="block-title col-xs-12 sidebar-tags">
+                <p class="block-mp-sidebar-heading" role="heading" aria-level="2">
+                    <?= $escaper->escapeHtml(__('Tags')) ?>
+                </p>
+            </div>
+            <div class="col-xs-12">
+                <?php foreach ($tagItems as $tag): ?>
+                    <a class="label label-default tags-list"
+                       style="font-size:<?= $escaper->escapeHtmlAttr((string) $tag['size']) ?>px;"
+                       href="<?= $escaper->escapeUrl($block->getTagViewUrl($tag['title'])) ?>">
+                        <?= $escaper->escapeHtml($tag['title']) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>

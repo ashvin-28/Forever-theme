@@ -1,0 +1,45 @@
+<?php
+/**
+ * Forever Hyva customer account navigation.
+ *
+ * Keeps Magento's dynamic customer navigation links while matching the
+ * reference furniture account sidebar.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+declare(strict_types=1);
+?>
+
+<aside
+    class="forever-account-nav"
+    x-data="{ open: false }"
+>
+    <a
+        class="forever-account-nav-title"
+        href="<?= $escaper->escapeUrl($block->getUrl('customer/account')) ?>"
+    >
+        <?= $escaper->escapeHtml(__('My Account')) ?>
+    </a>
+
+    <button
+        type="button"
+        class="forever-account-nav-toggle"
+        @click="open = !open"
+        :aria-expanded="open.toString()"
+        aria-controls="forever-account-nav-content"
+    >
+        <span><?= $escaper->escapeHtml(__('Account Menu')) ?></span>
+        <span class="forever-account-nav-toggle-icon" aria-hidden="true"></span>
+    </button>
+
+    <nav
+        id="forever-account-nav-content"
+        class="forever-account-nav-content"
+        :class="{ 'is-open': open }"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('My Account')) ?>"
+    >
+        <?= $block->getChildHtml() ?>
+    </nav>
+</aside>

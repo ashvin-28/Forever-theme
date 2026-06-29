@@ -1,0 +1,26 @@
+{
+  "name": "forever/category-faq",
+  "description": "FAQ with Categories Extension for Magento 2",
+  "version": "2.0.0",
+  "type": "magento2-module",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Forever eCommerce Solutions",
+      "homepage": "https://www.forever.com.br/"
+    }
+  ],
+  "require": {
+    "php": "~8.1.0|~8.2.0|~8.3.0|~8.4.0|>=8.4",
+    "magento/framework": ">=103.0.0",
+    "magento/module-backend": ">=102.0.0"
+  },
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Forever\\Faq\\": ""
+    }
+  }
+}

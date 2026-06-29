@@ -1,0 +1,128 @@
+.home-page-banner-slider {
+    overflow: hidden;
+}
+
+.forever-banner-slider {
+    overflow: hidden;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+}
+
+.forever-banner-slider.is-dragging {
+    cursor: grabbing;
+}
+
+.forever-banner-stage {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-height: 650px;
+    transition: transform .45s ease;
+    will-change: transform;
+}
+
+.forever-banner-stage.is-dragging,
+.forever-banner-stage.is-jumping {
+    transition: none;
+}
+
+.forever-banner-slider .slide-items {
+    position: relative !important;
+    inset: auto !important;
+    z-index: 1 !important;
+    display: grid !important;
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 100%;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transition: none !important;
+}
+
+.forever-banner-slider .slide-items[aria-hidden="true"] {
+    pointer-events: none !important;
+}
+
+.forever-banner-slider .slide-content > .slider-des,
+.forever-banner-slider .slide-image img {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .9s ease .2s, visibility .9s ease .2s, transform .9s ease .2s;
+}
+
+.forever-banner-slider .slide-content > .slider-des {
+    transform: translate3d(0, 145px, 0);
+}
+
+.forever-banner-slider .slide-image img {
+    transform: translate3d(0, -145px, 0);
+}
+
+.forever-banner-slider:not(.is-ready) .slide-items:first-child .slide-content > .slider-des,
+.forever-banner-slider .slide-items.is-active .slide-content > .slider-des,
+.forever-banner-slider:not(.is-ready) .slide-items:first-child .slide-image img,
+.forever-banner-slider .slide-items.is-active .slide-image img {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+}
+
+.forever-banner-slider .slide-items.is-active.is-content-entering .slide-content > .slider-des {
+    visibility: visible;
+    animation: foreverBannerTextEnter .9s ease .2s both !important;
+}
+
+.forever-banner-slider .slide-items.is-active.is-content-entering .slide-image img {
+    visibility: visible;
+    animation: foreverBannerImageEnter .9s ease .2s both !important;
+}
+
+.forever-banner-stage.is-dragging .slide-content > .slider-des,
+.forever-banner-stage.is-dragging .slide-image img {
+    transition: none !important;
+}
+
+.forever-banner-stage.is-dragging .slide-items[aria-hidden="true"] .slide-content > .slider-des,
+.forever-banner-stage.is-dragging .slide-items[aria-hidden="true"] .slide-image img {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+}
+
+@keyframes foreverBannerTextEnter {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 145px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes foreverBannerImageEnter {
+    from {
+        opacity: 0;
+        transform: translate3d(0, -145px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@media (max-width: 1024px) {
+    .forever-banner-stage {
+        min-height: 460px;
+    }
+}
+
+@media (max-width: 640px) {
+    .forever-banner-stage {
+        min-height: 430px;
+    }
+}

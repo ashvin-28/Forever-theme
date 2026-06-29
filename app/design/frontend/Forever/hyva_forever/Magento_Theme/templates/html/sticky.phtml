@@ -1,0 +1,257 @@
+<?php
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$viewmodel = $block->getViewModel();
+$stickyenable = (bool) $viewmodel->isStickyEnable();
+$stickytype = (string) $viewmodel->getStickyHeaderType();
+$stickytype = in_array($stickytype, ['sticky-1', 'sticky-2'], true) ? $stickytype : 'sticky-1';
+$headerStyle = (string) $viewmodel->getHeaderStyle();
+$headerStyle = in_array($headerStyle, ['style-1', 'style-2', 'style-3', 'style-4'], true) ? $headerStyle : 'style-1';
+?>
+<style>
+    @keyframes foreverStickySlideDown {
+        from {
+            transform: translateY(-100%);
+        }
+
+        to {
+            transform: translateY(0);
+        }
+    }
+
+    @media (min-width: 1025px) {
+        body.sticky-header-active,
+        body.sticky-header2-active {
+            padding-top: var(--forever-sticky-header-height, 0px);
+        }
+
+        body.sticky-header-active #header.forever-reference-header {
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            left: 0 !important;
+            z-index: 850 !important;
+            width: 100% !important;
+            background: #ffffff !important;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, .08) !important;
+            animation: foreverStickySlideDown .25s ease;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header {
+            box-shadow: none !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-header-top,
+        body.sticky-header2-active #header.forever-reference-header .forever-header-search,
+        body.sticky-header2-active #header.forever-reference-header .forever-header-call,
+        body.sticky-header2-active #header.forever-reference-header .forever-mobile-search-button,
+        body.sticky-header2-active #header.forever-reference-header .forever-account-link,
+        body.sticky-header2-active #header.forever-reference-header .forever-signin-link {
+            display: none !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-header-main {
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            left: 0 !important;
+            z-index: 850 !important;
+            width: 100% !important;
+            border-bottom: 1px solid #eeeeee !important;
+            background: #ffffff !important;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, .08) !important;
+            animation: foreverStickySlideDown .25s ease;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-header-inner {
+            display: flex !important;
+            max-width: 1140px !important;
+            min-height: 64px !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 30px !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+            text-align: left !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-header-left {
+            display: flex !important;
+            flex: 1 1 auto !important;
+            align-items: center !important;
+            gap: 34px !important;
+            min-width: 0 !important;
+            width: auto !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .logo {
+            display: inline-flex !important;
+            flex: 0 0 auto !important;
+            justify-content: flex-start !important;
+            max-width: 150px !important;
+            margin: 0 !important;
+            position: static !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .logo img {
+            width: auto !important;
+            max-height: 34px !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-main-nav {
+            display: flex !important;
+            flex: 1 1 auto !important;
+            justify-content: flex-start !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            position: static !important;
+            width: auto !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-megamenu-shell {
+            position: static !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-megamenu-desktop > .nav-desktop {
+            align-items: center !important;
+            gap: 30px !important;
+            justify-content: flex-start !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-megamenu-desktop .level-top {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            line-height: 32px !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-header-actions {
+            position: static !important;
+            display: flex !important;
+            flex: 0 0 auto !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 14px !important;
+            width: auto !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-wishlist-link,
+        body.sticky-header2-active #header.forever-reference-header .forever-cart-link {
+            display: inline-flex !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header .forever-megamenu-desktop .level0 > .level-top-mega,
+        body.sticky-header2-active #header.forever-reference-header .forever-megamenu-desktop .level0 > .submenu {
+            top: 100% !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header.forever-header-style-3 .forever-header-inner,
+        body.sticky-header2-active #header.forever-reference-header.forever-header-style-4 .forever-header-inner {
+            display: flex !important;
+            min-height: 64px !important;
+        }
+
+        body.sticky-header2-active #header.forever-reference-header.forever-header-style-3 .forever-header-left,
+        body.sticky-header2-active #header.forever-reference-header.forever-header-style-4 .forever-header-left {
+            display: flex !important;
+        }
+    }
+</style>
+<script>
+    window.foreverHyvaStickyHeader = {
+        enabled: <?= $stickyenable ? 'true' : 'false' ?>,
+        type: '<?= $block->escapeJs($stickytype) ?>',
+        headerStyle: '<?= $block->escapeJs($headerStyle) ?>'
+    };
+
+    (function () {
+        'use strict';
+
+        var config = window.foreverHyvaStickyHeader || {};
+        var desktopQuery = window.matchMedia('(min-width: 1025px)');
+        var threshold = 100;
+
+        function getHeader() {
+            return document.getElementById('header');
+        }
+
+        function getStickyTarget(header) {
+            if (config.type === 'sticky-2') {
+                return header.querySelector('.forever-header-main') || header;
+            }
+
+            return header;
+        }
+
+        function clearStickyState() {
+            if (!document.body) {
+                return;
+            }
+
+            document.body.classList.remove(
+                'sticky-header-active',
+                'sticky-header2-active',
+                'forever-sticky-header-active'
+            );
+            document.documentElement.style.removeProperty('--forever-sticky-header-height');
+        }
+
+        function setStickyHeight(header) {
+            window.requestAnimationFrame(function () {
+                var target = getStickyTarget(header);
+                var height = target ? Math.ceil(target.getBoundingClientRect().height) : 0;
+                document.documentElement.style.setProperty('--forever-sticky-header-height', height + 'px');
+            });
+        }
+
+        function updateStickyHeader() {
+            if (!document.body) {
+                return;
+            }
+
+            var header = getHeader();
+            var enabled = Boolean(config.enabled);
+            var shouldStick = enabled && header && desktopQuery.matches && window.scrollY >= threshold;
+            var isSticky2 = config.type === 'sticky-2';
+
+            if (!shouldStick) {
+                clearStickyState();
+                return;
+            }
+
+            document.body.classList.add('forever-sticky-header-active');
+            document.body.classList.toggle('sticky-header-active', !isSticky2);
+            document.body.classList.toggle('sticky-header2-active', isSticky2);
+            setStickyHeight(header);
+        }
+
+        if (!config.enabled) {
+            clearStickyState();
+            return;
+        }
+
+        window.addEventListener('scroll', updateStickyHeader, {passive: true});
+        window.addEventListener('resize', updateStickyHeader);
+
+        if (desktopQuery.addEventListener) {
+            desktopQuery.addEventListener('change', updateStickyHeader);
+        } else if (desktopQuery.addListener) {
+            desktopQuery.addListener(updateStickyHeader);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateStickyHeader, {once: true});
+        } else {
+            updateStickyHeader();
+        }
+    }());
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

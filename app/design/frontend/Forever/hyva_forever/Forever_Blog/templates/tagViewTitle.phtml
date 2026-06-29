@@ -1,0 +1,21 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Forever\Blog\Block\TagView $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$pathParts = array_values(array_filter(explode('/', trim((string) $block->getRequest()->getPathInfo(), '/'))));
+$tagviewUrlKey = (string) end($pathParts);
+if ($tagviewUrlKey === '' || $tagviewUrlKey === 'view') {
+    foreach ($block->getRequest()->getParams() as $key => $value) {
+        $tagviewUrlKey = (string) $key;
+    }
+}
+$title = str_replace('-', ' ', $tagviewUrlKey);
+$title = ucwords($title);
+?>
+<div class="tag-title page-title-wrapper">
+    <h2 class="page-title">
+        <span><?= $escaper->escapeHtml(__('Tag : %1', $title)) ?></span>
+    </h2>
+</div>

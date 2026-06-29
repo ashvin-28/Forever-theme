@@ -1,0 +1,64 @@
+<?php
+/**
+ * Hyva FAQ accordion template.
+ *
+ * @var $block \Forever\Faq\Block\Questions
+ * @var $escaper \Magento\Framework\Escaper
+ */
+
+$isEnabled = (int) $block->getConfigValue() === 1;
+$items = $isEnabled ? array_values($block->getItems()) : [];
+$blockId = preg_replace('/[^a-z0-9_-]+/i', '-', $block->getNameInLayout() ?: 'questions');
+$allowedAnswerTags = ['a', 'br', 'em', 'i', 'li', 'ol', 'p', 'span', 'strong', 'b', 'ul'];
+?>
+
+<?php if ($items): ?>
+    <section
+        class="forever-faq-container"
+        x-data="{ openItems: {} }"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Frequently Asked Questions')) ?>"
+    >
+        <?php foreach ($items as $index => $question): ?>
+            <?php
+                $questionId = $blockId . '-question-' . $index;
+                $answerId = $blockId . '-answer-' . $index;
+                $title = (string) $question->getTitle();
+                $answer = (string) $question->getAnswer();
+            ?>
+            <article class="forever-faq-item" :class="{ 'is-open': openItems[<?= (int) $index ?>] }">
+                <button
+                    id="<?= $escaper->escapeHtmlAttr($questionId) ?>"
+                    class="forever-faq-question"
+                    type="button"
+                    @click="openItems[<?= (int) $index ?>] = !openItems[<?= (int) $index ?>]"
+                    :aria-expanded="openItems[<?= (int) $index ?>] ? 'true' : 'false'"
+                    aria-controls="<?= $escaper->escapeHtmlAttr($answerId) ?>"
+                >
+                    <span class="forever-faq-marker forever-faq-marker-question" aria-hidden="true">Q</span>
+                    <span class="forever-faq-title"><?= $escaper->escapeHtml($title) ?></span>
+                    <span class="forever-faq-toggle" aria-hidden="true"></span>
+                </button>
+
+                <div
+                    id="<?= $escaper->escapeHtmlAttr($answerId) ?>"
+                    class="forever-faq-answer"
+                    role="region"
+                    aria-labelledby="<?= $escaper->escapeHtmlAttr($questionId) ?>"
+                    x-ref="faqAnswer<?= (int) $index ?>"
+                    :aria-hidden="openItems[<?= (int) $index ?>] ? 'false' : 'true'"
+                    :style="openItems[<?= (int) $index ?>]
+                        ? 'max-height: ' + ($refs.faqAnswer<?= (int) $index ?> ? $refs.faqAnswer<?= (int) $index ?>.scrollHeight + 'px' : 'none') + '; opacity: 1;'
+                        : 'max-height: 0px; opacity: 0;'"
+                    style="max-height: 0px; opacity: 0;"
+                >
+                    <div class="forever-faq-answer-inner">
+                        <span class="forever-faq-marker forever-faq-marker-answer" aria-hidden="true">A</span>
+                        <div class="forever-faq-answer-content">
+                            <?= /* @noEscape */ $escaper->escapeHtml($answer, $allowedAnswerTags) ?>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        <?php endforeach; ?>
+    </section>
+<?php endif; ?>

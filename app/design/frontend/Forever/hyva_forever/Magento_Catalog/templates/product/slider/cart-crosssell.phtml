@@ -1,0 +1,314 @@
+<?php
+/**
+ * Cart cross-sell products rendered without Hyva's snap slider sizing.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\Cart\Items as CartItems;
+use Hyva\Theme\ViewModel\ProductList;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Magento\Catalog\Block\Product\ReviewRendererInterface as ProductReviewRenderer;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$productListViewModel = $viewModels->require(ProductList::class);
+$productListItemViewModel = $viewModels->require(ProductListItem::class);
+$cartItems = $viewModels->require(CartItems::class)->getCartItems();
+$items = $cartItems ? $productListViewModel->getCrosssellItems(...$cartItems) : [];
+
+if (!$items) {
+    return '';
+}
+
+$title = $block->getTitle() ?: __('More Choices:');
+$hideRatingSummary = (bool) ($block->getHideRatingSummary() ?? false);
+
+if ($hideRatingSummary) {
+    $productListViewModel->excludeReviewSummary();
+}
+
+$itemRenderer = $block->getLayout()->getBlock('product_list_item')
+    ?: $block->getChildBlock('slider.item.template')
+    ?: $block->getLayout()->createBlock(Template::class);
+
+$itemRenderer->setData('hide_details', false);
+$itemRenderer->setData('hide_rating_summary', $hideRatingSummary);
+?>
+
+<style>
+    .checkout-cart-index .forever-cart-crosssell-static {
+        width: min(100% - 104px, 1250px);
+        max-width: 1250px;
+        margin: 84px auto 0;
+        overflow: visible;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static-title {
+        margin: 0;
+        color: #111111;
+        font-size: 32px;
+        font-weight: 400;
+        line-height: 1.2;
+        text-align: center;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static-rule {
+        position: relative;
+        width: 144px;
+        height: 1px;
+        margin: 10px auto 48px;
+        background: #111111;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static-rule::before {
+        content: "";
+        position: absolute;
+        top: -1px;
+        left: 50%;
+        width: 100px;
+        height: 3px;
+        background: var(--forever-primary, #dfa34a);
+        transform: translateX(-50%);
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static-grid {
+        display: flex;
+        gap: 20px;
+        align-items: stretch;
+        overflow-x: auto;
+        overflow-y: visible;
+        padding-bottom: 8px;
+        scrollbar-width: none;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static-item {
+        flex: 0 0 calc((100% - 40px) / 3);
+        width: calc((100% - 40px) / 3);
+        max-width: calc((100% - 40px) / 3);
+        min-width: 0;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-card {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-media {
+        position: relative;
+        min-height: 384px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        background: #f7f7f7 !important;
+        aspect-ratio: auto !important;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-image-link,
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-flip,
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-flip-inner,
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-flip-face {
+        display: flex;
+        width: 100%;
+        min-height: 384px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-image-link {
+        padding: 38px 34px;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-image,
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-image-link img,
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-media img {
+        width: 100%;
+        height: 305px;
+        padding: 0;
+        object-fit: contain;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .product_label_wrapper.top_right {
+        top: 0;
+        right: auto;
+        left: 0;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-actions {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px);
+        transition: opacity .25s ease, visibility .25s ease, transform .25s ease;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-card:hover .forever-category-product-actions,
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-card:focus-within .forever-category-product-actions {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-action {
+        position: relative;
+        display: inline-flex;
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #111111;
+        border-radius: 0;
+        background: #ffffff;
+        color: #111111;
+        padding: 0;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-action:hover,
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-action:focus {
+        border-color: #111111;
+        background: #111111;
+        color: #ffffff;
+        outline: none;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-action-label {
+        position: absolute;
+        top: -1px;
+        right: 100%;
+        bottom: -1px;
+        z-index: 5;
+        display: flex;
+        height: 40px;
+        min-height: 40px;
+        align-items: center;
+        padding: 0 10px 0 12px;
+        border: 1px solid #111111;
+        border-right: 0;
+        background: #111111;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1;
+        text-transform: capitalize;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: scaleX(0);
+        transform-origin: right center;
+        transition: transform .35s ease, opacity .35s ease, visibility .35s ease;
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-action:hover .forever-category-product-action-label,
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-action:focus .forever-category-product-action-label {
+        opacity: 1;
+        visibility: visible;
+        transform: scaleX(1);
+    }
+
+    .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-info {
+        padding-right: 8px;
+        padding-left: 8px;
+        text-align: center;
+    }
+
+    @media (max-width: 1023px) {
+        .checkout-cart-index .forever-cart-crosssell-static {
+            width: min(100% - 48px, 900px);
+        }
+
+        .checkout-cart-index .forever-cart-crosssell-static-item {
+            flex-basis: calc((100% - 20px) / 2);
+            width: calc((100% - 20px) / 2);
+            max-width: calc((100% - 20px) / 2);
+        }
+    }
+
+    @media (max-width: 767px) {
+        .checkout-cart-index .forever-cart-crosssell-static {
+            width: min(100% - 24px, 720px);
+            margin-top: 52px;
+        }
+
+        .checkout-cart-index .forever-cart-crosssell-static-title {
+            font-size: 28px;
+        }
+
+        .checkout-cart-index .forever-cart-crosssell-static-item {
+            flex-basis: 100%;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-media,
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-image-link,
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-flip,
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-flip-inner,
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-flip-face {
+            min-height: 300px;
+        }
+
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-image,
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-image-link img,
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-media img {
+            height: 238px;
+        }
+
+        .checkout-cart-index .forever-cart-crosssell-static .forever-category-product-actions {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+        }
+    }
+</style>
+
+<section
+    id="forever-cart-crosssell-static"
+    class="forever-cart-crosssell-static"
+    aria-label="<?= $escaper->escapeHtmlAttr($title) ?>"
+>
+    <h2 class="forever-cart-crosssell-static-title">
+        <?= $escaper->escapeHtml($title) ?>
+    </h2>
+    <div class="forever-cart-crosssell-static-rule" aria-hidden="true"></div>
+
+    <div class="forever-cart-crosssell-static-grid">
+        <?php foreach ($items as $product): ?>
+            <div class="forever-cart-crosssell-static-item">
+                <?= /** @noEscape */ $productListItemViewModel->getItemHtmlWithRenderer(
+                    $itemRenderer,
+                    $product,
+                    $block,
+                    'grid',
+                    ProductReviewRenderer::SHORT_VIEW,
+                    'category_page_grid',
+                    false
+                ) ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</section>

@@ -1,0 +1,17 @@
+<?php
+/** @var $block \Magento\Checkout\Block\Cart\Sidebar */
+?>
+<div data-block="minicart" class="minicart-wrapper" id="minicart-dialog-data"
+     x-data="{ cart: {} }"
+     @private-content-loaded.window="cart = event.detail.data.cart || {}">
+    <a class="action showcart inline-flex items-center gap-2"
+       href="<?= $block->escapeUrl($block->getShoppingCartUrl()) ?>"
+       id="minicart-dialog-content">
+        <span class="text"><?= $block->escapeHtml(__('My Cart')) ?></span>
+        <span class="counter qty" :class="{ empty: !cart.summary_count }">
+            <span class="counter-number" x-text="cart.summary_count || 0">0</span>
+            <span class="counter-label sr-only"><?= $block->escapeHtml(__('items')) ?></span>
+        </span>
+    </a>
+    <?= $block->getChildHtml('minicart.addons') ?>
+</div>

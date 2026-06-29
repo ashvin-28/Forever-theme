@@ -1,0 +1,61 @@
+<?php
+declare(strict_types=1);
+
+use Forever\Team\Block\Home\Team;
+use Magento\Framework\Escaper;
+
+/** @var Team $block */
+/** @var Escaper $escaper */
+
+if ((int) $block->getConfigValue() !== 1) {
+    return;
+}
+
+$postsRecent = $block->getItems();
+
+if (!$postsRecent) {
+    return;
+}
+?>
+<div class="meet-our-team-wraper">
+    <div class="meet-our-team-text-block">
+        <p><?= $escaper->escapeHtml(__('Our Creative Force')) ?></p>
+        <h3><?= $escaper->escapeHtml(__('Meet our team')) ?></h3>
+    </div>
+    <div class="meet-our-team-detail-block">
+        <div class="meet-our-team-margin">
+            <?php foreach ($postsRecent as $post): ?>
+                <?php
+                $name = (string) $post->getName();
+                $designation = (string) $post->getDesignation();
+                $image = (string) $post->getImage();
+                $imageAlt = $name !== '' ? $name : (string) __('Team member');
+                ?>
+                <article class="meet-our-team-equal-box">
+                    <?php if ($image !== ''): ?>
+                        <div class="meet-our-team-image">
+                            <img src="<?= $escaper->escapeUrl($block->getMediaUrl() . 'team/image/' . $image) ?>"
+                                alt="<?= $escaper->escapeHtmlAttr($imageAlt) ?>"
+                                width="800"
+                                height="1078"
+                                loading="lazy">
+                        </div>
+                    <?php endif; ?>
+                    <div class="meet-our-team-name-designation">
+                        <?php if ($name !== ''): ?>
+                            <h2><?= $escaper->escapeHtml($name) ?></h2>
+                        <?php endif; ?>
+                        <?php if ($designation !== ''): ?>
+                            <h4><?= $escaper->escapeHtml($designation) ?></h4>
+                        <?php endif; ?>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<div class="view-all">
+    <a class="view-all-btn action primary" href="<?= $escaper->escapeUrl($block->getUrl('team')) ?>">
+        <?= $escaper->escapeHtml(__('View All')) ?>
+    </a>
+</div>

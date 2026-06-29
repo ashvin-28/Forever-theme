@@ -1,0 +1,43 @@
+<?php
+/**
+ * Hyva-compatible newsletter form used by the Forever footer CMS blocks.
+ *
+ * @var \Magento\Newsletter\Block\Subscribe $block
+ */
+?>
+<div class="block newsletter w-100 mb-0">
+    <div class="title d-none">
+        <strong><?= $block->escapeHtml(__('Newsletter')) ?></strong>
+    </div>
+    <div class="content">
+        <form class="form subscribe d-flex w-100"
+              action="<?= $block->escapeUrl($block->getFormActionUrl()) ?>"
+              method="post"
+              id="newsletter-validate-detail">
+            <div class="field newsletter f-none">
+                <div class="control p-relative w-100">
+                    <label for="newsletter">
+                        <span class="label">
+                            <?= $block->escapeHtml(__('Sign Up for Our Newsletter:')) ?>
+                        </span>
+                        <input name="email"
+                               type="email"
+                               id="newsletter"
+                               placeholder="<?= $block->escapeHtmlAttr(__('Enter your email address')) ?>"
+                               required
+                               autocomplete="email" />
+                        <?= $block->getBlockHtml('formkey') ?>
+                    </label>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="action subscribe primary w-100"
+                        title="<?= $block->escapeHtmlAttr(__('Subscribe')) ?>"
+                        type="submit"
+                        aria-label="<?= $block->escapeHtmlAttr(__('Subscribe')) ?>">
+                    <span><?= $block->escapeHtml(__('Subscribe')) ?></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

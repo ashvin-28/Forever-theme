@@ -1,0 +1,218 @@
+<?php
+/**
+ * Forever furniture header rebuilt on Hyva primitives.
+ */
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\StoreConfig;
+use Forever\Core\ViewModel\SystemConfigurations;
+use Magento\Checkout\Block\Cart\Sidebar as SidebarCart;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Escaper $escaper */
+/** @var Template $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$storeConfig = $viewModels->require(StoreConfig::class);
+$systemConfig = $viewModels->require(SystemConfigurations::class);
+
+$showMiniCart = $storeConfig->getStoreConfig(SidebarCart::XML_PATH_CHECKOUT_SIDEBAR_DISPLAY);
+$configuredHeaderStyle = (string) $systemConfig->getHeaderStyle();
+$headerStyle = in_array($configuredHeaderStyle, ['style-1', 'style-2', 'style-3', 'style-4'], true)
+    ? $configuredHeaderStyle
+    : 'style-1';
+$headerNumber = substr($headerStyle, -1);
+$headerContainerTypeClass = $headerStyle === 'style-2' ? 'header-two' : 'header-one';
+$headerClasses = [
+    'forever-reference-header',
+    'forever-configurable-header',
+    'forever-header-' . $headerStyle,
+    'forever-header-style-' . $headerNumber,
+    'header-' . $headerNumber,
+    $headerContainerTypeClass,
+    'header-container__inner'
+];
+$topBarHtml = trim((string) $block->getChildHtml('top-bar'));
+$welcomeHtml = trim((string) $block->getLayout()->renderElement('header-welcome-message'));
+$callHtml = trim((string) $block->getLayout()->renderElement('header-call-us'));
+$menuHtml = trim((string) $block->getChildHtml('forever.megamenu'));
+$searchHtml = trim((string) $block->getChildHtml('header-search'));
+?>
+<script>
+    function initHeader() {
+        return {
+            cart: {},
+            customer: {},
+            isCartOpen: false,
+            getData(data) {
+                this.cart = data.cart ?? {};
+                this.customer = data.customer ?? {};
+            },
+            summaryCount() {
+                return this.cart.summary_count || 0;
+            },
+            isCustomerSignedIn() {
+                return Boolean(this.customer && (this.customer.firstname || this.customer.fullname));
+            },
+            customerName() {
+                const name = this.customer.firstname || this.customer.fullname || '';
+
+                if (!name) {
+                    return '<?= $escaper->escapeJs(__('My Account')) ?>';
+                }
+
+                return hyva.str('<?= $escaper->escapeJs(__('%1!', '%1')) ?>', name);
+            },
+            cartAriaLabel() {
+                return '<?= $escaper->escapeJs($showMiniCart ? __('Toggle minicart') : __('View cart')) ?>, ' +
+                    (this.isCartEmpty() ? '<?= $escaper->escapeJs(__('Cart is empty')) ?>' : (
+                        Math.abs(this.summaryCount()) > 1
+                            ? hyva.str('<?= $escaper->escapeJs(__('%1 items')) ?>', this.summaryCount())
+                            : hyva.str('<?= $escaper->escapeJs(__('%1 item')) ?>', this.summaryCount())
+                    ))
+            },
+            isCartEmpty() {
+                return !this.cart.summary_count;
+            },
+            toggleCart() {
+                this.isCartOpen = this.$event.detail?.isOpen ?? true;
+                this.$dispatch('toggle-cart', {isOpen: this.isCartOpen});
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initHeader', initHeader);
+    }, {once: true})
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div id="header"
+     class="<?= $escaper->escapeHtmlAttr(implode(' ', $headerClasses)) ?>"
+     data-header-style="<?= $escaper->escapeHtmlAttr($headerStyle) ?>"
+     x-data="initHeader()"
+     @private-content-loaded.window="getData(event.detail.data)">
+    <?php if ($headerStyle === 'style-1'): ?>
+        <div class="forever-header-top forever-header-top-message">
+            <div class="header-top-container">
+                <div class="header-top-container-left">
+                    <?php if ($welcomeHtml !== ''): ?>
+                        <?= /** @noEscape */ $welcomeHtml ?>
+                    <?php else: ?>
+                        <div class="welcome-message">
+                            <p><?= $escaper->escapeHtml(__('Free shipping for orders over $59 !')) ?></p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    <?php elseif ($headerStyle === 'style-2'): ?>
+        <div class="forever-header-top forever-header-top-links">
+            <?php if ($topBarHtml): ?>
+                <?= /** @noEscape */ $topBarHtml ?>
+            <?php else: ?>
+            <div class="header-top">
+                <div class="header-top-inner">
+                    <div class="top-left">
+                        <ul>
+                            <li><a href="<?= $escaper->escapeUrl($block->getUrl('contact')) ?>"><?= $escaper->escapeHtml(__('Contact')) ?></a></li>
+                            <li><a href="#"><?= $escaper->escapeHtml(__('Reviews')) ?></a></li>
+                            <li><a href="#"><?= $escaper->escapeHtml(__('Support')) ?></a></li>
+                        </ul>
+                    </div>
+                    <div class="top-right">
+                        <ul>
+                            <li><a href="tel:+18636166">+1 86.36.166</a></li>
+                            <li><a href="mailto:contact@furnitureforever.com">contact@furnitureforever.com</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="forever-header-main">
+        <div class="forever-header-inner">
+            <?php if ($searchHtml !== ''): ?>
+                <div class="forever-header-search">
+                    <?= /** @noEscape */ $searchHtml ?>
+                </div>
+            <?php endif; ?>
+
+            <div class="forever-header-left">
+                <?= $block->getChildHtml('logo') ?>
+                <?php if ($menuHtml !== ''): ?>
+                    <div class="forever-main-nav">
+                        <?= /** @noEscape */ $menuHtml ?>
+                    </div>
+                <?php endif; ?>
+                <?php if ($headerStyle === 'style-1' && $callHtml !== ''): ?>
+                    <div class="forever-header-call">
+                        <?= /** @noEscape */ $callHtml ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="forever-header-actions">
+                <a class="forever-header-link forever-account-link"
+                   href="<?= $escaper->escapeUrl($block->getUrl('customer/account')) ?>"
+                   x-show="isCustomerSignedIn()"
+                   x-cloak>
+                    <span x-text="customerName()"><?= $escaper->escapeHtml(__('My Account')) ?></span>
+                    <?= $lucideIcons->userHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                </a>
+
+                <a class="forever-header-link forever-signin-link"
+                   href="<?= $escaper->escapeUrl($block->getUrl('customer/account/login')) ?>"
+                   data-trigger-ajax-login
+                   x-show="!isCustomerSignedIn()"
+                   x-cloak>
+                    <?= $lucideIcons->logInHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                    <span><?= $escaper->escapeHtml(__('Sign In')) ?></span>
+                </a>
+
+                <a class="forever-header-icon forever-wishlist-link"
+                   href="<?= $escaper->escapeUrl($block->getUrl('wishlist')) ?>"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('My Wish List')) ?>">
+                    <?= $lucideIcons->heartHtml('', 19, 19, ['aria-hidden' => 'true']) ?>
+                </a>
+
+                <?php if ($showMiniCart): ?>
+                    <button id="menu-cart-icon"
+                            type="button"
+                            class="forever-header-icon forever-cart-link"
+                            x-ref="cartButton"
+                            :aria-label="cartAriaLabel"
+                            @click="toggleCart"
+                            :aria-expanded="isCartOpen"
+                            aria-haspopup="dialog">
+                        <?= $lucideIcons->shoppingBagHtml('', 19, 19, ['aria-hidden' => 'true']) ?>
+                        <span class="forever-cart-count"
+                              x-text="summaryCount"
+                              x-show="summaryCount"
+                              x-cloak
+                              aria-hidden="true"></span>
+                    </button>
+                <?php else: ?>
+                    <a id="menu-cart-icon"
+                       class="forever-header-icon forever-cart-link"
+                       href="<?= $escaper->escapeUrl($block->getUrl('checkout/cart/index')) ?>"
+                       aria-label="<?= $escaper->escapeHtmlAttr(__('View cart')) ?>">
+                        <?= $lucideIcons->shoppingBagHtml('', 19, 19, ['aria-hidden' => 'true']) ?>
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <?= $block->getChildHtml('cart-drawer') ?>
+    <?= $block->getChildHtml('authentication-popup') ?>
+</div>

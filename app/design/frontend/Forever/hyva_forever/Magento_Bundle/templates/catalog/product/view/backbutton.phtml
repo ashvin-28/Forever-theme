@@ -1,0 +1,16 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+declare(strict_types=1);
+
+/** @var \Magento\Catalog\Block\Product\View $block */
+?>
+<button type="button"
+        class="action back customization text-gray-500 hover:text-black underline text-sm mb-4 inline-block"
+        @click="$dispatch('hide-customization')">
+    <span><?= $block->escapeHtml(__('Go back to product details')) ?></span>
+</button>

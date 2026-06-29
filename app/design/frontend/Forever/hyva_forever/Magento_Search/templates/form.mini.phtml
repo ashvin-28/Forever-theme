@@ -1,0 +1,37 @@
+<?php
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Search\Helper\Data as SearchHelper;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$helper = $this->helper(SearchHelper::class);
+?>
+<div class="block block-search forever-search-shell">
+    <form class="forever-search-form form minisearch input-group"
+          id="search_mini_form"
+          action="<?= $escaper->escapeUrl($helper->getResultUrl()) ?>"
+          method="get"
+          role="search">
+        <label class="sr-only" for="search"><?= $escaper->escapeHtml(__('Search')) ?></label>
+        <input id="search"
+               type="search"
+               name="<?= $escaper->escapeHtmlAttr($helper->getQueryParamName()) ?>"
+               value="<?= $escaper->escapeHtmlAttr($helper->getEscapedQueryText()) ?>"
+               placeholder="<?= $escaper->escapeHtmlAttr(__('Search furniture, lighting, decor...')) ?>"
+               class="forever-search-input form-input"
+               minlength="<?= $escaper->escapeHtmlAttr($helper->getMinQueryLength()) ?>"
+               maxlength="<?= $escaper->escapeHtmlAttr($helper->getMaxQueryLength()) ?>"
+               autocomplete="off">
+        <button type="submit"
+                title="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
+                class="forever-search-submit btn btn-primary"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Search')) ?>">
+            <span><?= $escaper->escapeHtml(__('Search')) ?></span>
+        </button>
+        <?= $block->getChildHtml() ?>
+    </form>
+</div>

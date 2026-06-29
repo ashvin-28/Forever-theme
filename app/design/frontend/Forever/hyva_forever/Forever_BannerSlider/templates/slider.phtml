@@ -1,0 +1,388 @@
+<?php
+declare(strict_types=1);
+
+use Forever\BannerSlider\Block\BannerSlider;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+
+/** @var BannerSlider $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$collection = $block->getBannerCollection();
+$slides = $collection ? array_values(iterator_to_array($collection)) : [];
+$slideCount = count($slides);
+$trackSlides = array_map(
+    static fn ($slide, int $index): array => ['item' => $slide, 'index' => $index, 'clone' => false],
+    $slides,
+    array_keys($slides)
+);
+if ($slideCount > 1) {
+    array_unshift($trackSlides, ['item' => $slides[$slideCount - 1], 'index' => $slideCount - 1, 'clone' => true]);
+    $trackSlides[] = ['item' => $slides[0], 'index' => 0, 'clone' => true];
+}
+$mediaBaseUrl = rtrim((string) $block->getMediaUrl(), '/') . '/';
+$descriptionAllowedTags = ['br', 'p', 'span', 'strong', 'b', 'em', 'h2', 'h3', 'ul', 'ol', 'li'];
+$extractBannerText = static function (string $html, string $tag): string {
+    if (preg_match(sprintf('#<%1$s\\b[^>]*>(.*?)</%1$s>#is', preg_quote($tag, '#')), $html, $match) !== 1) {
+        return '';
+    }
+
+    return trim(html_entity_decode(strip_tags($match[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+};
+$resolveBannerImageUrl = static function ($imageValue) use ($mediaBaseUrl): string {
+    if (is_array($imageValue)) {
+        $imageValue = $imageValue[0]['name'] ?? $imageValue[0]['url'] ?? '';
+    }
+
+    $imageName = trim((string) $imageValue);
+    if ($imageName === '') {
+        return '';
+    }
+
+    if (preg_match('#^(https?:)?//#i', $imageName) === 1) {
+        return $imageName;
+    }
+
+    $imageName = ltrim($imageName, '/');
+    $imageName = preg_replace('#^(pub/)?media/#', '', $imageName) ?? $imageName;
+
+    if (strpos($imageName, 'banner/') !== 0) {
+        $imageName = 'banner/' . $imageName;
+    }
+
+    return $mediaBaseUrl . $imageName;
+};
+
+if ($slideCount === 0) {
+    return;
+}
+
+$sliderConfig = [
+    'total' => $slideCount,
+    'interval' => 6500,
+    'autoplay' => false,
+];
+$sliderConfigJson = json_encode($sliderConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+?>
+
+<script>
+    'use strict';
+
+    function initForeverBannerSlider(config) {
+        return {
+            active: 0,
+            total: Number(config.total || 0),
+            interval: Number(config.interval || 6500),
+            autoplay: Boolean(config.autoplay),
+            timer: null,
+            isDragging: false,
+            dragPointerId: null,
+            dragStartX: 0,
+            dragDistance: 0,
+            dragThreshold: 48,
+            visualIndex: Number(config.total || 0) > 1 ? 1 : 0,
+            isAnimating: false,
+            isJumping: false,
+            animateContent: true,
+
+            init() {
+                this.visualIndex = this.total > 1 ? this.active + 1 : this.active;
+                if (this.autoplay && this.total > 1) {
+                    this.start();
+                }
+            },
+
+            destroy() {
+                if (this.timer) {
+                    window.clearInterval(this.timer);
+                    this.timer = null;
+                }
+            },
+
+            start() {
+                this.destroy();
+                this.timer = window.setInterval(() => this.next(), this.interval);
+            },
+
+            triggerContentAnimation() {
+                this.animateContent = false;
+                this.$nextTick(() => {
+                    window.requestAnimationFrame(() => {
+                        this.animateContent = true;
+                    });
+                });
+            },
+
+            go(index) {
+                if (this.total <= 0) {
+                    return;
+                }
+
+                if (this.total === 1) {
+                    this.active = 0;
+                    this.visualIndex = 0;
+                    return;
+                }
+
+                const previousActive = this.active;
+                const normalized = (index + this.total) % this.total;
+                this.animateContent = false;
+                this.active = normalized;
+                this.isAnimating = true;
+
+                if (previousActive === 0 && index < 0) {
+                    this.visualIndex = 0;
+                    this.triggerContentAnimation();
+                    return;
+                }
+
+                if (previousActive === this.total - 1 && index >= this.total) {
+                    this.visualIndex = this.total + 1;
+                    this.triggerContentAnimation();
+                    return;
+                }
+
+                this.visualIndex = normalized + 1;
+                this.triggerContentAnimation();
+            },
+
+            next() {
+                this.go(this.active + 1);
+            },
+
+            prev() {
+                this.go(this.active - 1);
+            },
+
+            trackStyle() {
+                const drag = this.isDragging ? this.dragDistance : 0;
+                return 'transform: translate3d(calc(-' + (this.visualIndex * 100) + '% + ' + drag + 'px), 0, 0);';
+            },
+
+            settleTrack(event) {
+                if (event && event.target !== event.currentTarget) {
+                    return;
+                }
+
+                this.isAnimating = false;
+
+                if (this.total <= 1) {
+                    return;
+                }
+
+                if (this.visualIndex === 0) {
+                    this.jumpTo(this.total);
+                    return;
+                }
+
+                if (this.visualIndex === this.total + 1) {
+                    this.jumpTo(1);
+                }
+            },
+
+            jumpTo(index) {
+                this.isJumping = true;
+                this.visualIndex = index;
+                this.$nextTick(() => {
+                    window.requestAnimationFrame(() => {
+                        this.isJumping = false;
+                    });
+                });
+            },
+
+            startDrag(event) {
+                if (this.total <= 1 || (event.pointerType === 'mouse' && event.button !== 0)) {
+                    return;
+                }
+
+                if (event.target.closest('a, button, input, textarea, select')) {
+                    return;
+                }
+
+                this.destroy();
+                this.isDragging = true;
+                this.dragPointerId = event.pointerId;
+                this.dragStartX = event.clientX;
+                this.dragDistance = 0;
+            },
+
+            moveDrag(event) {
+                if (!this.isDragging || event.pointerId !== this.dragPointerId) {
+                    return;
+                }
+
+                this.dragDistance = event.clientX - this.dragStartX;
+
+                if (Math.abs(this.dragDistance) > 8 && event.cancelable) {
+                    event.preventDefault();
+                }
+            },
+
+            endDrag(event) {
+                if (!this.isDragging || event.pointerId !== this.dragPointerId) {
+                    return;
+                }
+
+                const distance = this.dragDistance;
+                this.cancelDrag();
+
+                if (Math.abs(distance) >= this.dragThreshold) {
+                    distance < 0 ? this.next() : this.prev();
+                } else {
+                    this.isAnimating = true;
+                    this.visualIndex = this.total > 1 ? this.active + 1 : this.active;
+                }
+
+                if (this.autoplay) {
+                    this.start();
+                }
+            },
+
+            cancelDrag() {
+                this.isDragging = false;
+                this.dragPointerId = null;
+                this.dragDistance = 0;
+            }
+        };
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<section class="home-page-banner-slider reveal">
+    <div class="banner-slider forever-banner-slider"
+        x-data='initForeverBannerSlider(<?= $escaper->escapeHtmlAttr((string) $sliderConfigJson) ?>)'
+        x-init="$el.classList.add('is-ready'); init()"
+        :class="{ 'is-dragging': isDragging }"
+        @mouseenter="destroy()"
+        @mouseleave="autoplay && start()"
+        @pointerdown="startDrag($event)"
+        @pointermove.window="moveDrag($event)"
+        @pointerup.window="endDrag($event)"
+        @pointercancel.window="cancelDrag()"
+        @dragstart.prevent
+        @keydown.arrow-left.prevent="prev()"
+        @keydown.arrow-right.prevent="next()"
+        tabindex="0"
+        role="region"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Homepage banner slider')) ?>">
+        <div class="forever-banner-stage"
+            :class="{ 'is-dragging': isDragging, 'is-jumping': isJumping }"
+            :style="trackStyle()"
+            @transitionend="settleTrack($event)">
+            <?php foreach ($trackSlides as $trackSlide): ?>
+                <?php
+                $item = $trackSlide['item'];
+                $index = (int) $trackSlide['index'];
+                $isClone = (bool) $trackSlide['clone'];
+                $title = (string) $item->getImagetext();
+                $description = (string) $item->getDescription();
+                $descriptionTitle = $extractBannerText($description, 'h2');
+                $descriptionSubtitle = $extractBannerText($description, 'h3');
+                $descriptionBody = $extractBannerText($description, 'p');
+                $hasStructuredDescription = $descriptionTitle !== '' || $descriptionSubtitle !== '' || $descriptionBody !== '';
+                $normalizedTitle = strtolower((string) preg_replace('/[^a-z0-9]+/i', '', $title));
+                $descriptionFirstWord = strtok($descriptionTitle, ' ') ?: '';
+                $normalizedDescriptionFirstWord = strtolower((string) preg_replace('/[^a-z0-9]+/i', '', $descriptionFirstWord));
+                $isRepeatedHeadingLabel = $normalizedTitle !== ''
+                    && $normalizedDescriptionFirstWord !== ''
+                    && rtrim($normalizedTitle, 's') === rtrim($normalizedDescriptionFirstWord, 's');
+                $showTitle = $title !== '' && !$isRepeatedHeadingLabel;
+                $buttonText = trim((string) $item->getData('buttontext'));
+                $buttonLink = trim((string) $item->getButtonlink());
+                $imageUrl = $resolveBannerImageUrl($item->getData('sliderimage'));
+                $imageAlt = strip_tags($title ?: $descriptionTitle ?: (string) __('Banner'));
+                ?>
+                <article class="slide-items"
+                    :class="{
+                        'is-active': active === <?= (int) $index ?>,
+                        'is-content-entering': active === <?= (int) $index ?> && animateContent
+                    }"
+                    <?php if ($isClone): ?>
+                        aria-hidden="true"
+                    <?php else: ?>
+                        :aria-hidden="active !== <?= (int) $index ?>"
+                    <?php endif; ?>
+                    aria-roledescription="<?= $escaper->escapeHtmlAttr(__('slide')) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Slide %1 of %2', $index + 1, $slideCount)) ?>">
+                    <div class="slide-content">
+                        <div class="slider-des">
+                            <?php if ($showTitle): ?>
+                                <h1 class="slide-heading">
+                                    <span data-th="<?= $escaper->escapeHtmlAttr('imagetext') ?>" class="slide-name">
+                                        <?= $escaper->escapeHtml($title, ['br', 'span', 'strong', 'b', 'em']) ?>
+                                    </span>
+                                </h1>
+                            <?php endif; ?>
+
+                            <?php if ($description !== ''): ?>
+                                <div class="slide-description">
+                                    <?php if ($hasStructuredDescription): ?>
+                                        <?php if ($descriptionTitle !== ''): ?>
+                                            <h2 class="slide-description-title">
+                                                <?= $escaper->escapeHtml($descriptionTitle) ?>
+                                            </h2>
+                                        <?php endif; ?>
+                                        <?php if ($descriptionSubtitle !== ''): ?>
+                                            <h3 class="slide-description-subtitle">
+                                                <?= $escaper->escapeHtml($descriptionSubtitle) ?>
+                                            </h3>
+                                        <?php endif; ?>
+                                        <?php if ($descriptionBody !== ''): ?>
+                                            <p class="slide-description-text">
+                                                <?= $escaper->escapeHtml($descriptionBody) ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <?= $escaper->escapeHtml($description, $descriptionAllowedTags) ?>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($buttonLink !== '' && $buttonText !== ''): ?>
+                                <a class="slider-button" href="<?= $escaper->escapeUrl($buttonLink) ?>">
+                                    <?= $escaper->escapeHtml($buttonText) ?>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div data-th="<?= $escaper->escapeHtmlAttr(__('sliderimage')) ?>" class="slide-image">
+                        <?php if ($imageUrl !== ''): ?>
+                            <img src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                                alt="<?= $escaper->escapeHtmlAttr($imageAlt) ?>"
+                                width="425"
+                                height="562"
+                                loading="<?= $index === 0 ? 'eager' : 'lazy' ?>"
+                                draggable="false">
+                        <?php endif; ?>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if ($slideCount > 1): ?>
+            <div class="forever-banner-nav" aria-label="<?= $escaper->escapeHtmlAttr(__('Banner slider controls')) ?>">
+                <button type="button"
+                    class="forever-banner-nav-button forever-banner-prev"
+                    @click="prev(); $event.currentTarget.blur()"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>">
+                    <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true">
+                        <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button type="button"
+                    class="forever-banner-nav-button forever-banner-next"
+                    @click="next(); $event.currentTarget.blur()"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>">
+                    <svg viewBox="0 0 24 24" width="32" height="32" aria-hidden="true">
+                        <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>

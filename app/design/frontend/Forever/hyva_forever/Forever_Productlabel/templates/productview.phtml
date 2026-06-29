@@ -1,0 +1,103 @@
+<?php
+/**
+ * Hyva-safe product label output for PDP media.
+ */
+
+declare(strict_types=1);
+
+use Magento\Catalog\Block\Product\View;
+use Magento\Framework\Escaper;
+
+/** @var View $block */
+/** @var Escaper $escaper */
+
+$product = $block->getProduct();
+$viewModel = $block->getViewmodel();
+
+if (!$product || !$viewModel) {
+    return;
+}
+
+$productOption = (string) $viewModel->getProductoption($product);
+$productLabels = (array) $viewModel->getProductlabel($product);
+
+if (!$productLabels) {
+    $resource = $product->getResource();
+    if ($resource && method_exists($resource, 'getAttributeRawValue')) {
+        $storeIds = array_values(array_unique([(int) $product->getStoreId(), 0]));
+        $rawLabels = null;
+        $rawOption = null;
+
+        foreach ($storeIds as $storeId) {
+            if ($rawLabels === null) {
+                $candidateLabels = $resource->getAttributeRawValue((int) $product->getId(), 'productlabel', $storeId);
+                if ($candidateLabels !== false && $candidateLabels !== null && $candidateLabels !== '') {
+                    $rawLabels = (string) $candidateLabels;
+                }
+            }
+
+            if ($rawOption === null) {
+                $candidateOption = $resource->getAttributeRawValue((int) $product->getId(), 'productoption', $storeId);
+                if ($candidateOption !== false && $candidateOption !== null && $candidateOption !== '') {
+                    $rawOption = (string) $candidateOption;
+                }
+            }
+        }
+
+        if ($rawOption && $productOption === '') {
+            $optionAttribute = $resource->getAttribute('productoption');
+            if ($optionAttribute && $optionAttribute->usesSource()) {
+                $optionText = $optionAttribute->getSource()->getOptionText($rawOption);
+                if ($optionText !== false && $optionText !== null && $optionText !== '') {
+                    $productOption = strtolower(str_replace(' ', '_', (string) $optionText));
+                }
+            }
+        }
+
+        if ($rawLabels) {
+            $labelAttribute = $resource->getAttribute('productlabel');
+            if ($labelAttribute && $labelAttribute->usesSource()) {
+                foreach (explode(',', $rawLabels) as $value) {
+                    $optionText = $labelAttribute->getSource()->getOptionText(trim((string) $value));
+                    if ($optionText === false || $optionText === null || $optionText === '') {
+                        continue;
+                    }
+
+                    $label = (string) $optionText;
+                    if ($label === 'Discount') {
+                        $specialPrice = (float) $product->getSpecialPrice();
+                        $price = (float) $product->getPrice();
+                        if ($specialPrice > 0 && $price > 0) {
+                            $discount = (int) round(100 - ($specialPrice / $price) * 100);
+                            if ($discount > 0) {
+                                $productLabels[] = (string) $discount;
+                            }
+                        }
+                        continue;
+                    }
+
+                    $productLabels[] = $label;
+                }
+            }
+        }
+    }
+}
+?>
+<?php if ($productLabels): ?>
+    <div class="product_label_wrapper <?= $escaper->escapeHtmlAttr($productOption) ?>">
+        <?php foreach ($productLabels as $productLabel): ?>
+            <?php if ($productLabel === null || $productLabel === ''): ?>
+                <?php continue; ?>
+            <?php endif; ?>
+            <?php
+            $labelText = is_numeric($productLabel) ? $productLabel . '% off' : (string) $productLabel;
+            $labelClass = is_numeric($productLabel)
+                ? 'discount'
+                : strtolower(str_replace(' ', '', (string) $productLabel));
+            ?>
+            <span class="productlabel <?= $escaper->escapeHtmlAttr($labelClass) ?>">
+                <?= $escaper->escapeHtml($labelText) ?>
+            </span>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>

@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <attribute name="class" value="forever-header-default"/>
+
+        <referenceContainer name="header-content.additional">
+            <block class="Magento\Cms\Block\Block" name="header-welcome-message">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">header-welcome-message</argument>
+                </arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="header-wishlist">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">header-wishlist</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+
+        <referenceBlock name="header-content">
+            <block class="Magento\Cms\Block\Block" name="header-two-top" as="top-bar" before="-">
+                <arguments>
+                    <argument name="block_id" xsi:type="string">header-two-top</argument>
+                </arguments>
+            </block>
+            <block class="Forever\Megamenu\Block\Menu" name="forever.megamenu" as="forever.megamenu" template="Forever_Megamenu::topmenu.phtml" after="top-bar">
+                <block class="Magento\Theme\Block\Html\Topmenu" name="forever.megamenu.default" template="Magento_Theme::html/topmenu.phtml"/>
+            </block>
+        </referenceBlock>
+
+        <referenceBlock name="authentication-popup" template="Forever_AuthenticationPopUp::account/ajaxlogin-popup.phtml"/>
+        <referenceBlock name="topmenu_generic" remove="true"/>
+        <referenceBlock name="footer-static-links" remove="true"/>
+        <referenceBlock name="footer-cms-content" remove="true"/>
+        <referenceBlock name="footer-copyright" remove="true"/>
+
+        <referenceBlock name="footer-content">
+            <arguments>
+                <argument name="view_model" xsi:type="object">Forever\Core\ViewModel\SystemConfigurations</argument>
+            </arguments>
+            <block class="Magento\Cms\Block\Block" name="footer-1-footer-top-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-1-footer-top-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-1-footer-middle-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-1-footer-middle-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-1-footer-bottom-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-1-footer-bottom-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-2-footer-top-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-2-footer-top-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-2-footer-middle-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-2-footer-middle-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-3-footer-top-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-3-footer-top-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-3-footer-middle-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-3-footer-middle-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-3-footer-bottom-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-3-footer-bottom-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-4-footer-top-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-4-footer-top-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-4-footer-middle-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-4-footer-middle-section</argument></arguments>
+            </block>
+            <block class="Magento\Cms\Block\Block" name="footer-4-footer-bottom-section">
+                <arguments><argument name="block_id" xsi:type="string">footer-4-footer-bottom-section</argument></arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

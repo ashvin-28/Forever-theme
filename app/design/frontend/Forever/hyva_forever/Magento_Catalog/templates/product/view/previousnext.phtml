@@ -1,0 +1,81 @@
+<?php
+/**
+ * Next and Previous product navigation in product page template
+ */
+
+/** @var \Magento\Catalog\Block\Product\View\Description $block */
+?>
+<?php
+    $viewModel = $block->getViewModel();
+    $product = $block->getProduct();
+    $prevProduct = $viewModel->getPrevProduct($product);
+    $nextProduct = $viewModel->getNextProduct($product);
+    $category = $viewModel->getCurrentCategory($product);
+    $mediaPath = $viewModel->getMediaUrl();
+?>
+<?php if ($prevProduct || $nextProduct): ?>
+<div class="absolute right-0 top-0 lg:top-[44px] z-20 flex gap-2">
+    <?php if ($prevProduct): ?>
+        <div class="relative group" x-data="{ open: false }">
+            <a class="flex items-center justify-center w-10 h-10 rounded-full bg-[#dfa34a] hover:bg-black transition-colors duration-200"
+               title="<?= $block->escapeHtmlAttr(__('Previous')) ?>"
+               href="<?= $block->escapeUrl($prevProduct->getProductUrl()); ?>"
+               @mouseenter="open = true"
+               @mouseleave="open = false">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </a>
+            <div class="absolute top-full right-0 mt-2 bg-white border border-gray-200 p-2 shadow-lg w-36 z-50 transition-all duration-300 pointer-events-none"
+                 x-show="open"
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-75"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95">
+                <div class="flex flex-col items-center">
+                    <img class="w-20 h-24 object-contain mb-2"
+                         src="<?= $block->escapeUrl($viewModel->getProductThumbnail($prevProduct)) ?>"
+                         alt="<?= $block->escapeHtmlAttr($prevProduct->getName()) ?>" />
+                    <span class="text-[11px] font-bold text-gray-800 line-clamp-2 text-center leading-snug">
+                        <?= $block->escapeHtml($prevProduct->getName()) ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if ($nextProduct): ?>
+        <div class="relative group" x-data="{ open: false }">
+            <a class="flex items-center justify-center w-10 h-10 rounded-full bg-[#dfa34a] hover:bg-black transition-colors duration-200"
+               title="<?= $block->escapeHtmlAttr(__('Next')) ?>"
+               href="<?= $block->escapeUrl($nextProduct->getProductUrl()); ?>"
+               @mouseenter="open = true"
+               @mouseleave="open = false">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+            <div class="absolute top-full right-0 mt-2 bg-white border border-gray-200 p-2 shadow-lg w-36 z-50 transition-all duration-300 pointer-events-none"
+                 x-show="open"
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 transform scale-95"
+                 x-transition:enter-end="opacity-100 transform scale-100"
+                 x-transition:leave="transition ease-in duration-75"
+                 x-transition:leave-start="opacity-100 transform scale-100"
+                 x-transition:leave-end="opacity-0 transform scale-95">
+                <div class="flex flex-col items-center">
+                    <img class="w-20 h-24 object-contain mb-2"
+                         src="<?= $block->escapeUrl($viewModel->getProductThumbnail($nextProduct)) ?>"
+                         alt="<?= $block->escapeHtmlAttr($nextProduct->getName()) ?>" />
+                    <span class="text-[11px] font-bold text-gray-800 line-clamp-2 text-center leading-snug">
+                        <?= $block->escapeHtml($nextProduct->getName()) ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>

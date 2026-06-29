@@ -1,0 +1,127 @@
+<ol class="items">
+    <?php
+    $viewModel = $block->getViewmodels();
+    $blockLayered = $block->getLayout()->createBlock(\Forever\LayeredNavigation\Block\Layerednav::class);
+    $rangePrice = $blockLayered ? $blockLayered->getCurrentCategoryMaxPrice() : false;
+    $showCount = $viewModel->shouldDisplayProductCountOnLayer();
+    ?>
+    <?php foreach ($filterItems as $filterItem): ?>
+        <?php
+        $filter = $filterItem->getFilter();
+        $attributeModel = $filter->getData('attribute_model');
+        $inputName = $filter->getRequestVar();
+        $requestValue = $block->getRequest()->getParam($inputName);
+        $requestValueString = is_array($requestValue) ? '' : (string) $requestValue;
+        $requestArray = $requestValueString !== '' ? explode(',', $requestValueString) : [];
+        $isActive = in_array((string) $filterItem->getValue(), $requestArray, true);
+        $isPriceFilter = $inputName === 'price' || ($attributeModel && $attributeModel->getFrontendInput() == 'price');
+        $url = $isActive ? $filterItem->getRemoveUrl() : $filterItem->getUrl();
+        ?>
+        <li class="item">
+            <?php if ($isPriceFilter): ?>
+                <?php
+                $min = is_array($rangePrice) ? (int) $rangePrice['min'] : (int) $filterItem->getData('from');
+                $max = is_array($rangePrice) ? (int) $rangePrice['max'] : (int) $filterItem->getData('to');
+                if ($max <= $min) {
+                    $max = $min + 1;
+                }
+                $selectedRange = $requestValueString !== '' ? explode('-', explode(',', $requestValueString)[0]) : [$min, $max];
+                $from = isset($selectedRange[0]) && is_numeric($selectedRange[0]) ? (float) $selectedRange[0] : $min;
+                $to = isset($selectedRange[1]) && is_numeric($selectedRange[1]) ? (float) $selectedRange[1] : $max;
+                ?>
+                <div class="forever-price-filter"
+                     data-forever-price-filter
+                     data-url="<?= $block->escapeUrl($filterItem->getUrl()) ?>"
+                     x-data="{
+                         min: <?= /* @noEscape */ json_encode($min) ?>,
+                         max: <?= /* @noEscape */ json_encode($max) ?>,
+                         from: <?= /* @noEscape */ json_encode($from) ?>,
+                         to: <?= /* @noEscape */ json_encode($to) ?>,
+                         format(value) {
+                             return '$' + new Intl.NumberFormat('en-US', {
+                                 minimumFractionDigits: 2,
+                                 maximumFractionDigits: 2
+                             }).format(value);
+                         },
+                         lowerPercent() {
+                             return ((this.from - this.min) / (this.max - this.min)) * 100;
+                         },
+                         upperPercent() {
+                             return ((this.to - this.min) / (this.max - this.min)) * 100;
+                         },
+                         setFrom(value) {
+                             this.from = Math.min(Number(value), Number(this.to) - 1);
+                         },
+	                         setTo(value) {
+	                             this.to = Math.max(Number(value), Number(this.from) + 1);
+	                         },
+	                         toParam() {
+	                             return Number(this.to) >= Number(this.max) ? '' : this.to;
+	                         },
+	                         toLabel() {
+	                             return Number(this.to) >= Number(this.max) ? '<?= $block->escapeJs(__('and above')) ?>' : '- ' + this.format(this.to);
+	                         },
+	                         apply() {
+	                             const url = new URL('<?= $block->escapeJs($filterItem->getUrl()) ?>', window.location.href);
+	                             url.searchParams.set('<?= $block->escapeJs($inputName) ?>', this.from + '-' + this.toParam());
+	                             url.searchParams.delete('p');
+	                             window.location.href = url.toString();
+	                         }
+	                     }">
+	                    <div class="forever-price-filter-value" aria-live="polite">
+	                        <span x-text="format(from) + ' ' + toLabel()"></span>
+	                    </div>
+                    <div class="forever-price-filter-slider">
+                        <div class="forever-price-filter-track"></div>
+                        <div
+                            class="forever-price-filter-range"
+                            :style="'left:' + lowerPercent() + '%; right:' + (100 - upperPercent()) + '%'"
+                        ></div>
+                        <input
+                            type="range"
+                            min="<?= $block->escapeHtmlAttr((string) $min) ?>"
+                            :max="Number(to) - 1"
+                            step="1"
+                            :value="from"
+                            @input="setFrom($event.target.value)"
+                            @change="apply()"
+                            aria-label="<?= $block->escapeHtmlAttr(__('Minimum price')) ?>"
+                        >
+                        <input
+                            type="range"
+                            :min="Number(from) + 1"
+                            max="<?= $block->escapeHtmlAttr((string) $max) ?>"
+                            step="1"
+                            :value="to"
+                            @input="setTo($event.target.value)"
+                            @change="apply()"
+                            aria-label="<?= $block->escapeHtmlAttr(__('Maximum price')) ?>"
+                        >
+                    </div>
+                </div>
+            <?php elseif ($filterItem->getCount() > 0): ?>
+                <a <?= $isActive ? 'class="active"' : '' ?> href="<?= $block->escapeUrl($url) ?>">
+                    <?php if ($attributeModel && $attributeModel->getFrontendInput() == 'multiselect'): ?>
+                        <input type="checkbox" <?= $isActive ? 'checked="checked"' : '' ?> />
+                    <?php endif; ?>
+                    <?= /** @noEscape */ $filterItem->getLabel() ?>
+                    <?php if ($showCount): ?>
+                        <span class="count"><?= $block->escapeHtml((string) $filterItem->getCount()) ?>
+                            <span class="filter-count-label">
+                                <?= $block->escapeHtml($filterItem->getCount() == 1 ? __('item') : __('items')) ?>
+                            </span>
+                        </span>
+                    <?php endif; ?>
+                </a>
+            <?php else: ?>
+                <?php if ($attributeModel && $attributeModel->getFrontendInput() == 'multiselect'): ?>
+                    <input type="checkbox" disabled="disabled" />
+                <?php endif; ?>
+                <?= /** @noEscape */ $filterItem->getLabel() ?>
+                <?php if ($showCount): ?>
+                    <span class="count"><?= $block->escapeHtml((string) $filterItem->getCount()) ?></span>
+                <?php endif; ?>
+            <?php endif; ?>
+        </li>
+    <?php endforeach; ?>
+</ol>

@@ -1,0 +1,77 @@
+<?php
+/**
+ * Compact configurable swatch option used on Forever category cards.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Magento\Swatches\ViewModel\Product\Renderer\Configurable as ConfigurableViewModel;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ConfigurableViewModel $configurableViewModel */
+$configurableViewModel = $viewModels->require(ConfigurableViewModel::class);
+
+$productId = (int) $block->getProductId();
+$attributeId = (int) $block->getAttributeId();
+
+if (!$productId || !$attributeId) {
+    return '';
+}
+?>
+<div x-id="['attribute-option-<?= $productId ?>-' + item.id]" class="forever-swatch-option-wrap">
+    <template x-if="optionIsEnabled(<?= $attributeId ?>, item.id) && optionIsActive(<?= $attributeId ?>, item.id)">
+        <label
+            :for="$id('attribute-option-<?= $productId ?>-' + item.id)"
+            class="forever-swatch-option swatch-option"
+            :class="{
+                'is-selected': selectedValues[<?= $attributeId ?>] === item.id,
+                'is-text-swatch': isTextSwatch(<?= $attributeId ?>, item.id),
+                'is-visual-swatch': !isTextSwatch(<?= $attributeId ?>, item.id),
+                'is-focused': focusedLabel === item.id
+            }"
+            :style="getSwatchBackgroundStyle('<?= $attributeId ?>', item.id)"
+            <?php if ($configurableViewModel->getShowSwatchTooltip()): ?>
+                @mouseenter.self="activeTooltipItem = { attribute: '<?= $attributeId ?>', item: item.id, index }; tooltipPositionElement = $event.target;"
+                @mouseleave.self="activeTooltipItem = false"
+            <?php endif; ?>
+        >
+            <input
+                :id="$id('attribute-option-<?= $productId ?>-' + item.id)"
+                :value="item.id"
+                name="super_attribute[<?= $attributeId ?>]"
+                type="radio"
+                class="forever-swatch-input product-option-value-input"
+                x-on:focus="focusLabel(item.id)"
+                x-on:blur="blurLabel()"
+                x-on:change="changeOption(<?= $attributeId ?>, $event.target.value)"
+                x-on:click="clearOptionIfActive(<?= $attributeId ?>, item.id)"
+                x-model="selectedValues[<?= $attributeId ?>]"
+                :required="getAllowedAttributeOptions(<?= $attributeId ?>).filter(attributeOption => selectedValues[attributeOption]).length === 0"
+                :aria-label="getSwatchText(<?= $attributeId ?>, item.id)"
+                aria-describedby="attribute-label-<?= $escaper->escapeHtmlAttr($productId . '-' . $attributeId) ?>"
+            >
+            <template x-if="isTextSwatch(<?= $attributeId ?>, item.id)">
+                <span x-html="getSwatchText(<?= $attributeId ?>, item.id)" aria-hidden="true"></span>
+            </template>
+        </label>
+    </template>
+
+    <template x-if="optionIsEnabled(<?= $attributeId ?>, item.id) && !optionIsActive(<?= $attributeId ?>, item.id)">
+        <span
+            class="forever-swatch-option swatch-option is-disabled"
+            :class="isTextSwatch(<?= $attributeId ?>, item.id) ? 'is-text-swatch' : 'is-visual-swatch'"
+            :style="getSwatchBackgroundStyle('<?= $attributeId ?>', item.id)"
+            :aria-label="getSwatchText(<?= $attributeId ?>, item.id)"
+        >
+            <template x-if="isTextSwatch(<?= $attributeId ?>, item.id)">
+                <span x-html="getSwatchText(<?= $attributeId ?>, item.id)" aria-hidden="true"></span>
+            </template>
+        </span>
+    </template>
+</div>

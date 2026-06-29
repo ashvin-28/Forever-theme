@@ -1,0 +1,66 @@
+<?php
+/**
+ * Forever Hyva customer dashboard account information.
+ *
+ * @var \Magento\Customer\Block\Account\Dashboard\Info $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+
+declare(strict_types=1);
+?>
+
+<section class="forever-account-section forever-dashboard-info">
+    <h2 class="forever-account-section-title">
+        <?= $escaper->escapeHtml(__('Account Information')) ?>
+    </h2>
+
+    <div class="forever-account-box-grid">
+        <article class="forever-account-box box-information">
+            <h3 class="forever-account-box-title">
+                <?= $escaper->escapeHtml(__('Contact Information')) ?>
+            </h3>
+            <div class="forever-account-box-content">
+                <p>
+                    <?= $escaper->escapeHtml($block->getName()) ?><br>
+                    <?= $escaper->escapeHtml($block->getCustomer()->getEmail()) ?>
+                </p>
+                <?= $block->getChildHtml('customer.account.dashboard.info.extra') ?>
+            </div>
+            <div class="forever-account-box-actions">
+                <a href="<?= $escaper->escapeUrl($block->getUrl('customer/account/edit')) ?>"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('Edit contact information')) ?>">
+                    <?= $escaper->escapeHtml(__('Edit')) ?>
+                </a>
+                <span class="forever-account-action-divider" aria-hidden="true"></span>
+                <a href="<?= $escaper->escapeUrl($block->getChangePasswordUrl()) ?>">
+                    <?= $escaper->escapeHtml(__('Change Password')) ?>
+                </a>
+            </div>
+        </article>
+
+        <?php if ($block->isNewsletterEnabled()): ?>
+            <article class="forever-account-box box-newsletter">
+                <h3 class="forever-account-box-title">
+                    <?= $escaper->escapeHtml(__('Newsletters')) ?>
+                </h3>
+                <div class="forever-account-box-content">
+                    <p>
+                        <?php if ($block->getIsSubscribed()): ?>
+                            <?= $escaper->escapeHtml(__('You are subscribed to "General Subscription".')) ?>
+                        <?php else: ?>
+                            <?= $escaper->escapeHtml(__('You aren\'t subscribed to our newsletter.')) ?>
+                        <?php endif; ?>
+                    </p>
+                </div>
+                <div class="forever-account-box-actions">
+                    <a href="<?= $escaper->escapeUrl($block->getUrl('newsletter/manage')) ?>"
+                       aria-label="<?= $escaper->escapeHtmlAttr(__('Edit newsletters')) ?>">
+                        <?= $escaper->escapeHtml(__('Edit')) ?>
+                    </a>
+                </div>
+            </article>
+        <?php endif; ?>
+
+        <?= $block->getChildHtml('additional_blocks') ?>
+    </div>
+</section>

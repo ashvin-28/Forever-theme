@@ -1,0 +1,35 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Magento\Downloadable\Block\Catalog\Product\Samples;
+use Magento\Framework\Escaper;
+
+/** @var Samples $block */
+/** @var Escaper $escaper */
+
+if ($block->hasSamples()): ?>
+    <div class="forever-pdp-downloadable-samples mb-4">
+        <span class="forever-pdp-downloadable-title">
+            <?= $escaper->escapeHtml($block->getSamplesTitle()) ?>
+        </span>
+        <div class="forever-pdp-downloadable-items mt-1">
+            <?php foreach ($block->getSamples() as $sample): ?>
+                <div class="forever-pdp-downloadable-item py-1">
+                    <a href="<?= $escaper->escapeUrl($block->getSampleUrl($sample)) ?>"
+                       download
+                       <?= $block->getIsOpenInNewWindow() ? 'target="_blank" rel="noopener"' : '' ?>
+                       class="forever-pdp-downloadable-link"
+                    >
+                        <?= $escaper->escapeHtml($sample->getTitle()) ?>
+                    </a>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>

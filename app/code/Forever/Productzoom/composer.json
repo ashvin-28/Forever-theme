@@ -1,0 +1,30 @@
+{
+  "name": "forever/productzoom",
+  "description": "Magento 2 Product zoom images.",
+  "version": "2.0.0",
+  "require": {
+    "php": "~8.1.0|~8.2.0|~8.3.0|~8.4.0|>=8.4",
+    "magento/framework": ">=103.0.0"
+  },
+  "type": "magento2-module",
+  "license": [
+    "OSL-3.0",
+    "AFL-3.0"
+  ],
+  "authors": [
+    {
+      "name": "Forever",
+      "email": "support@forever.com",
+      "homepage": "https://forever.com",
+      "role": "Technical Support"
+    }
+  ],
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Forever\\Productzoom\\": ""
+    }
+  }
+}

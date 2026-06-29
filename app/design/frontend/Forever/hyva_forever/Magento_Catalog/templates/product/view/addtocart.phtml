@@ -1,0 +1,30 @@
+<?php
+/**
+ * Hyva-compatible Add to Cart button override.
+ */
+
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$buttonLabel = $block->getData('is_cart_configure')
+    ? __('Update item')
+    : __('Add to Cart');
+?>
+
+<button
+    type="submit"
+    form="product_addtocart_form"
+    aria-label="<?= $escaper->escapeHtmlAttr($buttonLabel) ?>"
+    class="btn btn-primary"
+    id="product-addtocart-button"
+    data-addto="cart"
+>
+    <span><?= $escaper->escapeHtml($buttonLabel) ?></span>
+</button>
+
+<?= $block->getChildHtml('', true) ?>

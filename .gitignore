@@ -1,0 +1,17 @@
+/composer.lock
+/auth.json
+/app/etc/config.php
+/app/etc/env.php
+/var/*
+/generated/*
+/vendor/*
+/pub/static/*
+/pub/media/*
+/dev/*
+/phpserver/*
+/setup/*
+/.htaccess
+/.user.ini
+/forever249.sql.gz
+/scratch/*
+*.zip

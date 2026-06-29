@@ -1,0 +1,183 @@
+<?php
+/** @var \Magento\Customer\Block\Account\Customer $block */
+
+$authPopupHelper = $this->helper(\Forever\AuthenticationPopUp\Helper\Data::class);
+
+if (!$authPopupHelper->isModuleEnabled()) {
+    return;
+}
+?>
+<div id="ajaxlogin-popup"
+     class="forever-auth-modal"
+     x-data="{
+        isOpen: false,
+        isLoading: false,
+        username: '',
+        password: '',
+        message: '',
+        messageType: 'error',
+        triggerClickHandler: null,
+        loginUrl: '<?= $block->escapeJs($block->getUrl('ajaxlogin/ajax/login')) ?>',
+        init() {
+            this.triggerClickHandler = (event) => {
+                const trigger = event.target.closest('[data-trigger-ajax-login], .trigger-ajax-login');
+                if (!trigger) {
+                    return;
+                }
+                event.preventDefault();
+                this.openModal();
+            };
+            document.addEventListener('click', this.triggerClickHandler);
+        },
+        destroy() {
+            if (this.triggerClickHandler) {
+                document.removeEventListener('click', this.triggerClickHandler);
+            }
+            document.body.classList.remove('forever-auth-open');
+        },
+        openModal() {
+            this.message = '';
+            this.messageType = 'error';
+            this.isOpen = true;
+            document.body.classList.add('forever-auth-open');
+        },
+        closeModal() {
+            this.isOpen = false;
+            this.isLoading = false;
+            this.message = '';
+            document.body.classList.remove('forever-auth-open');
+        },
+        clearMessage() {
+            this.message = '';
+        },
+        setMessage(message, type = 'error') {
+            this.message = message || '<?= $block->escapeJs(__('Could not authenticate. Please try again later.')) ?>';
+            this.messageType = type;
+        },
+        submitLogin() {
+            if (!this.$refs.form.reportValidity()) {
+                return;
+            }
+            this.isLoading = true;
+            this.clearMessage();
+
+            fetch(this.loginUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    username: this.username,
+                    password: this.password,
+                    formKey: hyva.getFormKey ? hyva.getFormKey() : ''
+                })
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('login_failed');
+                }
+                return response.json();
+            })
+            .then((response) => {
+                if (response.errors) {
+                    this.setMessage(response.message);
+                    this.isLoading = false;
+                    return;
+                }
+
+                this.setMessage(response.message || '<?= $block->escapeJs(__('Login successful.')) ?>', 'success');
+                window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                window.setTimeout(() => {
+                    if (response.redirectUrl) {
+                        window.location.href = response.redirectUrl;
+                        return;
+                    }
+                    window.location.reload();
+                }, 350);
+            })
+            .catch(() => {
+                this.setMessage('<?= $block->escapeJs(__('Could not authenticate. Please try again later.')) ?>');
+                this.isLoading = false;
+            });
+        }
+     }"
+     x-show="isOpen"
+     x-cloak
+     style="display: none;"
+     :aria-hidden="(!isOpen).toString()"
+     @keydown.escape.window="closeModal()"
+     data-forever-auth-modal
+     role="presentation">
+    <div class="forever-auth-backdrop" @click="closeModal()" aria-hidden="true"></div>
+    <div class="forever-auth-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="forever-auth-title">
+        <button type="button"
+                class="forever-auth-close"
+                @click.prevent.stop="closeModal()"
+                aria-label="<?= $block->escapeHtmlAttr(__('Close')) ?>">&times;</button>
+
+        <h2 id="forever-auth-title"><?= $block->escapeHtml(__('Login')) ?></h2>
+
+        <div class="forever-auth-messages" x-show="message" x-cloak>
+            <div class="message" :class="messageType" x-text="message"></div>
+        </div>
+
+        <form class="forever-auth-form"
+              x-ref="form"
+              method="post"
+              @submit.prevent="submitLogin()">
+            <?= $block->getBlockHtml('formkey') ?>
+
+            <div class="field required">
+                <label for="ajaxlogin-email">
+                    <?= $block->escapeHtml(__('Email Address')) ?> <span>*</span>
+                </label>
+                <input id="ajaxlogin-email"
+                       class="input-text"
+                       type="email"
+                       name="username"
+                       autocomplete="email"
+                       required
+                       x-ref="email"
+                       x-model="username"
+                       @input="clearMessage()">
+            </div>
+
+            <div class="field required">
+                <label for="ajaxlogin-password">
+                    <?= $block->escapeHtml(__('Password')) ?> <span>*</span>
+                </label>
+                <input id="ajaxlogin-password"
+                       class="input-text"
+                       type="password"
+                       name="password"
+                       autocomplete="current-password"
+                       required
+                       x-model="password"
+                       @input="clearMessage()">
+            </div>
+
+            <a class="forever-auth-forgot"
+               href="<?= $block->escapeUrl($block->getUrl('customer/account/forgotpassword')) ?>">
+                <?= $block->escapeHtml(__('Forgot Your Password?')) ?>
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary forever-auth-submit"
+                    :disabled="isLoading"
+                    :aria-busy="isLoading.toString()">
+                <span x-show="!isLoading"><?= $block->escapeHtml(__('Sign In')) ?></span>
+                <span x-show="isLoading" x-cloak><?= $block->escapeHtml(__('Signing In...')) ?></span>
+            </button>
+        </form>
+
+        <a class="forever-auth-create"
+           href="<?= $block->escapeUrl($block->getUrl('customer/account/create')) ?>">
+            <span><?= $block->escapeHtml(__('Create an Account')) ?></span>
+        </a>
+    </div>
+</div>

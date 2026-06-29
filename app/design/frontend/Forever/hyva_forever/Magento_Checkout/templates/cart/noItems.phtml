@@ -1,0 +1,14 @@
+<?php
+/** @var $block \Magento\Checkout\Block\Cart */
+$continueUrl = $block->getContinueShoppingUrl() ?: $block->getUrl();
+?>
+<div class="cart-empty">
+    <?= $block->getChildHtml('checkout_cart_empty_widget') ?>
+    <p><?= $block->escapeHtml(__('You have no items in your shopping cart.')) ?></p>
+    <p>
+        <a class="btn btn-primary" href="<?= $block->escapeUrl($continueUrl) ?>">
+            <?= $block->escapeHtml(__('Continue Shopping')) ?>
+        </a>
+    </p>
+    <?= $block->getChildHtml('shopping.cart.table.after') ?>
+</div>

@@ -1,0 +1,145 @@
+<?php
+/**
+ * Forever Hyva PDP product-detail-page wrapper.
+ *
+ * @var \Magento\Catalog\Block\Product\View $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Forever\Productlabel\ViewModel\ProductLabelViewModel;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Catalog\Block\Product\View;
+use Magento\Framework\Escaper;
+
+/** @var View $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$product = $block->getProduct();
+$isBundle = $product && $product->getTypeId() === 'bundle';
+$mediaLabelHtml = trim((string) $block->getChildHtml('forever.media.labeldata'));
+$productLabels = [];
+
+$resolveRawProductLabels = static function (\Magento\Catalog\Model\Product $product): array {
+    $resource = $product->getResource();
+    if (!$resource || !method_exists($resource, 'getAttributeRawValue')) {
+        return [];
+    }
+
+    $storeIds = array_values(array_unique([(int) $product->getStoreId(), 0]));
+    $rawValue = null;
+
+    foreach ($storeIds as $storeId) {
+        $candidate = $resource->getAttributeRawValue((int) $product->getId(), 'productlabel', $storeId);
+        if ($candidate !== false && $candidate !== null && $candidate !== '') {
+            $rawValue = (string) $candidate;
+            break;
+        }
+    }
+
+    if (!$rawValue) {
+        return [];
+    }
+
+    $attribute = $resource->getAttribute('productlabel');
+    if (!$attribute || !$attribute->usesSource()) {
+        return [];
+    }
+
+    $labels = [];
+    foreach (explode(',', $rawValue) as $value) {
+        $optionText = $attribute->getSource()->getOptionText(trim($value));
+        if ($optionText === false || $optionText === null || $optionText === '') {
+            continue;
+        }
+
+        $label = (string) $optionText;
+        if ($label === 'Discount') {
+            $specialPrice = (float) $product->getSpecialPrice();
+            $price = (float) $product->getPrice();
+            if ($specialPrice > 0 && $price > 0) {
+                $discount = (int) round(100 - ($specialPrice / $price) * 100);
+                if ($discount > 0) {
+                    $labels[] = (string) $discount;
+                }
+            }
+            continue;
+        }
+
+        $labels[] = $label;
+    }
+
+    return $labels;
+};
+
+if ($mediaLabelHtml === '' && $product && isset($viewModels) && $viewModels instanceof ViewModelRegistry) {
+    try {
+        /** @var ProductLabelViewModel $labelViewModel */
+        $labelViewModel = $viewModels->require(ProductLabelViewModel::class);
+        $productLabels = (array) $labelViewModel->getProductlabel($product);
+    } catch (\Throwable $exception) {
+        $productLabels = [];
+    }
+
+    if (!$productLabels) {
+        try {
+            $productLabels = $resolveRawProductLabels($product);
+        } catch (\Throwable $exception) {
+            $productLabels = [];
+        }
+    }
+}
+?>
+
+<div x-data="{ showCustomization: false }"
+     @show-customization.window="showCustomization = true; $nextTick(() => { document.getElementById('bundle-options-container').scrollIntoView({ behavior: 'smooth' }) })"
+     @hide-customization.window="showCustomization = false; window.scrollTo({ top: 0, behavior: 'smooth' })"
+>
+    <div class="forever-pdp-main grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8 items-start">
+        <div class="forever-pdp-media">
+            <?= /** @noEscape */ $mediaLabelHtml ?>
+            <?php if ($mediaLabelHtml === '' && $productLabels): ?>
+                <div class="product_label_wrapper top_left">
+                    <?php foreach ($productLabels as $productLabel): ?>
+                        <?php if (!$productLabel): ?>
+                            <?php continue; ?>
+                        <?php endif; ?>
+                        <?php
+                        $labelText = is_numeric($productLabel) ? $productLabel . '% off' : (string) $productLabel;
+                        $labelClass = is_numeric($productLabel)
+                            ? 'discount'
+                            : strtolower(str_replace(' ', '', (string) $productLabel));
+                        ?>
+                        <span class="productlabel <?= $escaper->escapeHtmlAttr($labelClass) ?>">
+                            <?= $escaper->escapeHtml($labelText) ?>
+                        </span>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <?= $block->getChildHtml('product.media') ?>
+        </div>
+        <div class="forever-pdp-summary">
+            <?= $block->getChildHtml('product.info') ?>
+        </div>
+    </div>
+
+    <!-- Downloadable Links -->
+    <?= $block->getChildHtml('type_downloadable_options') ?: $block->getChildHtml('product.info.downloadable.options') ?>
+
+    <?php if ($isBundle): ?>
+        <div id="bundle-options-container" x-show="showCustomization" x-cloak class="mt-12" x-transition>
+            <?= $block->getChildHtml('product_options_wrapper_bottom') ?>
+        </div>
+    <?php else: ?>
+        <?= $block->getChildHtml('product_options_wrapper_bottom') ?>
+    <?php endif; ?>
+</div>
+
+<div class="forever-pdp-information">
+    <?= $block->getChildHtml('product.info.details') ?>
+    <?= $block->getChildHtml('related') ?>
+    <?= $block->getChildHtml('upsell') ?>
+</div>

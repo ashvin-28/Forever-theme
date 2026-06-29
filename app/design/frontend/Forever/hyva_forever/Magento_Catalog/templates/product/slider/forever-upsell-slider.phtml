@@ -1,0 +1,122 @@
+<?php
+/**
+ * Forever PDP recommendations from the current product's assigned upsell relations.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductList;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Magento\Catalog\Block\Product\ReviewRendererInterface as ProductReviewRenderer;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+/** @var ProductListItem $productListItemViewModel */
+$productListItemViewModel = $viewModels->require(ProductListItem::class);
+
+/** @var ProductList $productListViewModel */
+$productListViewModel = $viewModels->require(ProductList::class);
+
+// Support both Hyva view blocks and legacy upsell block item providers.
+$items = [];
+if (method_exists($block, 'getItems')) {
+    $items = (array) $block->getItems();
+}
+if (!$items && method_exists($block, 'getItemCollection')) {
+    $items = array_values($block->getItemCollection()->getItems());
+}
+if (!$items && method_exists($block, 'getAllItems')) {
+    $items = (array) $block->getAllItems();
+}
+if (!$items && method_exists($block, 'getProduct') && $block->getProduct() && $block->getProduct()->getId()) {
+    $items = $productListViewModel->getLinkedItems('upsell', $block->getProduct());
+}
+
+if (!$items) {
+    return;
+}
+
+$sliderName = $block->getSliderName() ?: str_replace(['.', '/', '\\'], '_', $block->getNameInLayout());
+$title = (string) ($block->getTitle() ?: __('We found other products you might like!'));
+$itemRenderer = $block->getLayout()->getBlock('product_list_item')
+    ?: $block->getChildBlock('slider.item.template')
+    ?: $block->getLayout()->createBlock(Template::class);
+$itemRenderer->setData('hide_details', false);
+?>
+
+<style>
+    .forever-pdp-upsell .forever-category-product-actions {
+        display: none !important;
+    }
+    .forever-pdp-recommendation-controls {
+        position: static !important;
+        display: flex !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        margin-top: 24px !important;
+        width: 100% !important;
+    }
+</style>
+
+<section
+    id="<?= $escaper->escapeHtmlAttr($sliderName) ?>"
+    class="snap-slider product-slider forever-pdp-recommendation forever-pdp-upsell mt-10"
+    aria-label="<?= $escaper->escapeHtmlAttr($title) ?>"
+    data-slider-type="upsell"
+    x-data
+    x-snap-slider.group-pager
+    x-defer="intersect"
+>
+    <a
+        href="#<?= $escaper->escapeHtmlAttr($sliderName) ?>-slider-end"
+        class="sr-only focus:not-sr-only focus:absolute focus:z-30 focus:bg-white"
+    ><?= $escaper->escapeHtml(__('Press to skip carousel')) ?></a>
+
+    <div class="forever-pdp-recommendation-header flex items-center justify-between gap-4 mb-5">
+        <h2 class="text-2xl font-medium text-center w-full"><?= $escaper->escapeHtml($title) ?></h2>
+    </div>
+
+    <div class="snap-track forever-pdp-recommendation-track" data-track tabindex="0" aria-live="polite">
+        <?php foreach ($items as $product): ?>
+            <div id="<?= $escaper->escapeHtmlAttr($sliderName . '-' . $product->getId()) ?>" class="forever-pdp-product-slide" role="tabpanel">
+                <?= /** @noEscape */ $productListItemViewModel->getItemHtmlWithRenderer(
+                    $itemRenderer,
+                    $product,
+                    $block,
+                    'grid',
+                    ProductReviewRenderer::SHORT_VIEW,
+                    'category_page_grid',
+                    false
+                ) ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="snap-pager" data-pager>
+        <?php foreach ($items as $product): ?>
+            <a href="#<?= $escaper->escapeHtmlAttr($sliderName . '-' . $product->getId()) ?>" class="snap-marker" role="tab" x-cloak>
+                <span class="sr-only"><?= $escaper->escapeHtml(__('View more about %1', $product->getName())) ?></span>
+            </a>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="forever-pdp-recommendation-controls">
+        <button class="forever-pdp-slider-control" aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>" data-prev disabled>
+            <?= $lucideIcons->arrowLeftHtml('rtl:-rotate-180', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+        <button class="forever-pdp-slider-control" aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>" data-next disabled>
+            <?= $lucideIcons->arrowRightHtml('rtl:-rotate-180', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+    </div>
+
+    <span id="<?= $escaper->escapeHtmlAttr($sliderName) ?>-slider-end" tabindex="-1"></span>
+</section>

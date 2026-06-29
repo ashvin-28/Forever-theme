@@ -1,0 +1,29 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Static Forever furniture top menu.
+ *
+ * Dynamic Magento sample/Luma categories are intentionally not rendered for this
+ * theme header. The visible header menu is Home, Chairs, Accessories only.
+ *
+ * @var \Magento\Theme\Block\Html\Topmenu $block
+ */
+
+$menuItems = [
+    ['label' => __('Home'), 'url' => $block->getUrl('')],
+    ['label' => __('Chairs'), 'url' => $block->getUrl('chair.html')],
+    ['label' => __('Accessories'), 'url' => $block->getUrl('accessories.html')],
+];
+?>
+<nav class="navigation forever-static-topmenu" data-action="navigation" aria-label="<?= $block->escapeHtmlAttr(__('Main menu')) ?>">
+    <ul>
+        <?php foreach ($menuItems as $menuItem): ?>
+            <li class="level0 nav-static">
+                <a class="level-top" href="<?= $block->escapeUrl($menuItem['url']) ?>">
+                    <span><?= $block->escapeHtml($menuItem['label']) ?></span>
+                </a>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</nav>

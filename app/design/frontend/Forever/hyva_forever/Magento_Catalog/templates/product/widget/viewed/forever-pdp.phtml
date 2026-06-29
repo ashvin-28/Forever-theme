@@ -1,0 +1,144 @@
+<?php
+/**
+ * Dynamic recently viewed products styled for the Forever Hyva PDP.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductCompare;
+use Hyva\Theme\ViewModel\Wishlist;
+use Magento\Catalog\Block\Widget\RecentlyViewed;
+use Magento\Framework\Escaper;
+
+/** @var RecentlyViewed $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$wishlistViewModel = $viewModels->require(Wishlist::class);
+$compareViewModel = $viewModels->require(ProductCompare::class);
+$title = (string) ($block->getTitle() ?: __('Recently Viewed'));
+$widgetButtonsToShow = explode(',', (string) $block->getData('show_buttons'));
+$widgetImageWidth = (int) ($block->getImageWidth() ?: 360);
+$widgetImageHeight = (int) ($block->getImageHeight() ?: 360);
+
+$authPopupBlock = $block->getLayout()->getBlock('wishlist');
+$authPopupViewModel = $authPopupBlock ? $authPopupBlock->getViewmodels() : null;
+$authPopupEnabled = $authPopupViewModel && (int) $authPopupViewModel->getScopeconfig() === 1;
+
+$jsTemplate = 'Magento_Catalog::product/widget/viewed/js/recently-viewed-products.phtml';
+/* @noEscape */ echo $block->fetchView($block->getTemplateFile($jsTemplate));
+?>
+<div
+    class="forever-pdp-recently-viewed"
+    x-data="Object.assign(initRecentlyViewedProductsComponent(), {
+        addToCart(productId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '<?= $escaper->escapeJs($block->getUrl('checkout/cart/add')) ?>' + 'product/' + productId + '/';
+            form.dataset.role = 'tocart-form';
+            
+            const formKeyInput = document.createElement('input');
+            formKeyInput.type = 'hidden';
+            formKeyInput.name = 'form_key';
+            formKeyInput.value = hyva.getFormKey();
+            form.appendChild(formKeyInput);
+            
+            const productInput = document.createElement('input');
+            productInput.type = 'hidden';
+            productInput.name = 'product';
+            productInput.value = productId;
+            form.appendChild(productInput);
+            
+            const uencInput = document.createElement('input');
+            uencInput.type = 'hidden';
+            uencInput.name = 'uenc';
+            uencInput.value = hyva.getUenc();
+            form.appendChild(uencInput);
+            
+            document.body.appendChild(form);
+            if (form.requestSubmit) {
+                form.requestSubmit();
+            } else {
+                const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                if (form.dispatchEvent(submitEvent)) {
+                    HTMLFormElement.prototype.submit.call(form);
+                }
+            }
+        }
+    })"
+    :style="minHeight"
+>
+    <template x-if="hasProducts">
+        <section aria-label="<?= $escaper->escapeHtmlAttr($title) ?>">
+            <h2><?= $escaper->escapeHtml($title) ?></h2>
+            <div class="forever-pdp-recently-grid">
+                <template x-for="product in products" :key="product.id">
+                    <article class="forever-pdp-recent-card">
+                        <div class="forever-pdp-recent-media">
+                            <a :href="productUrl" class="forever-pdp-recent-image-link">
+                                <img
+                                    :src="productImgUrl"
+                                    :alt="productImgLabel"
+                                    loading="lazy"
+                                    width="<?= $escaper->escapeHtmlAttr((string) $widgetImageWidth) ?>"
+                                    height="<?= $escaper->escapeHtmlAttr((string) $widgetImageHeight) ?>"
+                                >
+                            </a>
+                        </div>
+                        <div class="forever-pdp-recent-info">
+                            <a :href="productUrl" class="forever-pdp-recent-name" x-text="product.name"></a>
+                            <span class="forever-pdp-recent-price" x-text="productPrice"></span>
+                            
+                            <div class="forever-pdp-recent-actions-row flex items-center justify-center gap-2 mt-3">
+                                <button
+                                    type="button"
+                                    class="forever-pdp-recent-btn cursor-pointer"
+                                    data-addto="cart"
+                                    @click.prevent="addToCart(product.id)"
+                                    aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart')) ?>"
+                                >
+                                    <?= $lucideIcons->shoppingCartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                                </button>
+                                <?php if ($wishlistViewModel->isEnabled()): ?>
+                                    <?php if ($authPopupEnabled): ?>
+                                        <button
+                                            type="button"
+                                            class="forever-pdp-recent-btn cursor-pointer"
+                                            data-forever-wishlist
+                                            :data-product-id="product.id"
+                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                                        >
+                                            <?= $lucideIcons->heartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                                        </button>
+                                    <?php else: ?>
+                                        <button
+                                            type="button"
+                                            class="forever-pdp-recent-btn cursor-pointer"
+                                            @click.prevent="addToWishlist"
+                                            aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                                        >
+                                            <?= $lucideIcons->heartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                                        </button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                                <?php if ($compareViewModel->showInProductList()): ?>
+                                    <button
+                                        type="button"
+                                        class="forever-pdp-recent-btn cursor-pointer"
+                                        @click.prevent="addToCompare"
+                                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Compare')) ?>"
+                                    >
+                                        <?= $lucideIcons->refreshCwHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </article>
+                </template>
+            </div>
+        </section>
+    </template>
+</div>

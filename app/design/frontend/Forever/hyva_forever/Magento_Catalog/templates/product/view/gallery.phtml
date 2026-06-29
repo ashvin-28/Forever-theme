@@ -1,0 +1,461 @@
+<?php
+/**
+ * Forever Hyva PDP gallery.
+ *
+ * Keeps Hyva's Alpine gallery events while matching the Forever furniture PDP layout.
+ *
+ * @var \Magento\Catalog\Block\Product\View\Gallery $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HeroiconsOutline;
+use Hyva\Theme\ViewModel\StoreConfig;
+use Forever\Productlabel\ViewModel\ProductLabelViewModel;
+use Magento\Catalog\Block\Product\View\Gallery;
+use Magento\Catalog\Helper\Image;
+use Magento\Framework\Escaper;
+
+/** @var Gallery $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var StoreConfig $storeConfig */
+$storeConfig = $viewModels->require(StoreConfig::class);
+
+/** @var HeroiconsOutline $heroicons */
+$heroicons = $viewModels->require(HeroiconsOutline::class);
+
+$images = $block->getGalleryImages()->getItems();
+$mainImage = current(array_filter($images, [$block, 'isMainImage']));
+
+if (!empty($images) && empty($mainImage)) {
+    $mainImage = reset($images);
+}
+
+/** @var Image $helper */
+$helper = $block->getData('imageHelper') ?? $viewModels->require(Image::class);
+
+$mainImageData = $mainImage
+    ? (string) $mainImage->getData('medium_image_url')
+    : $helper->getDefaultPlaceholderUrl('image');
+$mainFullImageData = $mainImage
+    ? (string) ($mainImage->getData('large_image_url') ?: $mainImageData)
+    : $mainImageData;
+
+$smallWidth = $block->getImageAttribute('product_page_image_small', 'width', 90);
+$smallHeight = $block->getImageAttribute('product_page_image_small', 'height', 90);
+$mediumWidth = $block->getImageAttribute('product_page_image_medium', 'width', 700);
+$mediumHeight = $block->getImageAttribute('product_page_image_medium', 'height', 700);
+$productName = (string) $block->getProduct()->getName();
+$galleryImagesJson = $block->getGalleryImagesJson();
+$appendOnReceiveImages = $block->getVar('gallery_switch_strategy', 'Magento_ConfigurableProduct') === 'append';
+$loopVideo = (bool) ($storeConfig->getStoreConfig('catalog/product_video/video_auto_restart') ?? false);
+$showRelatedVideo = (bool) ($storeConfig->getStoreConfig('catalog/product_video/show_related') ?? false);
+$product = $block->getProduct();
+$productLabels = [];
+
+$resolveRawProductLabels = static function (\Magento\Catalog\Model\Product $product): array {
+    $resource = $product->getResource();
+    if (!$resource || !method_exists($resource, 'getAttributeRawValue')) {
+        return [];
+    }
+
+    $storeIds = array_values(array_unique([(int) $product->getStoreId(), 0]));
+    $rawValue = null;
+
+    foreach ($storeIds as $storeId) {
+        $candidate = $resource->getAttributeRawValue((int) $product->getId(), 'productlabel', $storeId);
+        if ($candidate !== false && $candidate !== null && $candidate !== '') {
+            $rawValue = (string) $candidate;
+            break;
+        }
+    }
+
+    if (!$rawValue) {
+        return [];
+    }
+
+    $attribute = $resource->getAttribute('productlabel');
+    if (!$attribute || !$attribute->usesSource()) {
+        return [];
+    }
+
+    $labels = [];
+    foreach (explode(',', $rawValue) as $value) {
+        $optionText = $attribute->getSource()->getOptionText(trim($value));
+        if ($optionText === false || $optionText === null || $optionText === '') {
+            continue;
+        }
+
+        $label = (string) $optionText;
+        if ($label === 'Discount') {
+            $specialPrice = (float) $product->getSpecialPrice();
+            $price = (float) $product->getPrice();
+            if ($specialPrice > 0 && $price > 0) {
+                $discount = (int) round(100 - ($specialPrice / $price) * 100);
+                if ($discount > 0) {
+                    $labels[] = (string) $discount;
+                }
+            }
+            continue;
+        }
+
+        $labels[] = $label;
+    }
+
+    return $labels;
+};
+
+if ($product) {
+    try {
+        /** @var ProductLabelViewModel $labelViewModel */
+        $labelViewModel = $viewModels->require(ProductLabelViewModel::class);
+        $productLabels = (array) $labelViewModel->getProductlabel($product);
+    } catch (\Throwable $exception) {
+        $productLabels = [];
+    }
+
+    if (!$productLabels) {
+        try {
+            $productLabels = $resolveRawProductLabels($product);
+        } catch (\Throwable $exception) {
+            $productLabels = [];
+        }
+    }
+}
+?>
+
+<section
+    id="gallery"
+    class="forever-pdp-gallery"
+    x-data="initForeverPdpGallery()"
+    x-bind="eventListeners"
+    aria-label="<?= $escaper->escapeHtmlAttr(__('Gallery')) ?>"
+>
+    <div 
+        class="forever-pdp-gallery-stage" 
+        style="position: relative;"
+        @mouseenter="hoverActive = true"
+        @mouseleave="hoverActive = false"
+    >
+        <?php if ($productLabels): ?>
+            <div class="product_label_wrapper top_left">
+                <?php foreach ($productLabels as $productLabel): ?>
+                    <?php if (!$productLabel): ?>
+                        <?php continue; ?>
+                    <?php endif; ?>
+                    <?php
+                    $labelText = is_numeric($productLabel) ? $productLabel . '% off' : (string) $productLabel;
+                    $labelClass = is_numeric($productLabel)
+                        ? 'discount'
+                        : strtolower(str_replace(' ', '', (string) $productLabel));
+                    ?>
+                    <span class="productlabel <?= $escaper->escapeHtmlAttr($labelClass) ?>">
+                        <?= $escaper->escapeHtml($labelText) ?>
+                    </span>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        <button
+            type="button"
+            class="forever-pdp-gallery-nav forever-pdp-gallery-prev"
+            style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); z-index: 20; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: #b5b5b5; cursor: pointer; transition: color 0.2s;"
+            @mouseenter="$el.style.color = '#dfa34a'"
+            @mouseleave="$el.style.color = '#b5b5b5'"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Previous image')) ?>"
+            @click="previousItem()"
+            x-show="hoverActive && active > 0"
+            x-cloak
+        >
+            <?= $heroicons->chevronLeftHtml('', 40, 40, ['aria-hidden' => 'true']) ?>
+        </button>
+        <a
+            class="forever-pdp-gallery-main border border-gray-200"
+            style="position: relative; display: flex; min-height: 520px; align-items: center; justify-content: center; overflow: hidden; background: #ffffff; cursor: zoom-in; text-decoration: none;"
+            :href="activeImage().full || activeImage().img || placeholder"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Click to view image in fullscreen')) ?>"
+            @click.prevent="openFullscreen()"
+            @touchstart.passive="handleTouchStart"
+            @touchmove.passive="handleTouchMove"
+            @mousemove="handleZoom($event, $el)"
+            @mouseenter="zoomActive = true"
+            @mouseleave="zoomActive = false"
+        >
+            <img
+                class="forever-pdp-gallery-image"
+                src="<?= $escaper->escapeUrl($mainImageData) ?>"
+                data-full="<?= $escaper->escapeUrl($mainFullImageData) ?>"
+                :src="activeImage().img || activeImage().full || placeholder"
+                :data-full="activeImage().full || activeImage().img || placeholder"
+                :alt="activeImage().caption || productName"
+                :title="activeImage().caption || productName"
+                width="<?= /* @noEscape */ $mediumWidth ?>"
+                height="<?= /* @noEscape */ $mediumHeight ?>"
+                itemprop="image"
+                loading="eager"
+                :style="zoomActive && isHoverDevice ? 'opacity: 0.4; transition: opacity 0.2s;' : 'opacity: 1; transition: opacity 0.2s;'"
+            >
+        </a>
+        <button
+            type="button"
+            class="forever-pdp-gallery-nav forever-pdp-gallery-next"
+            style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 20; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: #b5b5b5; cursor: pointer; transition: color 0.2s;"
+            @mouseenter="$el.style.color = '#dfa34a'"
+            @mouseleave="$el.style.color = '#b5b5b5'"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Next image')) ?>"
+            @click="nextItem()"
+            x-show="hoverActive && active < images.length - 1"
+            x-cloak
+        >
+            <?= $heroicons->chevronRightHtml('', 40, 40, ['aria-hidden' => 'true']) ?>
+        </button>
+        <div
+            class="fixed z-[60] pointer-events-none bg-white bg-no-repeat border border-gray-300 shadow-lg"
+            x-show="zoomActive && isHoverDevice"
+            x-cloak
+            :style="zoomBoxStyle"
+        ></div>
+    </div>
+
+    <nav
+        class="forever-pdp-gallery-thumbs"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Gallery Thumbnails')) ?>"
+        x-show="images.length > 1"
+        x-cloak
+    >
+        <template x-for="(image, index) in images" :key="image.full || image.img || index">
+            <button
+                type="button"
+                class="forever-pdp-gallery-thumb"
+                :class="{ 'is-active': active === index }"
+                @click.prevent="setActive(index)"
+                :aria-current="active === index ? 'true' : 'false'"
+            >
+                <span class="sr-only">
+                    <?= $escaper->escapeHtml(__('View larger image')) ?>
+                </span>
+                <img
+                    :src="image.thumb || image.img || placeholder"
+                    :alt="image.caption || productName"
+                    :title="image.caption || productName"
+                    width="<?= /* @noEscape */ $smallWidth ?>"
+                    height="<?= /* @noEscape */ $smallHeight ?>"
+                    loading="lazy"
+                >
+            </button>
+        </template>
+    </nav>
+
+    <div
+        class="forever-pdp-gallery-fullscreen"
+        x-show="fullscreen"
+        x-cloak
+        x-transition.opacity.duration.200ms
+        role="dialog"
+        aria-modal="true"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Gallery modal fullscreen')) ?>"
+        @click.self="closeFullscreen()"
+    >
+        <button
+            type="button"
+            class="forever-pdp-gallery-fullscreen-close"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Close fullscreen')) ?>"
+            @click="closeFullscreen()"
+        >
+            <?= $heroicons->xHtml('', 26, 26, ['aria-hidden' => 'true']) ?>
+        </button>
+        <button
+            type="button"
+            class="forever-pdp-gallery-fullscreen-nav forever-pdp-gallery-fullscreen-prev"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Previous image')) ?>"
+            @click="previousItem()"
+            x-show="images.length > 1"
+        >
+            <?= $heroicons->chevronLeftHtml('', 30, 30, ['aria-hidden' => 'true']) ?>
+        </button>
+        <img
+            class="forever-pdp-gallery-fullscreen-image"
+            :src="activeImage().full || activeImage().img || placeholder"
+            :alt="activeImage().caption || productName"
+        >
+        <button
+            type="button"
+            class="forever-pdp-gallery-fullscreen-nav forever-pdp-gallery-fullscreen-next"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Next image')) ?>"
+            @click="nextItem()"
+            x-show="images.length > 1"
+        >
+            <?= $heroicons->chevronRightHtml('', 30, 30, ['aria-hidden' => 'true']) ?>
+        </button>
+    </div>
+</section>
+
+<script>
+    function initForeverPdpGallery() {
+        let touchXDown = null;
+        let touchYDown = null;
+
+        return {
+            active: 0,
+            fullscreen: false,
+            zoomActive: false,
+            hoverActive: false,
+            zoomScale: 1.3,
+            zoomBox: { top: 0, left: 0, width: 0, height: 0, bgImage: '', bgPosX: 50, bgPosY: 50 },
+            isHoverDevice: false,
+            productName: <?= /* @noEscape */ json_encode($productName, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+            placeholder: '<?= $escaper->escapeJs($mainImageData) ?>',
+            initialImages: <?= /* @noEscape */ $galleryImagesJson ?>,
+            images: <?= /* @noEscape */ $galleryImagesJson ?>,
+            appendOnReceiveImages: <?= $appendOnReceiveImages ? 'true' : 'false' ?>,
+            loopVideo: <?= $loopVideo ? 'true' : 'false' ?>,
+            relatedVideos: <?= $showRelatedVideo ? 'true' : 'false' ?>,
+            init() {
+                this.initActive();
+                this.isHoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+            },
+            activeImage() {
+                return this.images[this.active] || this.images[0] || {};
+            },
+            initActive() {
+                const active = this.images.findIndex(image => image.isMain === true);
+                this.setActive(active === -1 ? 0 : active);
+            },
+            setActive(index) {
+                if (!this.images[index]) {
+                    return;
+                }
+ 
+                this.active = index;
+                this.zoomActive = false;
+                this.$nextTick(() => {
+                    window.dispatchEvent(new CustomEvent('forever-pdp-gallery:image-change', {
+                        detail: this.activeImage()
+                    }));
+                });
+            },
+            receiveImages(images) {
+                if (!Array.isArray(images) || !images.length) {
+                    return;
+                }
+ 
+                if (this.appendOnReceiveImages) {
+                    const initialUrls = this.initialImages.map(image => image.full);
+                    const newImages = images.filter(image => !initialUrls.includes(image.full));
+                    this.images = [].concat(this.initialImages, newImages);
+                    this.setActive(newImages.length ? this.initialImages.length : 0);
+                } else {
+                    this.images = images;
+                    this.setActive(0);
+                }
+            },
+            resetGallery() {
+                this.images = this.initialImages;
+                this.initActive();
+            },
+            getPreviousIndex() {
+                return this.active > 0 ? this.active - 1 : this.images.length - 1;
+            },
+            getNextIndex() {
+                return this.active + 1 === this.images.length ? 0 : this.active + 1;
+            },
+            previousItem() {
+                if (this.active > 0) {
+                    this.setActive(this.active - 1);
+                }
+            },
+            nextItem() {
+                if (this.active < this.images.length - 1) {
+                    this.setActive(this.active + 1);
+                }
+            },
+            openFullscreen() {
+                this.zoomActive = false;
+                this.fullscreen = true;
+                document.body.style.overflow = 'hidden';
+            },
+            closeFullscreen() {
+                this.fullscreen = false;
+                document.body.style.overflow = '';
+            },
+            handleTouchStart(event) {
+                if (this.images.length <= 1 || event.touches.length > 1) {
+                    return;
+                }
+ 
+                touchXDown = event.touches[0].clientX;
+                touchYDown = event.touches[0].clientY;
+            },
+            handleTouchMove(event) {
+                if (!touchXDown || !touchYDown || this.images.length <= 1 || event.touches.length > 1) {
+                    return;
+                }
+ 
+                const xDiff = touchXDown - event.touches[0].clientX;
+                const yDiff = touchYDown - event.touches[0].clientY;
+ 
+                if (Math.abs(xDiff) > Math.abs(yDiff)) {
+                    xDiff > 0 ? this.nextItem() : this.previousItem();
+                }
+ 
+                touchXDown = null;
+                touchYDown = null;
+            },
+            handleZoom(event, el) {
+                if (!this.isHoverDevice) {
+                    return;
+                }
+                const rect = el.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+
+                this.zoomBox.top = rect.top;
+                this.zoomBox.left = rect.right + 20;
+                this.zoomBox.width = rect.width;
+                this.zoomBox.height = rect.height;
+                this.zoomBox.bgImage = this.activeImage().full || this.activeImage().img || this.placeholder;
+                this.zoomBox.bgPosX = (x / rect.width) * 100;
+                this.zoomBox.bgPosY = (y / rect.height) * 100;
+            },
+            get zoomBoxStyle() {
+                return {
+                    top: this.zoomBox.top + 'px',
+                    left: this.zoomBox.left + 'px',
+                    width: this.zoomBox.width + 'px',
+                    height: this.zoomBox.height + 'px',
+                    backgroundImage: this.zoomBox.bgImage ? `url('${this.zoomBox.bgImage}')` : 'none',
+                    backgroundPosition: this.zoomBox.bgPosX + '% ' + this.zoomBox.bgPosY + '%',
+                    backgroundSize: (this.zoomBox.width * this.zoomScale) + 'px ' + (this.zoomBox.height * this.zoomScale) + 'px',
+                };
+            },
+            eventListeners: {
+                ['@update-gallery.window'](event) {
+                    this.receiveImages(event.detail);
+                },
+                ['@reset-gallery.window']() {
+                    this.resetGallery();
+                },
+                ['@keydown.window.escape']() {
+                    if (this.fullscreen) {
+                        this.closeFullscreen();
+                    }
+                },
+                ['@keyup.arrow-right']() {
+                    if (this.fullscreen) {
+                        this.nextItem();
+                    }
+                },
+                ['@keyup.arrow-left']() {
+                    if (this.fullscreen) {
+                        this.previousItem();
+                    }
+                }
+            }
+        }
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

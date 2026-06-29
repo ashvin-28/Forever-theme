@@ -1,0 +1,126 @@
+<?php
+/**
+ * Hyva layered-navigation swatches with explicit visual/text classes.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Swatches\Block\LayeredNavigation\RenderLayered;
+use Magento\Swatches\Model\Swatch;
+use Magento\Swatches\ViewModel\Product\Renderer\Configurable as ConfigurableViewModel;
+
+/** @var RenderLayered $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ConfigurableViewModel $configurableViewModel */
+$configurableViewModel = $viewModels->require(ConfigurableViewModel::class);
+$swatchData = $block->getSwatchData();
+$attributeCode = (string) $swatchData['attribute_code'];
+?>
+<script>
+    function initForeverLayeredSwatch_<?= $escaper->escapeJs($attributeCode) ?>() {
+        return {
+            activeTooltipItem: false,
+            tooltipPositionElement: false,
+            getSwatchType(typeNumber) {
+                if (String(typeNumber) === '<?= /* @noEscape */ Swatch::SWATCH_TYPE_VISUAL_COLOR ?>') {
+                    return 'color';
+                }
+
+                if (String(typeNumber) === '<?= /* @noEscape */ Swatch::SWATCH_TYPE_VISUAL_IMAGE ?>') {
+                    return 'image';
+                }
+
+                return 'text';
+            },
+            isTooltipVisible() {
+                return Boolean(this.activeTooltipItem);
+            },
+            isFirstItemCol() {
+                const left = this.tooltipPositionElement.offsetLeft;
+                const parentLeft = this.tooltipPositionElement.parentNode.offsetLeft;
+
+                return left - parentLeft < this.tooltipPositionElement.offsetWidth;
+            },
+            getTooltipImageStyle() {
+                if (this.getSwatchType(this.activeTooltipItem.type) === 'color') {
+                    return 'background-color:' + this.activeTooltipItem.value + '; width: 110px; height: 90px;';
+                }
+
+                if (this.getSwatchType(this.activeTooltipItem.type) === 'image') {
+                    return "background: #ffffff url('" + this.activeTooltipItem.thumb + "') center center no-repeat; width: 110px; height: 90px;";
+                }
+
+                return 'display:none';
+            },
+            getTooltipPosition() {
+                return this.tooltipPositionElement
+                    ? `top: ${this.tooltipPositionElement.offsetTop}px; left: ${this.tooltipPositionElement.offsetLeft}px;`
+                    : '';
+            },
+            getTooltipLabel() {
+                return this.activeTooltipItem.label || '';
+            },
+            isVisualSwatch() {
+                return this.getSwatchType(this.activeTooltipItem.type) !== 'text';
+            }
+        };
+    }
+</script>
+
+<div
+    class="swatch-attribute swatch-layered <?= $escaper->escapeHtmlAttr($attributeCode) ?>"
+    x-data="initForeverLayeredSwatch_<?= $escaper->escapeJs($attributeCode) ?>()"
+>
+    <div class="swatch-attribute-options">
+        <?php foreach ($swatchData['options'] as $option => $label): ?>
+            <?php
+            if (!isset($swatchData['swatches'][$option])) {
+                continue;
+            }
+
+            $swatchType = (string) $swatchData['swatches'][$option]['type'];
+            $swatchValue = (string) $swatchData['swatches'][$option]['value'];
+            $isVisualSwatch = in_array(
+                (int) $swatchType,
+                [Swatch::SWATCH_TYPE_VISUAL_COLOR, Swatch::SWATCH_TYPE_VISUAL_IMAGE],
+                true
+            );
+            $swatchClass = $isVisualSwatch ? 'is-visual-swatch' : 'is-text-swatch';
+            $swatchThumbPath = $swatchType === '2'
+                ? (string) $block->getSwatchPath('swatch_thumb', $swatchValue)
+                : '';
+            ?>
+            <a
+                href="<?= $escaper->escapeUrl($label['link']) ?>"
+                rel="nofollow"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Filter %1 %2', $swatchData['attribute_label'], $label['label'])) ?>"
+                class="forever-layered-swatch-link swatch-option-link-layered <?= $escaper->escapeHtmlAttr($swatchClass) ?>"
+                <?php if ($isVisualSwatch): ?>
+                    style="<?= $swatchType === '2'
+                        ? 'background: #fff url(' . $escaper->escapeUrl($block->getSwatchPath('swatch_image', $swatchValue)) . ') center no-repeat'
+                        : 'background-color: ' . (/* @noEscape */ $swatchType === '1' ? $swatchValue : '') ?>;"
+                <?php endif; ?>
+                <?php if ($configurableViewModel->getShowSwatchTooltip()): ?>
+                    @mouseenter.self="activeTooltipItem = {
+                        type: '<?= $escaper->escapeJs($swatchType) ?>',
+                        label: '<?= $escaper->escapeJs($label['label']) ?>',
+                        thumb: '<?= $escaper->escapeJs($swatchThumbPath) ?>',
+                        value: '<?= $escaper->escapeJs($swatchValue) ?>'
+                    }; tooltipPositionElement = $event.target;"
+                    @mouseleave.self="activeTooltipItem = false"
+                <?php endif; ?>
+            >
+                <?php if (!$isVisualSwatch): ?>
+                    <?= $escaper->escapeHtml($swatchValue ?: $label['label']) ?>
+                <?php endif; ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
+    <?php if ($configurableViewModel->getShowSwatchTooltip()): ?>
+        <?= /* @noEscape */ $block->getBlockHtml('product.swatch.tooltip') ?>
+    <?php endif; ?>
+</div>

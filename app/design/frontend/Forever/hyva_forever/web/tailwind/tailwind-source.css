@@ -1,0 +1,18 @@
+@import "@hyva-themes/hyva-modules/css";
+@import "tailwindcss" source(none);
+
+@source "../../**/*.phtml";
+@source "../../**/*.xml";
+@source "../../../../../../code/Hyva/**/*.phtml";
+@source "../../../../../../code/Hyva/**/*.xml";
+
+@import "./generated/hyva-source.css";
+@import "./generated/hyva-tokens.css";
+@import "./theme/forever.css";
+
+@theme {
+    --color-bg: var(--color-slate-50);
+    --color-fg: var(--color-slate-950);
+    --color-fg-secondary: var(--color-slate-600);
+    --color-surface: var(--color-white);
+}

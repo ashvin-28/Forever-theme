@@ -1,0 +1,342 @@
+<?php
+/**
+ * Forever PDP review form with Hyva/Alpine submission.
+ */
+
+declare(strict_types=1);
+
+use Hyva\GraphqlViewModel\ViewModel\GraphqlViewModel;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ReCaptcha;
+use Hyva\Theme\ViewModel\Store;
+use Hyva\Theme\ViewModel\SvgIcons;
+use Magento\Framework\Escaper;
+use Magento\Review\Block\Form;
+
+/** @var Escaper $escaper */
+/** @var Form $block */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+/** @var SvgIcons $hyvaIcons */
+$hyvaIcons = $viewModels->require(SvgIcons::class);
+
+/** @var Store $viewModelStore */
+$viewModelStore = $viewModels->require(Store::class);
+
+/** @var GraphqlViewModel $gqlViewModel */
+$gqlViewModel = $viewModels->require(GraphqlViewModel::class);
+
+/** @var ReCaptcha|null $recaptcha */
+$recaptcha = $block->getData('viewModelRecaptcha');
+
+$formId = 'review_form';
+$starIconSize = (int) ($block->getData('rating_icon_size') ?: 24);
+
+$gqlCreateProductReviewMutation = '
+mutation createProductReviewMutation(
+    $sku: String!,
+    $nick: String!,
+    $summary: String!,
+    $review: String!,
+    $ratings: [ProductReviewRatingInput]!
+) {
+    createProductReview(
+        input: {
+            sku: $sku,
+            nickname: $nick,
+            summary: $summary,
+            text: $review,
+            ratings: $ratings
+        }
+    ) {
+        review {
+            nickname
+        }
+    }
+}
+';
+?>
+
+<div class="forever-review-add block review-add" id="review-form" tabindex="-1">
+    <div class="block-content">
+        <?php if ($block->getAllowWriteReviewFlag()): ?>
+            <form
+                class="review-form"
+                id="<?= $escaper->escapeHtmlAttr($formId) ?>"
+                action=""
+                x-data="initForeverReviewForm()"
+                x-defer="intersect"
+                @submit.prevent="submitForm()"
+            >
+                <?= $block->getChildHtml('form_fields_before') ?>
+                <?= $recaptcha ? $recaptcha->getInputHtml(ReCaptcha::RECAPTCHA_FORM_ID_PRODUCT_REVIEW) : '' ?>
+
+                <fieldset class="fieldset review-fieldset">
+                    <legend class="legend review-legend">
+                        <span><?= $escaper->escapeHtml(__("You're reviewing:")) ?></span>
+                        <strong><?= $escaper->escapeHtml($block->getProductInfo()->getName()) ?></strong>
+                    </legend>
+
+                    <?php if ($block->getRatings() && $block->getRatings()->getSize()): ?>
+                        <fieldset class="field required review-field-ratings">
+                            <legend class="label">
+                                <span><?= $escaper->escapeHtml(__('Your Ratings')) ?></span>
+                            </legend>
+                            <div class="control">
+                                <div class="nested" id="product-review-table">
+                                    <?php foreach ($block->getRatings() as $rating): ?>
+                                        <fieldset class="field choice review-field-rating">
+                                            <legend
+                                                class="label"
+                                                id="<?= $escaper->escapeHtmlAttr($rating->getRatingCode()) ?>_rating_label"
+                                            >
+                                                <span><?= $escaper->escapeHtml($rating->getRatingCode()) ?></span>
+                                            </legend>
+                                            <div
+                                                class="control review-control-vote rating-summary"
+                                                x-data="{ clickedRatingId: 0 }"
+                                            >
+                                                <?php $iterator = 1; ?>
+                                                <?php foreach ($rating->getOptions() as $option): ?>
+                                                    <label
+                                                        class="forever-review-star-label rating-<?= (int) $iterator ?>"
+                                                        for="<?= $escaper->escapeHtmlAttr($rating->getRatingCode() . '_' . $option->getValue()) ?>"
+                                                        title="<?= $escaper->escapeHtmlAttr(__('%1 %2', $iterator, $iterator > 1 ? __('stars') : __('star'))) ?>"
+                                                    >
+                                                        <?= $lucideIcons->starHtml(
+                                                            'forever-review-star',
+                                                            $starIconSize,
+                                                            $starIconSize,
+                                                            [
+                                                                'aria-hidden' => 'true',
+                                                                ':class' => (int) $iterator . " <= clickedRatingId ? 'is-selected' : ''"
+                                                            ]
+                                                        ); ?>
+                                                        <input
+                                                            name="ratings[<?= $escaper->escapeHtmlAttr($rating->getId()) ?>]"
+                                                            id="<?= $escaper->escapeHtmlAttr($rating->getRatingCode() . '_' . $option->getValue()) ?>"
+                                                            class="forever-review-star-input"
+                                                            type="radio"
+                                                            <?php if ($iterator === 1): ?>required<?php endif; ?>
+                                                            value="<?= $escaper->escapeHtmlAttr($option->getId()) ?>"
+                                                            aria-labelledby="<?= $escaper->escapeHtmlAttr($rating->getRatingCode()) ?>_rating_label"
+                                                            @click="clickedRatingId = <?= (int) $iterator ?>"
+                                                        >
+                                                        <span class="sr-only">
+                                                            <?= $escaper->escapeHtml(__('%1 %2', $iterator, $iterator > 1 ? __('stars') : __('star'))) ?>
+                                                        </span>
+                                                    </label>
+                                                    <?php $iterator++; ?>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </fieldset>
+                                    <?php endforeach; ?>
+                                </div>
+                                <input type="hidden" name="validate_rating" value="">
+                            </div>
+                        </fieldset>
+                    <?php endif; ?>
+
+                    <div class="field review-field-nickname required review-fields">
+                        <label for="nickname_field" class="label">
+                            <span><?= $escaper->escapeHtml(__('Nickname')) ?></span>
+                            <span class="required-marker">*</span>
+                        </label>
+                        <div class="control">
+                            <input
+                                class="input-text form-input"
+                                required
+                                type="text"
+                                name="nickname"
+                                id="nickname_field"
+                                autocomplete="nickname"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="field review-field-summary required review-fields">
+                        <label for="summary_field" class="label">
+                            <span><?= $escaper->escapeHtml(__('Summary')) ?></span>
+                            <span class="required-marker">*</span>
+                        </label>
+                        <div class="control">
+                            <input
+                                class="input-text form-input"
+                                required
+                                type="text"
+                                name="title"
+                                id="summary_field"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="field review-field-text required review-fields">
+                        <label for="review_field" class="label">
+                            <span><?= $escaper->escapeHtml(__('Review')) ?></span>
+                            <span class="required-marker">*</span>
+                        </label>
+                        <div class="control">
+                            <textarea
+                                class="input-text form-input"
+                                required
+                                name="detail"
+                                id="review_field"
+                                cols="5"
+                                rows="2"
+                                autocomplete="off"
+                            ></textarea>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="actions-toolbar review-form-actions">
+                    <div class="primary actions-primary">
+                        <button x-show="!displaySuccessMessage" type="submit" class="action submit primary btn btn-primary">
+                            <span><?= $escaper->escapeHtml(__('Submit Review')) ?></span>
+                        </button>
+                    </div>
+                    <div class="forever-review-loading" x-show="isLoading" x-cloak>
+                        <?= $hyvaIcons->loaderHtml('', 40, 40); ?>
+                        <span><?= $escaper->escapeHtml(__('Loading...')) ?></span>
+                    </div>
+                    <p class="forever-review-success" x-show="displaySuccessMessage" x-cloak>
+                        <?= $lucideIcons->circleCheckHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+                        <span><?= $escaper->escapeHtml(__('You submitted your review for moderation.')) ?></span>
+                    </p>
+                    <template x-if="displayErrorMessage">
+                        <p class="forever-review-error">
+                            <?= $lucideIcons->circleAlertHtml('', 24, 24, ['aria-hidden' => 'true']); ?>
+                            <template x-for="errorMessage in errorMessages">
+                                <span x-html="errorMessage"></span>
+                            </template>
+                        </p>
+                    </template>
+                    <?= $block->getChildHtml('form_additional_after') ?>
+                    <?= $recaptcha ? $recaptcha->getLegalNoticeHtml(ReCaptcha::RECAPTCHA_FORM_ID_PRODUCT_REVIEW) : '' ?>
+                </div>
+            </form>
+
+            <script>
+                function initForeverReviewForm() {
+                    return {
+                        isLoading: false,
+                        displaySuccessMessage: false,
+                        displayErrorMessage: false,
+                        errorMessages: [],
+                        errors: 0,
+                        hasCaptchaToken: 0,
+                        nickname: null,
+                        summary: null,
+                        ratings: [],
+                        review: null,
+                        setErrorMessages(messages) {
+                            this.errorMessages = messages;
+                            this.displayErrorMessage = this.errorMessages.length > 0;
+                        },
+                        submitForm() {
+                            const $form = document.querySelector('#<?= $escaper->escapeJs($formId) ?>');
+                            this.validate();
+
+                            <?= $recaptcha ? $recaptcha->getValidationJsHtml(ReCaptcha::RECAPTCHA_FORM_ID_PRODUCT_REVIEW) : '' ?>
+
+                            if (this.errors === 0) {
+                                this.placeReview();
+                            }
+                        },
+                        validate() {
+                            this.errors = 0;
+                            this.errorMessages = [];
+                            this.displayErrorMessage = false;
+                            this.ratings = [];
+                            this.nickname = document.getElementById('nickname_field').value;
+                            this.summary = document.getElementById('summary_field').value;
+                            this.review = document.getElementById('review_field').value;
+
+                            <?php foreach ($block->getRatings() as $rating): ?>
+                            try {
+                                const ratingValue<?= (int) $rating->getId() ?> = document
+                                    .querySelector('input[name="ratings[<?= (int) $rating->getId() ?>]"]:checked')
+                                    .value;
+                                this.ratings[<?= (int) $rating->getId() ?>] = btoa(ratingValue<?= (int) $rating->getId() ?>);
+                            } catch (e) {}
+                            <?php endforeach; ?>
+
+                            if (!(this.nickname &&
+                                this.summary &&
+                                this.review &&
+                                Object.keys(this.ratings).length === <?= count($block->getRatings()) ?>
+                            )) {
+                                this.setErrorMessages([
+                                    '<?= $escaper->escapeJs(__('Please verify you\'ve entered all required information')) ?>'
+                                ]);
+                                this.errors = 1;
+                                this.hasCaptchaToken = 0;
+                            }
+                        },
+                        placeReview() {
+                            this.isLoading = true;
+                            this.displayErrorMessage = false;
+
+                            const query = `<?= /* @noEscape */ $gqlViewModel->query('create_product_review_mutation', $gqlCreateProductReviewMutation) ?>`;
+                            const variables = {
+                                sku: '<?= $escaper->escapeJs($block->getProductInfo()->getSku()) ?>',
+                                nick: this.nickname,
+                                summary: this.summary,
+                                review: this.review,
+                                ratings: Object.keys(this.ratings).map(key => {
+                                    return {id: btoa(key), value_id: this.ratings[key]};
+                                })
+                            };
+                            const form = document.querySelector('#<?= $escaper->escapeJs($formId) ?>');
+                            const fieldName = '<?= $recaptcha
+                                ? $escaper->escapeJs($recaptcha->getResultTokenFieldName($formId))
+                                : '' ?>';
+                            const recaptchaHeader = fieldName && form && form.elements[fieldName]
+                                ? {'X-ReCaptcha': form.elements[fieldName].value}
+                                : {};
+
+                            fetch(`${BASE_URL}graphql`, {
+                                method: 'POST',
+                                headers: Object.assign({
+                                    'Content-Type': 'application/json;charset=utf-8',
+                                    'Store': '<?= $escaper->escapeJs($viewModelStore->getStoreCode()) ?>'
+                                }, recaptchaHeader),
+                                credentials: 'include',
+                                body: JSON.stringify({query: query, variables: variables})
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    this.isLoading = false;
+                                    if (data.errors) {
+                                        this.setErrorMessages([
+                                            '<?= $escaper->escapeJs(__('Submitting your review failed, please try again.')) ?>'
+                                        ]);
+                                        return;
+                                    }
+                                    this.displaySuccessMessage = true;
+                                });
+                        }
+                    };
+                }
+            </script>
+        <?php else: ?>
+            <div class="message info notlogged">
+                <div>
+                    <?= $escaper->escapeHtml(
+                        __(
+                            'Only registered users can write reviews. Please <a href="%1" class="underline">Sign in</a> or <a href="%2" class="underline">create an account</a>',
+                            $block->getLoginLink(),
+                            $block->getRegisterUrl()
+                        ),
+                        ['a']
+                    ) ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>

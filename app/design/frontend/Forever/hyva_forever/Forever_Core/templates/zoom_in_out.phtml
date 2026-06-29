@@ -1,0 +1,7 @@
+<?php /** @var \Forever\Core\Block\ZoomInOut $block */ ?>
+<?php if ($block->getConfigData()): ?>
+    <div class="zoom-in-out-button">
+        <button type="button" class="zoom_in"><?= $block->escapeHtml(__('Zoom In')) ?></button>
+        <button type="button" class="zoom_out hidden"><?= $block->escapeHtml(__('Zoom Out')) ?></button>
+    </div>
+<?php endif; ?>

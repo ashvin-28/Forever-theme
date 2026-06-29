@@ -1,0 +1,59 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Magento\Checkout\Block\Cart;
+use Magento\Framework\Escaper;
+
+/** @var Cart $block */
+/** @var Escaper $escaper */
+?>
+<style>
+    /* Center the main page title and add red underline just for the cart page */
+    .checkout-cart-index .page-title-wrapper {
+        text-align: center;
+        width: 100%;
+        margin-bottom: 2rem;
+    }
+    .checkout-cart-index .page-title-wrapper .page-title {
+        text-align: center;
+        position: relative;
+        display: inline-block;
+        width: auto;
+        margin: 0 auto;
+        font-weight: 500;
+    }
+    .checkout-cart-index .page-title-wrapper .page-title::after {
+        content: '';
+        display: block;
+        width: 70px;
+        height: 3px;
+        background-color: #ff0000;
+        margin: 10px auto 0;
+    }
+</style>
+<div class="cart-empty flex flex-col items-center justify-center py-10">
+    <div class="empty-cart-img mb-8">
+        <img src="<?= /* @noEscape */ $block->getViewFileUrl('Magento_Checkout/images/empty-cart.png'); ?>"
+        alt="empty-cart" width="169" height="145" class="mx-auto">
+    </div>
+    <?= $block->getChildHtml('checkout_cart_empty_widget') ?>
+    <div class="text-center text-gray-500 text-[16px]">
+        <p class="mb-2"><?= $escaper->escapeHtml(__('You have no items in your shopping cart.')) ?></p>
+        <p>
+            <?= $block->escapeHtml(
+                __(
+                    'Click <a href="%1" class="font-bold text-gray-800 hover:text-primary transition-colors">here</a> to continue shopping.',
+                    $escaper->escapeUrl($block->getContinueShoppingUrl())
+                ),
+                ['a']
+            ) ?>
+        </p>
+    </div>
+    <?= $block->getChildHtml('shopping.cart.table.after') ?>
+</div>

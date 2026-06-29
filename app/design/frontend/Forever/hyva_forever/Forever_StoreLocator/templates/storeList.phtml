@@ -1,0 +1,341 @@
+<?php
+use Forever\StoreLocator\Block\StoreList;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var StoreList $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$viewModel = $block->getViewModel();
+$isEnableModule = (int) $viewModel->getConfig('storelocator/general/enable') === 1;
+$lat = (string) ($viewModel->getConfig('storelocator/mapscope/lat') ?: '23.01');
+$lng = (string) ($viewModel->getConfig('storelocator/mapscope/lng') ?: '72.51');
+$apiKey = (string) ($viewModel->getConfig('storelocator/mapscope/api_key') ?: 'AIzaSyA-AB-9XZd-iQby-bNLYPFyb0pR2Qw3orw');
+$collection = $block->getCollection();
+$stores = [];
+?>
+
+<?php if ($isEnableModule): ?>
+    <?php foreach ($collection as $item): ?>
+        <?php
+        $addressParts = array_filter([
+            (string) $item->getStreet(),
+            (string) $item->getCity(),
+            (string) $item->getState(),
+            (string) $item->getCountry(),
+            (string) $item->getZip(),
+        ]);
+        $stores[] = [
+            'id' => (string) $item->getId(),
+            'name' => (string) $item->getName(),
+            'address' => implode(', ', $addressParts),
+            'lat' => (float) $item->getLatitude(),
+            'lng' => (float) $item->getLongitude(),
+        ];
+        ?>
+    <?php endforeach; ?>
+
+    <section
+        class="forever-storelocator"
+        x-data="foreverStoreLocator()"
+        x-init="init($el)"
+        data-center-lat="<?= $block->escapeHtmlAttr($lat) ?>"
+        data-center-lng="<?= $block->escapeHtmlAttr($lng) ?>"
+        data-map-key="<?= $block->escapeHtmlAttr($apiKey) ?>"
+        data-search-url="<?= $block->escapeUrl($block->getUrl('storelocator/index/search')) ?>"
+        data-stores='<?= $block->escapeHtmlAttr(json_encode($stores, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)) ?>'
+    >
+        <form class="storelocator-search" @submit.prevent="search">
+            <div class="field search">
+                <label class="label" for="address-search">
+                    <span><?= $block->escapeHtml(__('Search')) ?></span>
+                </label>
+                <div class="control">
+                    <input id="address-search"
+                           class="address-search input-text"
+                           type="search"
+                           name="search"
+                           x-model="query"
+                           placeholder="<?= $block->escapeHtmlAttr(__('Search Store here...')) ?>"
+                           autocomplete="off"/>
+                </div>
+            </div>
+            <div class="actions">
+                <button type="submit"
+                        title="<?= $block->escapeHtmlAttr(__('Search')) ?>"
+                        class="action-search"
+                        :disabled="loading">
+                    <span x-text="loading ? '<?= $block->escapeJs(__('Searching...')) ?>' : '<?= $block->escapeJs(__('Search')) ?>'">
+                        <?= $block->escapeHtml(__('Search')) ?>
+                    </span>
+                </button>
+            </div>
+        </form>
+
+        <?php if ($stores): ?>
+            <div class="store-information" aria-live="polite">
+                <?php foreach ($stores as $index => $store): ?>
+                    <article class="store-details-wrapper"
+                             x-show="isStoreVisible('<?= $block->escapeHtmlAttr($store['id']) ?>')"
+                             x-transition.opacity.duration.200ms>
+                        <div id="store-<?= $block->escapeHtmlAttr($store['id']) ?>"
+                             class="store-details"
+                             data-store-id="<?= $block->escapeHtmlAttr($store['id']) ?>">
+                            <div class="store-title">
+                                <h2>
+                                    <button type="button"
+                                            class="store-marker-button"
+                                            @click="focusStore('<?= $block->escapeJs($store['id']) ?>')"
+                                            data-marker-index="<?= $block->escapeHtmlAttr((string) $index) ?>">
+                                        <?= $block->escapeHtml($store['name']) ?>
+                                    </button>
+                                </h2>
+                            </div>
+                            <address class="store-address">
+                                <?= $block->escapeHtml($store['address']) ?>
+                            </address>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+
+            <p class="forever-storelocator-empty"
+               x-show="hasSearched && !visibleStoreIds.length"
+               x-cloak>
+                <?= $block->escapeHtml(__('No stores found for your search.')) ?>
+            </p>
+        <?php else: ?>
+            <p class="forever-storelocator-empty">
+                <?= $block->escapeHtml(__('No stores are available right now.')) ?>
+            </p>
+        <?php endif; ?>
+
+        <div class="forever-store-map-wrap">
+            <div id="map"
+                 class="first-map forever-store-map"
+                 x-ref="map"
+                 role="region"
+                 aria-label="<?= $block->escapeHtmlAttr(__('Store locations map')) ?>"></div>
+            <div class="forever-store-map-message" x-show="mapUnavailable" x-cloak>
+                <?= $block->escapeHtml(__('Map is unavailable. Please try again later.')) ?>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function foreverStoreLocator() {
+            return {
+                query: '',
+                loading: false,
+                hasSearched: false,
+                mapUnavailable: false,
+                stores: [],
+                visibleStoreIds: [],
+                markers: {},
+                map: null,
+                infoWindow: null,
+                center: { lat: 23.01, lng: 72.51 },
+                searchUrl: '',
+                apiKey: '',
+
+                init(element) {
+                    this.stores = JSON.parse(element.dataset.stores || '[]');
+                    this.center = {
+                        lat: parseFloat(element.dataset.centerLat || '23.01'),
+                        lng: parseFloat(element.dataset.centerLng || '72.51')
+                    };
+                    this.searchUrl = element.dataset.searchUrl || '';
+                    this.apiKey = element.dataset.mapKey || '';
+
+                    this.loadGoogleMaps()
+                        .then(() => this.renderMap(this.stores))
+                        .catch(() => {
+                            this.mapUnavailable = true;
+                        });
+                },
+
+                isStoreVisible(id) {
+                    return !this.hasSearched || this.visibleStoreIds.includes(String(id));
+                },
+
+                loadGoogleMaps() {
+                    if (window.google && window.google.maps) {
+                        return Promise.resolve();
+                    }
+
+                    if (!this.apiKey) {
+                        return Promise.reject();
+                    }
+
+                    if (window.foreverStoreLocatorGoogleMapsPromise) {
+                        return window.foreverStoreLocatorGoogleMapsPromise;
+                    }
+
+                    window.foreverStoreLocatorGoogleMapsPromise = new Promise((resolve, reject) => {
+                        window.foreverStoreLocatorMapReady = resolve;
+
+                        const script = document.createElement('script');
+                        script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(this.apiKey)}&callback=foreverStoreLocatorMapReady`;
+                        script.async = true;
+                        script.defer = true;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+
+                    return window.foreverStoreLocatorGoogleMapsPromise;
+                },
+
+                renderMap(stores) {
+                    this.map = new google.maps.Map(this.$refs.map, {
+                        zoom: 2,
+                        center: this.center,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    });
+                    this.infoWindow = new google.maps.InfoWindow();
+                    this.setMarkers(stores);
+                },
+
+                setMarkers(stores) {
+                    Object.values(this.markers).forEach((marker) => marker.setMap(null));
+                    this.markers = {};
+
+                    if (!this.map || !stores.length) {
+                        return;
+                    }
+
+                    const bounds = new google.maps.LatLngBounds();
+
+                    stores.forEach((store) => {
+                        const position = {
+                            lat: parseFloat(store.lat),
+                            lng: parseFloat(store.lng)
+                        };
+
+                        if (Number.isNaN(position.lat) || Number.isNaN(position.lng)) {
+                            return;
+                        }
+
+                        const marker = new google.maps.Marker({
+                            position,
+                            map: this.map,
+                            title: store.name
+                        });
+
+                        marker.addListener('click', () => {
+                            this.infoWindow.setContent(this.infoWindowHtml(store));
+                            this.infoWindow.open(this.map, marker);
+                        });
+
+                        this.markers[String(store.id)] = marker;
+                        bounds.extend(position);
+                    });
+
+                    if (Object.keys(this.markers).length === 1) {
+                        const marker = Object.values(this.markers)[0];
+                        this.map.setCenter(marker.getPosition());
+                        this.map.setZoom(10);
+                    } else if (Object.keys(this.markers).length > 1) {
+                        this.map.fitBounds(bounds);
+                    }
+                },
+
+                infoWindowHtml(store) {
+                    return `<strong>${this.escapeHtml(store.name)}</strong><br>${this.escapeHtml(store.address || '')}`;
+                },
+
+                focusStore(id) {
+                    const store = this.stores.find((item) => String(item.id) === String(id));
+
+                    if (!store) {
+                        return;
+                    }
+
+                    this.hasSearched = true;
+                    this.visibleStoreIds = [String(id)];
+                    this.setMarkers([store]);
+
+                    const marker = this.markers[String(id)];
+                    if (marker && this.infoWindow) {
+                        this.infoWindow.setContent(this.infoWindowHtml(store));
+                        this.infoWindow.open(this.map, marker);
+                    }
+                },
+
+                resetSearch() {
+                    this.hasSearched = false;
+                    this.visibleStoreIds = [];
+                    this.setMarkers(this.stores);
+                },
+
+                async search() {
+                    const term = this.query.trim();
+
+                    if (!term) {
+                        this.resetSearch();
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch(this.searchUrl, {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: new URLSearchParams({ search: term }).toString()
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Store locator search failed.');
+                        }
+
+                        const results = await response.json();
+                        const stores = this.normalizeSearchResults(results);
+
+                        this.hasSearched = true;
+                        this.visibleStoreIds = stores.map((store) => String(store.id));
+                        this.setMarkers(stores);
+                    } catch (error) {
+                        this.hasSearched = true;
+                        this.visibleStoreIds = [];
+                        this.setMarkers([]);
+                        window.console && window.console.warn && window.console.warn(error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                normalizeSearchResults(results) {
+                    return (Array.isArray(results) ? results : []).map((result) => {
+                        const id = String(result[3] || result.storeId || result.id || '');
+                        const existingStore = this.stores.find((store) => String(store.id) === id);
+
+                        if (existingStore) {
+                            return existingStore;
+                        }
+
+                        return {
+                            id,
+                            name: String(result[0] || ''),
+                            address: String(result[0] || ''),
+                            lat: parseFloat(result[1]),
+                            lng: parseFloat(result[2])
+                        };
+                    }).filter((store) => store.id);
+                },
+
+                escapeHtml(value) {
+                    const element = document.createElement('div');
+                    element.textContent = value || '';
+                    return element.innerHTML;
+                }
+            }
+        }
+    </script>
+    <?php $hyvaCsp->registerInlineScript() ?>
+<?php endif; ?>

@@ -1,0 +1,71 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Magento\Catalog\Block\Product\ProductList\Toolbar;
+use Magento\Framework\Escaper;
+
+/** @var Toolbar $block */
+/** @var Escaper $escaper */
+?>
+
+<?php if ($block->isEnabledViewSwitcher()): ?>
+    <?php $modes = $block->getModes(); ?>
+    <?php if ($modes && count($modes) > 1): ?>
+        <nav class="modes flex gap-2 items-center order-1" aria-label="<?= $escaper->escapeHtmlAttr(__('Products view mode')) ?>">
+            <?php foreach ($block->getModes() as $code => $label): ?>
+                <?php $isActive = $block->isModeActive($code); ?>
+                <button
+                    type="button"
+                    class="modes-mode w-10 h-10 flex items-center justify-center border transition-colors duration-200 cursor-pointer
+                        <?= $isActive
+                            ? 'active bg-[#dfa34a] border-[#dfa34a] text-white'
+                            : 'bg-white border-[#ececec] text-[#878787] hover:text-[#222222] hover:border-[#222222]' ?>"
+                    title="<?= $escaper->escapeHtmlAttr($label) ?>"
+                    <?php if ($isActive): ?>
+                        disabled
+                    <?php else: ?>
+                        @click.prevent="changeUrl(
+                            'product_list_mode',
+                            '<?= $escaper->escapeHtmlAttr(strtolower($code)) ?>',
+                            options.modeDefault
+                        )"
+                    <?php endif; ?>
+                    data-role="mode-switcher"
+                    data-value="<?= $escaper->escapeHtmlAttr(strtolower($code)) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Products view mode - %1', $label)) ?>"
+                >
+                    <?php if (strtolower($code) === 'grid'): ?>
+                        <!-- 3x3 Grid Icon -->
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="2" width="4" height="4"/>
+                            <rect x="10" y="2" width="4" height="4"/>
+                            <rect x="18" y="2" width="4" height="4"/>
+                            <rect x="2" y="10" width="4" height="4"/>
+                            <rect x="10" y="10" width="4" height="4"/>
+                            <rect x="18" y="10" width="4" height="4"/>
+                            <rect x="2" y="18" width="4" height="4"/>
+                            <rect x="10" y="18" width="4" height="4"/>
+                            <rect x="18" y="18" width="4" height="4"/>
+                        </svg>
+                    <?php else: ?>
+                        <!-- List Icon -->
+                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="3" width="4" height="4"/>
+                            <rect x="10" y="4" width="12" height="2"/>
+                            <rect x="2" y="10" width="4" height="4"/>
+                            <rect x="10" y="11" width="12" height="2"/>
+                            <rect x="2" y="17" width="4" height="4"/>
+                            <rect x="10" y="18" width="12" height="2"/>
+                        </svg>
+                    <?php endif; ?>
+                </button>
+            <?php endforeach; ?>
+        </nav>
+    <?php endif; ?>
+<?php endif; ?>

@@ -1,0 +1,121 @@
+<?php
+/**
+ * Original-style Product Information tabs for the Forever Hyva PDP.
+ */
+
+declare(strict_types=1);
+
+use Magento\Catalog\Block\Product\View\Details;
+use Magento\Framework\Escaper;
+
+/** @var Details $block */
+/** @var Escaper $escaper */
+
+$layout = $block->getLayout();
+$sections = [];
+
+foreach ($block->getGroupSortedChildNames('detailed_info', '') as $sectionName) {
+    $sectionBlock = $layout->getBlock($sectionName);
+    if (!$sectionBlock) {
+        continue;
+    }
+
+    $sectionHtml = (string) $sectionBlock->toHtml();
+    if (!trim($sectionHtml)) {
+        continue;
+    }
+
+    $alias = (string) $layout->getElementAlias($sectionName);
+    $label = $sectionBlock->getData('title');
+    if (!$label && $alias === 'description') {
+        $label = __('Details');
+    }
+
+    $sections[] = [
+        'alias' => $alias,
+        'label' => $label,
+        'html' => $sectionHtml,
+    ];
+}
+
+$reviewListBlock = $layout->getBlock('review_list');
+$reviewListHtml = $reviewListBlock ? $layout->renderElement('review_list') : '';
+$reviewFormHtml = $layout->getBlock('product.review.form')
+    ? $layout->renderElement('product.review.form')
+    : '';
+
+$hasDetailSections = (bool) $sections;
+$hasReviewContent = trim($reviewListHtml) || trim($reviewFormHtml);
+
+if (!$hasDetailSections && $hasReviewContent):
+    $reviewOnlyClass = trim($reviewListHtml) ? 'has-list' : 'no-list';
+    ?>
+    <section class="forever-pdp-review-only" aria-label="<?= $escaper->escapeHtmlAttr(__('Product Reviews')) ?>">
+        <h2><?= $escaper->escapeHtml(__('Reviews')) ?></h2>
+        <div class="forever-pdp-review-content <?= $escaper->escapeHtmlAttr($reviewOnlyClass) ?>">
+            <?php if (trim($reviewListHtml)): ?>
+                <div class="forever-pdp-review-list"><?= /* @noEscape */ $reviewListHtml ?></div>
+            <?php endif; ?>
+            <div class="forever-pdp-review-form"><?= /* @noEscape */ $reviewFormHtml ?></div>
+        </div>
+    </section>
+    <?php
+    return;
+endif;
+
+if ($hasReviewContent) {
+    $reviewCount = $reviewListBlock && method_exists($reviewListBlock, 'getReviewsCollection')
+        ? (int) $reviewListBlock->getReviewsCollection()->getSize()
+        : 0;
+    $sections[] = [
+        'alias' => 'reviews',
+        'label' => $reviewCount ? __('Reviews (%1)', $reviewCount) : __('Reviews'),
+        'html' => '<div class="forever-pdp-review-content">'
+            . '<div class="forever-pdp-review-list">' . $reviewListHtml . '</div>'
+            . '<div class="forever-pdp-review-form">' . $reviewFormHtml . '</div>'
+            . '</div>',
+    ];
+}
+
+if (!$sections) {
+    return;
+}
+
+$activeAlias = (string) $sections[0]['alias'];
+?>
+<section class="product info detailed forever-pdp-details" x-data="{ active: '<?= $escaper->escapeJs($activeAlias) ?>' }">
+    <div class="bestseller-slider-section">
+        <div class="block-title title page-title-wrapper">
+            <h2 class="page-title"><?= $escaper->escapeHtml(__('Product Information')) ?></h2>
+        </div>
+    </div>
+    <div class="product data items">
+        <div class="forever-pdp-detail-tabs" role="tablist" aria-label="<?= $escaper->escapeHtmlAttr(__('Product information')) ?>">
+            <?php foreach ($sections as $section): ?>
+                <button
+                    type="button"
+                    class="data item title"
+                    :class="{ 'active': active === '<?= $escaper->escapeJs($section['alias']) ?>' }"
+                    :aria-selected="active === '<?= $escaper->escapeJs($section['alias']) ?>' ? 'true' : 'false'"
+                    @click="active = '<?= $escaper->escapeJs($section['alias']) ?>'"
+                    id="tab-label-<?= $escaper->escapeHtmlAttr($section['alias']) ?>-title"
+                    role="tab"
+                >
+                    <?= /* @noEscape */ $section['label'] ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+        <?php foreach ($sections as $section): ?>
+            <div
+                class="data item content forever-pdp-detail-content"
+                id="<?= $escaper->escapeHtmlAttr($section['alias']) ?>"
+                aria-labelledby="tab-label-<?= $escaper->escapeHtmlAttr($section['alias']) ?>-title"
+                x-show="active === '<?= $escaper->escapeJs($section['alias']) ?>'"
+                x-cloak
+                role="tabpanel"
+            >
+                <?= /* @noEscape */ $section['html'] ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</section>

@@ -1,0 +1,117 @@
+<?php
+/**
+ * Forever Hyva PDP product-info — matches reference theme design.
+ *
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magento\Framework\Escaper $escaper
+ * @var \Hyva\Theme\Model\ViewModelRegistry $viewModels
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\ProductAttributes;
+use Hyva\Theme\ViewModel\ProductPage;
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var ProductPage $productViewModel */
+$productViewModel = $viewModels->require(ProductPage::class);
+
+/** @var ProductAttributes $attributesViewModel */
+$attributesViewModel = $viewModels->require(ProductAttributes::class);
+
+/** @var Product $product */
+$product = $productViewModel->getProduct();
+$productType = $product->getTypeId();
+?>
+
+<!-- Previous/Next navigation -->
+<?= $block->getChildHtml('forever.previousnext') ?>
+
+<!-- Downloadable Samples -->
+<?= $block->getChildHtml('samples') ?: $block->getChildHtml('product.info.downloadable.samples') ?>
+
+<!-- Product Title -->
+<h1 class="forever-pdp-title"><?= $escaper->escapeHtml($product->getName()) ?></h1>
+
+<!-- Product Price -->
+<div class="forever-pdp-price">
+    <?= $block->getChildHtml('product.info.price') ?>
+</div>
+
+<!-- Stock & SKU -->
+<div class="forever-pdp-stock-sku">
+    <div class="stock">
+        <?= $block->getChildHtml('product.info.stockstatus') ?>
+    </div>
+    <div class="sku">
+        <span class="type"><?= $escaper->escapeHtml(__('SKU#:')) ?></span>
+        <span class="value"><?= $escaper->escapeHtml($product->getSku()) ?></span>
+    </div>
+    
+    <!-- Other attributes (e.g., Size) -->
+    <?php foreach ($block->getAttributes() as $attributeConfig):
+        if (($attributeConfig['code'] ?? '') === 'sku') continue;
+        $attribute = $attributesViewModel->getAttributeFromLayoutConfig($attributeConfig); ?>
+        <?php if ($value = $attribute['value'] ?? null): ?>
+            <div class="attribute-item mt-1">
+                <span class="type"><?= $escaper->escapeHtml($attribute['label']) ?>:</span>
+                <span class="value"><?= $escaper->escapeHtml($value) ?></span>
+            </div>
+        <?php endif ?>
+    <?php endforeach; ?>
+</div>
+
+<!-- Reviews -->
+<div class="forever-pdp-review-link">
+    <?= $block->getChildHtml('product.info.review') ?>
+</div>
+
+<!-- Short Description -->
+<?php if ($shortDescription = $productViewModel->getShortDescription()): ?>
+    <div class="forever-pdp-short-description product-description prose">
+        <?= /* @noEscape */ $shortDescription ?>
+    </div>
+<?php endif; ?>
+
+<!-- Configurable Options / Form -->
+<?= $block->getChildHtml('product.info.form') ?>
+
+<!-- Action Row: Qty, Add to Cart, Buy Now, Wishlist, Compare -->
+<div class="forever-pdp-action-row my-6">
+    <?php if ($product->isSaleable()): ?>
+        <?php if ($productType === 'bundle'): ?>
+            <button type="button"
+                    class="btn btn-primary customize-and-add-to-cart-btn"
+                    @click="$dispatch('show-customization')">
+                <span><?= $escaper->escapeHtml(__('Customize and Add to Cart')) ?></span>
+            </button>
+        <?php else: ?>
+            <?= $block->getChildHtml('product.info.quantity') ?>
+            <?= $block->getChildHtml('product.info.addtocart') ?>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <!-- Wishlist & Compare -->
+    <?= $block->getChildHtml('product.info.additional.actions') ?>
+</div>
+
+<?php if ($product->isSaleable() && $block->getChildHtml('addtocart.shortcut.buttons')): ?>
+    <div class="forever-pdp-shortcut-buttons flex mt-4 justify-end">
+        <?= $block->getChildHtml('addtocart.shortcut.buttons') ?>
+    </div>
+<?php endif; ?>
+
+<?php if ($tierPriceBlock = $block->getChildHtml('product.price.tier')): ?>
+    <div class="py-4 my-2 tier-price-container">
+        <?= /** @noEscape */ $tierPriceBlock ?>
+    </div>
+<?php endif; ?>
+
+<?= $block->getChildHtml('product.info.additional') ?>

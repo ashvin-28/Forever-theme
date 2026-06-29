@@ -1,0 +1,154 @@
+<?php
+/**
+ * Dynamic related products for the Forever Hyva PDP.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductList;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Magento\Catalog\Block\Product\ReviewRendererInterface as ProductReviewRenderer;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$productListViewModel = $viewModels->require(ProductList::class);
+$productListItemViewModel = $viewModels->require(ProductListItem::class);
+
+// Support both Hyva view blocks and legacy related block item providers.
+$items = [];
+if (method_exists($block, 'getItems')) {
+    $items = (array) $block->getItems();
+}
+if (!$items && method_exists($block, 'getItemCollection')) {
+    $items = array_values($block->getItemCollection()->getItems());
+}
+if (!$items && method_exists($block, 'getAllItems')) {
+    $items = (array) $block->getAllItems();
+}
+if (!$items && method_exists($block, 'getProduct') && $block->getProduct() && $block->getProduct()->getId()) {
+    $items = $productListViewModel->getLinkedItems('related', $block->getProduct());
+}
+if (!$items) {
+    return;
+}
+
+$sliderName = $block->getSliderName() ?: str_replace(['.', '/', '\\'], '_', $block->getNameInLayout());
+$title = (string) ($block->getTitle() ?: __('Related Products'));
+$itemRenderer = $block->getLayout()->getBlock('product_list_item')
+    ?: $block->getChildBlock('slider.item.template')
+    ?: $block->getLayout()->createBlock(Template::class);
+$itemRenderer->setData('hide_details', false);
+$block->setData('forever_pdp_related', true);
+
+$selectableProductIds = [];
+foreach ($items as $item) {
+    if ($item->isSaleable() && !$item->isComposite() && !$item->getRequiredOptions()) {
+        $selectableProductIds[] = (string) $item->getId();
+    }
+}
+?>
+<script>
+    function initForeverRelatedProducts(selectableProductIds) {
+        return {
+            selectableProductIds,
+            selected: [],
+            get allSelected() {
+                return this.selectableProductIds.length > 0
+                    && this.selected.length === this.selectableProductIds.length;
+            },
+            sync() {
+                const target = document.getElementById('related-products-field');
+                if (target) {
+                    target.value = this.selected.join(',');
+                }
+            },
+            toggleAll() {
+                this.selected = this.allSelected ? [] : [...this.selectableProductIds];
+                this.sync();
+            }
+        };
+    }
+</script>
+
+<style>
+    .forever-pdp-recommendation-controls {
+        position: static !important;
+        display: flex !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        margin-top: 24px !important;
+        width: 100% !important;
+    }
+</style>
+
+<section
+    id="<?= $escaper->escapeHtmlAttr($sliderName) ?>"
+    class="snap-slider product-slider forever-pdp-recommendation forever-pdp-related mt-10"
+    aria-label="<?= $escaper->escapeHtmlAttr($title) ?>"
+    data-slider-type="related"
+    x-data="initForeverRelatedProducts(<?= /* @noEscape */ json_encode($selectableProductIds) ?>)"
+    x-init="sync()"
+    x-snap-slider.group-pager
+    x-defer="intersect"
+>
+    <div class="forever-pdp-recommendation-header flex items-center justify-between gap-4 mb-5">
+        <h2 class="text-2xl font-medium text-center w-full"><?= $escaper->escapeHtml($title) ?></h2>
+        <?php if ($selectableProductIds): ?>
+            <p class="forever-pdp-related-select">
+                <?= $escaper->escapeHtml(__('Check items to add to the cart or')) ?>
+                <button type="button" @click="toggleAll()" x-text="allSelected ? '<?= $escaper->escapeJs(__('unselect all')) ?>' : '<?= $escaper->escapeJs(__('select all')) ?>'"></button>
+            </p>
+        <?php endif; ?>
+    </div>
+
+    <div class="snap-track forever-pdp-recommendation-track" data-track tabindex="0" aria-live="polite">
+        <?php foreach ($items as $product): ?>
+            <?php
+            $isSelectable = $product->isSaleable()
+                && !$product->isComposite()
+                && !$product->getRequiredOptions();
+            ?>
+            <div id="<?= $escaper->escapeHtmlAttr($sliderName . '-' . $product->getId()) ?>" class="forever-pdp-product-slide" role="tabpanel">
+                <?= /** @noEscape */ $productListItemViewModel->getItemHtmlWithRenderer(
+                    $itemRenderer,
+                    $product,
+                    $block,
+                    'grid',
+                    ProductReviewRenderer::SHORT_VIEW,
+                    'category_page_grid',
+                    false
+                ) ?>
+                <?php if ($isSelectable): ?>
+                    <label class="forever-pdp-related-checkbox">
+                        <input
+                            type="checkbox"
+                            class="related-checkbox"
+                            value="<?= (int) $product->getId() ?>"
+                            x-model="selected"
+                            @change="sync()"
+                        >
+                        <span class="sr-only"><?= $escaper->escapeHtml(__('Add %1 to cart', $product->getName())) ?></span>
+                    </label>
+                <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="forever-pdp-recommendation-controls">
+        <button class="forever-pdp-slider-control" aria-label="<?= $escaper->escapeHtmlAttr(__('Previous slide')) ?>" data-prev disabled>
+            <?= $lucideIcons->arrowLeftHtml('rtl:-rotate-180', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+        <button class="forever-pdp-slider-control" aria-label="<?= $escaper->escapeHtmlAttr(__('Next slide')) ?>" data-next disabled>
+            <?= $lucideIcons->arrowRightHtml('rtl:-rotate-180', 18, 18, ['aria-hidden' => 'true']) ?>
+        </button>
+    </div>
+
+    <span id="<?= $escaper->escapeHtmlAttr($sliderName) ?>-slider-end" tabindex="-1"></span>
+</section>

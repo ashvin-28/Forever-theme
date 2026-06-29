@@ -1,0 +1,31 @@
+<?php $formId = 'product_addtocart_form'; ?>
+<div class="buynow-button" x-data="{
+    buyNow() {
+        const form = document.getElementById('<?= $block->escapeJs($formId) ?>');
+        if (!form) return;
+        const originalAction = form.getAttribute('action');
+        if (!originalAction) return;
+        
+        // Temporarily change action for Buy Now redirection
+        const buyNowUrl = originalAction.replace('checkout/cart/add', 'buynow/cart/add');
+        form.setAttribute('action', buyNowUrl);
+        
+        // Trigger submit if form is valid
+        if (form.reportValidity()) {
+            form.submit();
+        }
+        
+        // Restore action shortly after submission
+        setTimeout(() => {
+            form.setAttribute('action', originalAction);
+        }, 500);
+    }
+}">
+    <button type="button"
+            title="<?= $block->escapeHtmlAttr(__('Buy Now')) ?>"
+            id="category-buy-now"
+            class="buy-now-btn btn btn-primary"
+            @click="buyNow()">
+        <span><?= $block->escapeHtml(__('Buy Now')) ?></span>
+    </button>
+</div>

@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="css/product-detail.css"/>
+        <css src="css/responsive-fix.css"/>
+    </head>
+    <body>
+        <!-- Remove Luma-only blocks inherited from furniture theme -->
+        <referenceBlock name="labeldata" remove="true"/>
+        <referenceBlock name="forever.product.info.previousnext" remove="true"/>
+        <referenceBlock name="js.zoom" remove="true"/>
+
+        <!-- furniture theme moves product.info into pdp-cutomization-section which breaks Hyva.
+             Move product.info back to product.detail.page where Hyva expects it. -->
+        <move element="product.info" destination="product.detail.page" before="product_options_wrapper_bottom"/>
+
+        <!-- Add Forever previousnext block directly inside product.info -->
+        <referenceBlock name="product.detail.page">
+            <block class="Magento\Catalog\Block\Product\View"
+                   name="forever.pdp.media.labeldata"
+                   as="forever.media.labeldata"
+                   before="-"
+                   template="Forever_Productlabel::productview.phtml">
+                <arguments>
+                    <argument name="viewmodel" xsi:type="object">Forever\Productlabel\ViewModel\ProductLabelViewModel</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+
+        <referenceBlock name="product.info">
+            <block class="Magento\Catalog\Block\Product\View\Description"
+                   name="forever.pdp.previousnext"
+                   as="forever.previousnext"
+                   before="-"
+                   template="product/view/previousnext.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Forever\Core\ViewModel\ProductNavigation</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+
+        <!-- Keep the Hyva slider block; its template reads Magento's native product.info.upsell collection. -->
+        <referenceBlock name="upsell" template="Magento_Catalog::product/slider/forever-upsell-slider.phtml">
+            <arguments>
+                <argument name="imageswticher" xsi:type="object">Forever\Core\ViewModel\Imageswitcher</argument>
+                <argument name="productlabelmodel" xsi:type="object">Forever\Productlabel\ViewModel\ProductLabelViewModel</argument>
+            </arguments>
+        </referenceBlock>
+
+        <!-- Pass Forever ViewModels to Hyva related slider -->
+        <referenceBlock name="related" template="Magento_Catalog::product/slider/forever-related-slider.phtml">
+            <arguments>
+                <argument name="imageswticher" xsi:type="object">Forever\Core\ViewModel\Imageswitcher</argument>
+                <argument name="productlabelmodel" xsi:type="object">Forever\Productlabel\ViewModel\ProductLabelViewModel</argument>
+            </arguments>
+        </referenceBlock>
+
+        <referenceBlock name="recently_viewed_products.default_widget_pdp"
+                        template="Magento_Catalog::product/widget/viewed/forever-pdp.phtml">
+            <arguments>
+                <argument name="title" xsi:type="string" translate="true">Recently Viewed</argument>
+            </arguments>
+        </referenceBlock>
+    </body>
+</page>

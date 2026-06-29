@@ -1,0 +1,20 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Forever\Blog\Block\View $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$postData = $block->getRequest()->getParams();
+$urlKey = '';
+foreach ($postData as $key => $value) {
+    $urlKey = (string) $key;
+}
+$collections = $block->getPost($urlKey);
+?>
+<?php if ($collections && $collections->getTitle()): ?>
+<div class="blog-title page-title-wrapper">
+    <h2 class="page-title">
+        <span><?= $escaper->escapeHtml($collections->getTitle()) ?></span>
+    </h2>
+</div>
+<?php endif; ?>

@@ -1,0 +1,256 @@
+<?php
+declare(strict_types=1);
+
+use Forever\Dailydeals\Block\Dailydeals;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Catalog\Model\Product;
+use Magento\Framework\Escaper;
+
+/** @var Dailydeals $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+if (!$block->isEnable() || !$block->isProductAvailable()) {
+    return;
+}
+
+$timezone = $block->getConfigTimeZone() ?: 'UTC';
+$product = $block->getSpecificProduct();
+$expDateTimeRaw = (string) $block->getConfigExpDateTime();
+
+if (!$product instanceof Product || $expDateTimeRaw === '') {
+    return;
+}
+
+try {
+    $tz = new DateTimeZone($timezone);
+    $now = new DateTimeImmutable('now', $tz);
+    $expDateTime = new DateTimeImmutable($expDateTimeRaw, $tz);
+} catch (Throwable $exception) {
+    return;
+}
+
+if ($expDateTime <= $now) {
+    return;
+}
+
+$stockItem = $product->getExtensionAttributes() ? $product->getExtensionAttributes()->getStockItem() : null;
+if (!$stockItem || !$stockItem->getIsInStock()) {
+    return;
+}
+
+$type = (string) $product->getTypeId();
+$imageUrl = $block->getProductImage($product);
+$addToCartUrl = $block->getAddCartUrl($product);
+$buttonText = (string) ($block->getConfigButtonText() ?: __('Order Now'));
+$saleText = (string) ($block->getConfigSaleText() ?: __('Take advantage of huge <b>discount</b>'));
+$isDirectCartType = in_array($type, ['simple', 'downloadable', 'virtual'], true);
+$regularPrice = '';
+$specialPrice = '';
+$displayPrice = '';
+
+if ($isDirectCartType) {
+    $regularPrice = $block->getFormatedPrice((float) $product->getPrice());
+    $specialPriceValue = (float) $product->getSpecialPrice();
+    $specialPrice = $specialPriceValue > 0 ? $block->getFormatedPrice($specialPriceValue) : '';
+    $displayPrice = $specialPrice !== '' ? $specialPrice : $regularPrice;
+} elseif ($type === 'configurable') {
+    $price = $product->getPriceInfo()->getPrice('regular_price');
+    $displayPrice = (string) __('As low as %1', $block->getFormatedPrice($price->getMinRegularAmount()->getValue()));
+} elseif ($type === 'bundle') {
+    $price = $product->getPriceInfo()->getPrice('final_price');
+    $displayPrice = (string) __('From %1', $block->getFormatedPrice($price->getMinimalPrice()->getValue()));
+} elseif ($type === 'grouped') {
+    $price = $product->getPriceInfo()->getPrice('final_price');
+    $displayPrice = $block->getFormatedPrice($price->getMinimalPrice()->getValue());
+}
+
+$dealConfig = [
+    'expiresAt' => $expDateTime->format(DATE_ATOM),
+    'labels' => [
+        'days' => (string) __('DAYS'),
+        'hours' => (string) __('HRS'),
+        'minutes' => (string) __('MINS'),
+        'seconds' => (string) __('SECS'),
+    ],
+];
+$dealConfigJson = json_encode($dealConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+?>
+
+<script>
+    'use strict';
+
+    function initForeverDailyDeal(config) {
+        return {
+            endTime: new Date(config.expiresAt).getTime(),
+            expired: false,
+            sticky: false,
+            stickyStart: 0,
+            timer: null,
+            parts: {
+                days: '0',
+                hours: '00',
+                minutes: '00',
+                seconds: '00'
+            },
+            labels: config.labels,
+
+            init() {
+                this.refresh();
+                this.timer = window.setInterval(() => this.refresh(), 1000);
+                this.$nextTick(() => {
+                    this.updateStickyStart();
+                    this.updateStickyState();
+                });
+                window.addEventListener('resize', () => this.updateStickyStart(), {passive: true});
+                window.addEventListener('scroll', () => this.updateStickyState(), {passive: true});
+            },
+
+            destroy() {
+                if (this.timer) {
+                    window.clearInterval(this.timer);
+                }
+            },
+
+            refresh() {
+                const distance = this.endTime - Date.now();
+                if (distance <= 0) {
+                    this.expired = true;
+                    this.sticky = false;
+                    this.destroy();
+                    return;
+                }
+
+                const second = 1000;
+                const minute = second * 60;
+                const hour = minute * 60;
+                const day = hour * 24;
+
+                this.parts.days = String(Math.floor(distance / day));
+                this.parts.hours = this.pad(Math.floor((distance % day) / hour));
+                this.parts.minutes = this.pad(Math.floor((distance % hour) / minute));
+                this.parts.seconds = this.pad(Math.floor((distance % minute) / second));
+            },
+
+            updateStickyStart() {
+                if (!this.$el) {
+                    return;
+                }
+                this.stickyStart = this.$el.getBoundingClientRect().top + window.scrollY;
+            },
+
+            updateStickyState() {
+                this.sticky = !this.expired && window.scrollY > this.stickyStart;
+            },
+
+            pad(value) {
+                return String(value).padStart(2, '0');
+            }
+        };
+    }
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<section id="product-sale"
+    class="daily-deals-section"
+    data-forever-dailydeal-alpine
+    x-data="initForeverDailyDeal(<?= $escaper->escapeHtmlAttr((string) $dealConfigJson) ?>)"
+    x-init="init()"
+    :class="{ 'stick': sticky, 'exipary': expired }"
+    x-show="!expired"
+    x-cloak>
+    <div class="daily-deals-inner">
+        <div id="sale-description" class="daily-deals-title bestseller-slider-section">
+            <div class="page-title-wrapper">
+                <h3 class="sale-description-text page-title">
+                    <span><?= $escaper->escapeHtml($saleText, ['b', 'br', 'em', 'span', 'strong']) ?></span>
+                </h3>
+            </div>
+        </div>
+
+        <div class="daily-deals-content">
+            <div class="daily-deals-left">
+                <a id="sale-header" href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>" aria-label="<?= $escaper->escapeHtmlAttr($product->getName()) ?>">
+                    <span id="product-image">
+                        <img width="200"
+                            height="170"
+                            src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                            alt="<?= $escaper->escapeHtmlAttr($product->getName()) ?>"
+                            loading="lazy">
+                    </span>
+                </a>
+            </div>
+
+            <div class="daily-deals-right">
+                <div class="sale-body">
+                    <a class="product-name" href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>">
+                        <span class="name"><?= $escaper->escapeHtml($product->getName()) ?></span>
+                    </a>
+
+                    <div class="product-price">
+                        <?php if ($isDirectCartType && $specialPrice !== ''): ?>
+                            <span class="regular-price"><?= $escaper->escapeHtml($regularPrice) ?></span>
+                            <span class="special-price"><?= $escaper->escapeHtml($specialPrice) ?></span>
+                        <?php else: ?>
+                            <span class="price"><?= $escaper->escapeHtml($displayPrice) ?></span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="sale-footer">
+                        <div class="addtocart-button">
+                            <?php if ($isDirectCartType): ?>
+                                <form data-role="tocart-form"
+                                    action="<?= $escaper->escapeUrl($addToCartUrl) ?>"
+                                    method="post">
+                                    <?= $block->getBlockHtml('formkey') ?>
+                                    <button type="submit"
+                                        title="<?= $escaper->escapeHtmlAttr($buttonText) ?>"
+                                        id="order-button"
+                                        class="action tocart primary">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                                            <path d="M6.2 6h15.1l-2 8.1H8.1L6.2 6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                            <path d="M6.2 6 5.6 3H2.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <circle cx="9.2" cy="19" r="1.3" fill="currentColor"/>
+                                            <circle cx="18.1" cy="19" r="1.3" fill="currentColor"/>
+                                        </svg>
+                                        <span><?= $escaper->escapeHtml($buttonText) ?></span>
+                                    </button>
+                                </form>
+                            <?php else: ?>
+                                <a id="order-button"
+                                    class="action tocart primary"
+                                    href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>">
+                                    <span><?= $escaper->escapeHtml(__('View Product')) ?></span>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="countdown" class="daily-deals-countdown" aria-live="polite">
+                    <div class="counter">
+                        <div class="counter-timer">
+                            <p class="days-num number" x-text="parts.days">0</p>
+                            <p class="days text"><?= $escaper->escapeHtml($dealConfig['labels']['days']) ?></p>
+                        </div>
+                        <div class="counter-timer">
+                            <p class="hours-num number" x-text="parts.hours">00</p>
+                            <p class="hours text"><?= $escaper->escapeHtml($dealConfig['labels']['hours']) ?></p>
+                        </div>
+                        <div class="counter-timer">
+                            <p class="minutes-num number" x-text="parts.minutes">00</p>
+                            <p class="minutes text"><?= $escaper->escapeHtml($dealConfig['labels']['minutes']) ?></p>
+                        </div>
+                        <div class="counter-timer">
+                            <p class="seconds-num number" x-text="parts.seconds">00</p>
+                            <p class="seconds text"><?= $escaper->escapeHtml($dealConfig['labels']['seconds']) ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

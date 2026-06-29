@@ -1,0 +1,290 @@
+<?php
+declare(strict_types=1);
+
+use Forever\Blog\Block\BlogHome;
+use Magento\Framework\Escaper;
+
+/** @var BlogHome $block */
+/** @var Escaper $escaper */
+
+if ((int) $block->getConfig() !== 1) {
+    return;
+}
+
+$collection = $block->getBlogCollection();
+$posts = $collection ? iterator_to_array($collection) : [];
+$postCount = count($posts);
+
+if (!$postCount) {
+    return;
+}
+
+$carouselPosts = [];
+$repeatCount = $postCount > 1 ? 21 : 1;
+if ($postCount > 1) {
+    for ($i = 0; $i < $repeatCount; $i++) {
+        $carouselPosts = array_merge($carouselPosts, $posts);
+    }
+} else {
+    $carouselPosts = $posts;
+}
+$carouselPostCount = count($carouselPosts);
+$middleGroup = $postCount > 1 ? intdiv($repeatCount, 2) : 0;
+?>
+
+<section class="blog-wrapper-container forever-blog-home reveal"
+    x-data="{
+        perView: 2,
+        total: <?= (int) $carouselPostCount ?>,
+        uniqueTotal: <?= (int) $postCount ?>,
+        repeatCount: <?= (int) $repeatCount ?>,
+        middleGroup: <?= (int) $middleGroup ?>,
+        dragging: false,
+        dragStartX: 0,
+        dragStartScroll: 0,
+        dragPointerId: null,
+        dragElement: null,
+        skipClick: false,
+        normalizeTimer: null,
+        init() {
+            this.updatePerView();
+            this.$nextTick(() => this.centerLoop());
+        },
+        destroy() {
+            this.clearNormalizeTimer();
+        },
+        updatePerView() {
+            const width = window.innerWidth || document.documentElement.clientWidth || 1280;
+            this.perView = width >= 480 ? 2 : 1;
+            this.$nextTick(() => this.centerLoop());
+        },
+        slideWidth() {
+            return this.$refs.viewport ? this.$refs.viewport.clientWidth / this.perView : 0;
+        },
+        groupWidth() {
+            return this.$refs.track && this.repeatCount ? this.$refs.track.scrollWidth / this.repeatCount : 0;
+        },
+        centerLoop() {
+            if (this.isLocked() || !this.$refs.viewport) {
+                return;
+            }
+            const width = this.groupWidth();
+            if (width > 0) {
+                this.$refs.viewport.scrollLeft = width * this.middleGroup;
+            }
+        },
+        next() {
+            if (this.isLocked()) {
+                return;
+            }
+            this.$refs.viewport?.scrollBy({ left: this.slideWidth(), behavior: 'smooth' });
+            this.scheduleNormalize();
+        },
+        prev() {
+            if (this.isLocked()) {
+                return;
+            }
+            this.$refs.viewport?.scrollBy({ left: -this.slideWidth(), behavior: 'smooth' });
+            this.scheduleNormalize();
+        },
+        trackStyle() {
+            return '--forever-blog-per-view: ' + this.perView + ';';
+        },
+        snapToNearest() {
+            if (this.isLocked() || !this.$refs.viewport) {
+                return;
+            }
+            const width = this.slideWidth();
+            if (width <= 0) {
+                return;
+            }
+            const target = Math.round(this.$refs.viewport.scrollLeft / width) * width;
+            this.$refs.viewport.scrollTo({ left: target, behavior: 'smooth' });
+        },
+        scheduleNormalize() {
+            this.clearNormalizeTimer();
+            this.normalizeTimer = window.setTimeout(() => {
+                this.normalizeScroll();
+                this.normalizeTimer = null;
+            }, 420);
+        },
+        normalizeScroll() {
+            if (this.isLocked() || !this.$refs.viewport || !this.$refs.track) {
+                return;
+            }
+            const width = this.groupWidth();
+            if (width <= 0) {
+                return;
+            }
+            const min = width * (this.middleGroup - 1);
+            const max = width * (this.middleGroup + 1);
+            while (this.$refs.viewport.scrollLeft < min) {
+                this.$refs.viewport.scrollLeft += width;
+            }
+            while (this.$refs.viewport.scrollLeft >= max) {
+                this.$refs.viewport.scrollLeft -= width;
+            }
+        },
+        loopScroll() {
+            if (!this.dragging) {
+                return;
+            }
+            this.normalizeScroll();
+        },
+        clearNormalizeTimer() {
+            if (this.normalizeTimer) {
+                window.clearTimeout(this.normalizeTimer);
+                this.normalizeTimer = null;
+            }
+        },
+        startDrag(event) {
+            if (this.isLocked() || (event.button !== undefined && event.button !== 0)) {
+                return;
+            }
+            this.dragging = true;
+            this.dragStartX = event.clientX;
+            this.dragStartScroll = event.currentTarget.scrollLeft;
+            this.dragPointerId = event.pointerId;
+            this.dragElement = event.currentTarget;
+            this.skipClick = false;
+        },
+        moveDrag(event) {
+            if (!this.dragging || event.pointerId !== this.dragPointerId) {
+                return;
+            }
+            const delta = event.clientX - this.dragStartX;
+            event.preventDefault();
+            this.dragElement.scrollLeft = this.dragStartScroll - delta;
+            this.loopScroll();
+            if (Math.abs(delta) > 6) {
+                this.skipClick = true;
+            }
+        },
+        endDrag(event) {
+            if (!this.dragging || event.pointerId !== this.dragPointerId) {
+                return;
+            }
+            this.releaseDrag();
+            this.snapToNearest();
+            this.scheduleNormalize();
+            if (this.skipClick) {
+                window.setTimeout(() => { this.skipClick = false; }, 350);
+            }
+        },
+        releaseDrag() {
+            this.dragging = false;
+            this.dragPointerId = null;
+            this.dragElement = null;
+        },
+        blockClick(event) {
+            if (!this.skipClick) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.skipClick = false;
+        },
+        isLocked() {
+            return this.uniqueTotal <= 1;
+        }
+    }"
+    x-init="init()"
+    @resize.window="updatePerView()"
+    @pointermove.window="moveDrag($event)"
+    @pointerup.window="endDrag($event)"
+    @pointercancel.window="releaseDrag()"
+    @keydown.arrow-left.prevent="prev()"
+    @keydown.arrow-right.prevent="next()"
+    tabindex="0"
+    role="region"
+    aria-label="<?= $escaper->escapeHtmlAttr(__('Blog')) ?>">
+    <h3 class="blog-heading"><?= $escaper->escapeHtml(__('Blog')) ?></h3>
+
+    <div class="blog-holder">
+        <?php if ($postCount > 1): ?>
+            <div class="forever-blog-nav" aria-label="<?= $escaper->escapeHtmlAttr(__('Blog slider controls')) ?>">
+                <button type="button"
+                    class="forever-blog-nav-button forever-blog-prev"
+                    @click="prev()"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Previous blog posts')) ?>">
+                    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                        <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button type="button"
+                    class="forever-blog-nav-button forever-blog-next"
+                    @click="next()"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Next blog posts')) ?>">
+                    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                        <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        <?php endif; ?>
+
+        <div class="forever-blog-viewport"
+            x-ref="viewport"
+            :class="{ 'is-dragging': dragging }"
+            @scroll="dragging && loopScroll()"
+            @pointerdown="startDrag($event)"
+            @click.capture="blockClick($event)"
+            @dragstart.prevent>
+            <div class="blog-items forever-blog-track"
+                x-ref="track"
+                :style="trackStyle()">
+                <?php foreach ($carouselPosts as $post): ?>
+                    <?php
+                    $title = (string) $post->getTitle();
+                    $url = $block->getViewUrl((string) $post->getUrlKey());
+                    $imageUrl = $post->getBlogImage()
+                        ? $block->getBlogImage((string) $post->getBlogImage())
+                        : $block->getPlaceHolderImage();
+                    $imageAlt = $post->getBlogImage() ? (string) $post->getBlogImage() : $title;
+                    $author = trim((string) $post->getAuthor());
+                    $excerpt = $block->getBlogShortContent((string) $post->getContentHeading());
+                    ?>
+                    <article class="item forever-blog-slide">
+                        <div class="article-thumbnail forever-blog-card">
+                            <a class="img-inner forever-blog-image" href="<?= $escaper->escapeUrl($url) ?>">
+                                <img class="attachment-drile_blog_thumb size-drile_blog_thumb wp-post-image"
+                                    src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                                    alt="<?= $escaper->escapeHtmlAttr($imageAlt) ?>"
+                                    width="1170"
+                                    height="940"
+                                    loading="lazy">
+                            </a>
+
+                            <div class="forever-blog-meta-row">
+                                <p class="blog-meta-date">
+                                    <?= $escaper->escapeHtml($block->getBlogDate($post->getPublishTime())) ?>
+                                </p>
+                            </div>
+
+                            <?php if ($author !== ''): ?>
+                                <p class="blog-list">
+                                    <a href="<?= $escaper->escapeUrl($url) ?>">
+                                        <?= $escaper->escapeHtml($author) ?>
+                                    </a>
+                                </p>
+                            <?php endif; ?>
+
+                            <a class="blog-title" href="<?= $escaper->escapeUrl($url) ?>">
+                                <?= $escaper->escapeHtml($title) ?>
+                            </a>
+
+                            <?php if ($excerpt !== ''): ?>
+                                <p class="blog-excerpt">
+                                    <?= $escaper->escapeHtml($excerpt) ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <a class="blog-button action primary" href="<?= $escaper->escapeUrl($url) ?>">
+                                <?= $escaper->escapeHtml(__('Read More...')) ?>
+                            </a>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</section>

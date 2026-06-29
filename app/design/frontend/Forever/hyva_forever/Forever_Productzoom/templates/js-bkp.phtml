@@ -1,0 +1,458 @@
+<?php
+
+declare(strict_types=1);
+
+use Forever\Productzoom\Block\Zoom;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var Zoom $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$helper = $block->getData('helper');
+$data = $helper ? $helper->getConfigModule('general') : [];
+$data = is_array($data) ? $data : [];
+
+$asBool = static function (mixed $value, bool $default = false): bool {
+    if (is_bool($value)) {
+        return $value;
+    }
+
+    $normalized = strtolower(trim((string) $value));
+    if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+        return true;
+    }
+    if (in_array($normalized, ['0', 'false', 'no', 'off', ''], true)) {
+        return false;
+    }
+
+    return $default;
+};
+
+$asNumber = static function (mixed $value, float $default, float $minimum, float $maximum): float {
+    if (!is_numeric($value)) {
+        return $default;
+    }
+
+    return max($minimum, min($maximum, (float) $value));
+};
+
+$asColor = static function (mixed $value, string $default): string {
+    $color = trim((string) $value);
+
+    return preg_match('/^(?:#[a-fA-F0-9]{3,8}|[a-zA-Z]+)$/', $color) ? $color : $default;
+};
+
+$zoomType = (string) ($data['zoomType'] ?? 'inner');
+if (!in_array($zoomType, ['window', 'inner', 'lens'], true)) {
+    $zoomType = 'inner';
+}
+
+$cursor = (string) ($data['cursor'] ?? 'default');
+if (!in_array($cursor, ['default', 'cursor', 'crosshair'], true)) {
+    $cursor = 'default';
+}
+
+$zoomConfig = [
+    'enabled' => false,
+    'responsive' => $asBool($data['responsive'] ?? false),
+    'scrollZoom' => $asBool($data['scrollZoom'] ?? false),
+    'zoomType' => $zoomType,
+    'zoomWindowPosition' => (int) $asNumber($data['zoomWindowPosition'] ?? 1, 1, 1, 4),
+    'zoomWindowFadeIn' => $asBool($data['zoomWindowFadeIn'] ?? true, true),
+    'zoomWindowFadeOut' => $asBool($data['zoomWindowFadeOut'] ?? true, true),
+    'zIndex' => (int) $asNumber($data['zIndex'] ?? 99, 99, 1, 9999),
+    'cursor' => $cursor,
+    'borderSize' => $asNumber($data['borderSize'] ?? 1, 1, 0, 10),
+    'borderColour' => $asColor($data['borderColour'] ?? '#666', '#666'),
+    'easing' => $asBool($data['easing'] ?? false),
+    'easingDuration' => (int) $asNumber($data['easingDuration'] ?? 200, 200, 0, 2000),
+    'lensShape' => ($data['lensShape'] ?? 'square') === 'round' ? 'round' : 'square',
+    'lensBorder' => $asNumber($data['lensBorder'] ?? 1, 1, 0, 10),
+    'lensColour' => $asColor($data['lensColour'] ?? '#fff', '#fff'),
+    'lensOpacity' => $asNumber($data['lensOpacity'] ?? 0.4, 0.4, 0, 1),
+    'tint' => $asBool($data['tint'] ?? false),
+    'tintColour' => $asColor($data['tintColour'] ?? '#333', '#333'),
+    'tintOpacity' => $asNumber($data['tintOpacity'] ?? 0.4, 0.4, 0, 1),
+];
+?>
+<?php if ($zoomConfig['enabled']): ?>
+<style>
+    .forever-pdp-gallery-main {
+        position: relative;
+    }
+
+    .forever-pdp-gallery-main > .forever-product-zoom-inner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-repeat: no-repeat;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity var(--forever-product-zoom-transition-duration, 160ms) ease;
+        z-index: var(--forever-product-zoom-z-index, 99);
+        cursor: var(--forever-product-zoom-cursor, default);
+    }
+    .forever-pdp-gallery-main.forever-product-zoom-mode-inner.is-zoom-active > .forever-product-zoom-inner {
+        opacity: 1;
+    }
+
+    .forever-pdp-gallery-main > .forever-product-zoom-tint {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--forever-product-zoom-tint-colour, #333);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--forever-product-zoom-transition-duration, 160ms) ease;
+        z-index: calc(var(--forever-product-zoom-z-index, 99) - 2);
+    }
+    .forever-pdp-gallery-main.has-product-zoom-tint.is-zoom-active > .forever-product-zoom-tint {
+        opacity: var(--forever-product-zoom-tint-opacity, 0.4);
+    }
+
+    .forever-pdp-gallery-main > .forever-product-zoom-lens {
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+        box-sizing: border-box;
+        transition: opacity var(--forever-product-zoom-transition-duration, 160ms) ease;
+        z-index: calc(var(--forever-product-zoom-z-index, 99) - 1);
+        background-repeat: no-repeat;
+    }
+    .forever-pdp-gallery-main.forever-product-zoom-mode-window.is-zoom-active > .forever-product-zoom-lens {
+        opacity: var(--forever-product-zoom-lens-opacity, 0.4);
+        border: var(--forever-product-zoom-lens-border-size, 1px) solid var(--forever-product-zoom-lens-colour, #fff);
+        background-color: var(--forever-product-zoom-lens-colour, #fff);
+    }
+    .forever-pdp-gallery-main.forever-product-zoom-mode-lens.is-zoom-active > .forever-product-zoom-lens {
+        opacity: 1;
+        border: var(--forever-product-zoom-lens-border-size, 1px) solid var(--forever-product-zoom-lens-colour, #fff);
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    }
+
+    .forever-pdp-gallery-main > .forever-product-zoom-window {
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+        background-repeat: no-repeat;
+        box-sizing: border-box;
+        background-color: #fff;
+        border: var(--forever-product-zoom-border-size, 1px) solid var(--forever-product-zoom-border-colour, #666);
+        transition: opacity var(--forever-product-zoom-transition-duration, 160ms) ease;
+        z-index: var(--forever-product-zoom-z-index, 99);
+    }
+    .forever-pdp-gallery-main.forever-product-zoom-mode-window.is-zoom-active > .forever-product-zoom-window {
+        opacity: 1;
+    }
+</style>
+<?php endif; ?>
+<script>
+    window.foreverHyvaProductZoom = <?= /* @noEscape */ json_encode($zoomConfig, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+
+    (function () {
+        'use strict';
+
+        const config = window.foreverHyvaProductZoom || {};
+        const desktopMediaQuery = window.matchMedia('(min-width: 768px)');
+
+        const clamp = function (value, minimum, maximum) {
+            return Math.min(Math.max(value, minimum), maximum);
+        };
+
+        const getCursor = function () {
+            if (config.cursor === 'crosshair') {
+                return 'crosshair';
+            }
+
+            return config.cursor === 'cursor' ? 'zoom-in' : 'default';
+        };
+
+        const createLayer = function (className) {
+            const layer = document.createElement('span');
+            layer.className = className;
+            layer.setAttribute('aria-hidden', 'true');
+
+            return layer;
+        };
+
+        const initializeZoom = function () {
+            if (!config.enabled || !desktopMediaQuery.matches) {
+                return;
+            }
+
+            const gallery = document.querySelector('.catalog-product-view .forever-pdp-gallery');
+            const main = gallery && gallery.querySelector('.forever-pdp-gallery-main');
+            const image = main && main.querySelector('.forever-pdp-gallery-image');
+
+            if (!gallery || !main || !image || gallery.dataset.foreverProductZoomInitialized === 'true') {
+                return;
+            }
+
+            gallery.dataset.foreverProductZoomInitialized = 'true';
+
+            const state = {
+                active: false,
+                imageUrl: '',
+                naturalWidth: 0,
+                naturalHeight: 0,
+                zoom: 2,
+                pointerX: 50,
+                pointerY: 50
+            };
+
+            const inner = createLayer('forever-product-zoom-inner');
+            const lens = createLayer('forever-product-zoom-lens');
+            const zoomWindow = createLayer('forever-product-zoom-window');
+            const tint = createLayer('forever-product-zoom-tint');
+            const transitionDuration = config.easing ? config.easingDuration : 160;
+
+            main.classList.add('forever-product-zoom-ready', 'forever-product-zoom-mode-' + config.zoomType);
+            if (config.tint) {
+                main.classList.add('has-product-zoom-tint');
+            }
+            main.style.setProperty('--forever-product-zoom-z-index', config.zIndex);
+            main.style.setProperty('--forever-product-zoom-cursor', getCursor());
+            main.style.setProperty('--forever-product-zoom-border-size', config.borderSize + 'px');
+            main.style.setProperty('--forever-product-zoom-border-colour', config.borderColour);
+            main.style.setProperty('--forever-product-zoom-lens-border-size', config.lensBorder + 'px');
+            main.style.setProperty('--forever-product-zoom-lens-colour', config.lensColour);
+            main.style.setProperty('--forever-product-zoom-lens-opacity', config.lensOpacity);
+            main.style.setProperty('--forever-product-zoom-tint-colour', config.tintColour);
+            main.style.setProperty('--forever-product-zoom-tint-opacity', config.tintOpacity);
+            main.style.setProperty('--forever-product-zoom-transition-duration', transitionDuration + 'ms');
+
+            main.append(inner, lens, tint, zoomWindow);
+
+            const getViewport = function () {
+                const mainRect = main.getBoundingClientRect();
+                const imageRect = image.getBoundingClientRect();
+
+                return {
+                    imageRect: imageRect,
+                    left: imageRect.left - mainRect.left,
+                    top: imageRect.top - mainRect.top,
+                    width: imageRect.width,
+                    height: imageRect.height
+                };
+            };
+
+            const getImageUrl = function () {
+                return image.dataset.full || main.getAttribute('href') || image.currentSrc || image.src;
+            };
+
+            const applyBackground = function (layer, backgroundSize, backgroundPosition) {
+                layer.style.backgroundImage = 'url("' + state.imageUrl + '")';
+                layer.style.backgroundSize = backgroundSize;
+                layer.style.backgroundPosition = backgroundPosition;
+            };
+
+            const updateImage = function () {
+                const nextImageUrl = getImageUrl();
+                if (!nextImageUrl || nextImageUrl === state.imageUrl) {
+                    return;
+                }
+
+                state.imageUrl = nextImageUrl;
+                const preload = new Image();
+                preload.onload = function () {
+                    state.naturalWidth = preload.naturalWidth;
+                    state.naturalHeight = preload.naturalHeight;
+                    const viewport = getViewport();
+                    const imageRatio = Math.max(
+                        state.naturalWidth / Math.max(viewport.width, 1),
+                        state.naturalHeight / Math.max(viewport.height, 1)
+                    );
+                    state.zoom = clamp(Math.max(1.6, imageRatio), 1.6, 4);
+                    render();
+                };
+                preload.src = nextImageUrl;
+                render();
+            };
+
+            const setLayerBounds = function (layer, viewport) {
+                layer.style.left = viewport.left + 'px';
+                layer.style.top = viewport.top + 'px';
+                layer.style.width = viewport.width + 'px';
+                layer.style.height = viewport.height + 'px';
+            };
+
+            const setWindowPosition = function (viewport) {
+                const gap = 12;
+                const windowWidth = viewport.width;
+                const windowHeight = viewport.height;
+                let left = viewport.left + viewport.width + gap;
+                let top = viewport.top;
+
+                switch (Number(config.zoomWindowPosition)) {
+                    case 2:
+                        top = viewport.top + (viewport.height - windowHeight) / 2;
+                        break;
+                    case 3:
+                        top = viewport.top + viewport.height - windowHeight;
+                        break;
+                    case 4:
+                        left = viewport.left;
+                        top = viewport.top + viewport.height + gap;
+                        break;
+                    default:
+                        break;
+                }
+
+                zoomWindow.style.left = left + 'px';
+                zoomWindow.style.top = top + 'px';
+                zoomWindow.style.width = windowWidth + 'px';
+                zoomWindow.style.height = windowHeight + 'px';
+            };
+
+            const render = function () {
+                if (!state.imageUrl || !desktopMediaQuery.matches) {
+                    return;
+                }
+
+                const viewport = getViewport();
+                if (!viewport.width || !viewport.height) {
+                    return;
+                }
+
+                const backgroundSize = (viewport.width * state.zoom) + 'px ' + (viewport.height * state.zoom) + 'px';
+                const backgroundPosition = state.pointerX + '% ' + state.pointerY + '%';
+
+                setLayerBounds(inner, viewport);
+                setLayerBounds(tint, viewport);
+                applyBackground(inner, backgroundSize, backgroundPosition);
+                applyBackground(zoomWindow, backgroundSize, backgroundPosition);
+                setWindowPosition(viewport);
+
+                if (config.zoomType === 'lens') {
+                    const lensSize = Math.min(200, viewport.width, viewport.height);
+                    lens.style.width = lensSize + 'px';
+                    lens.style.height = lensSize + 'px';
+                    lens.style.left = (viewport.left + clamp(
+                        viewport.width * (state.pointerX / 100) - lensSize / 2,
+                        0,
+                        viewport.width - lensSize
+                    )) + 'px';
+                    lens.style.top = (viewport.top + clamp(
+                        viewport.height * (state.pointerY / 100) - lensSize / 2,
+                        0,
+                        viewport.height - lensSize
+                    )) + 'px';
+                    lens.style.borderRadius = config.lensShape === 'round' ? '50%' : '0';
+                    applyBackground(lens, backgroundSize, backgroundPosition);
+                } else {
+                    const lensWidth = clamp(viewport.width / state.zoom, 32, viewport.width);
+                    const lensHeight = clamp(viewport.height / state.zoom, 32, viewport.height);
+                    lens.style.width = lensWidth + 'px';
+                    lens.style.height = lensHeight + 'px';
+                    lens.style.left = (viewport.left + clamp(
+                        viewport.width * (state.pointerX / 100) - lensWidth / 2,
+                        0,
+                        viewport.width - lensWidth
+                    )) + 'px';
+                    lens.style.top = (viewport.top + clamp(
+                        viewport.height * (state.pointerY / 100) - lensHeight / 2,
+                        0,
+                        viewport.height - lensHeight
+                    )) + 'px';
+                    lens.style.borderRadius = config.lensShape === 'round' ? '50%' : '0';
+                }
+            };
+
+            const setActive = function (active) {
+                state.active = active;
+                main.classList.toggle('is-zoom-active', active);
+            };
+
+            const move = function (event) {
+                const viewport = getViewport();
+                if (!viewport.width || !viewport.height) {
+                    return;
+                }
+
+                state.pointerX = clamp(((event.clientX - viewport.imageRect.left) / viewport.width) * 100, 0, 100);
+                state.pointerY = clamp(((event.clientY - viewport.imageRect.top) / viewport.height) * 100, 0, 100);
+                render();
+            };
+
+            main.addEventListener('pointerenter', function (event) {
+                updateImage();
+                setActive(true);
+                move(event);
+            });
+
+            main.addEventListener('pointermove', function (event) {
+                if (!state.active) {
+                    return;
+                }
+
+                move(event);
+            });
+
+            main.addEventListener('pointerleave', function () {
+                setActive(false);
+            });
+
+            main.addEventListener('focus', function () {
+                updateImage();
+                state.pointerX = 50;
+                state.pointerY = 50;
+                render();
+                setActive(true);
+            });
+
+            main.addEventListener('blur', function () {
+                setActive(false);
+            });
+
+            main.addEventListener('wheel', function (event) {
+                if (!config.scrollZoom || !desktopMediaQuery.matches) {
+                    return;
+                }
+
+                event.preventDefault();
+                state.zoom = clamp(state.zoom + (event.deltaY < 0 ? 0.15 : -0.15), 1.2, 4);
+                setActive(true);
+                move(event);
+            }, {passive: false});
+
+            image.addEventListener('load', updateImage);
+            window.addEventListener('forever-pdp-gallery:image-change', updateImage);
+            new MutationObserver(updateImage).observe(image, {
+                attributes: true,
+                attributeFilter: ['src', 'data-full']
+            });
+
+            gallery.querySelectorAll('.forever-pdp-gallery-thumb').forEach(function (thumbnail) {
+                thumbnail.addEventListener('click', function () {
+                    window.setTimeout(updateImage, 0);
+                });
+            });
+
+            window.addEventListener('resize', function () {
+                if (!desktopMediaQuery.matches) {
+                    setActive(false);
+                    return;
+                }
+
+                updateImage();
+                render();
+            });
+
+            updateImage();
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeZoom, {once: true});
+        } else {
+            initializeZoom();
+        }
+    }());
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

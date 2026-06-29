@@ -1,0 +1,336 @@
+<?php
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+
+/** @var \Forever\NewsletterPopup\Block\Showpopup $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$enabled = (int) $block->isEnable() === 1;
+$homeOnly = (int) $block->showinHomepageOnly() === 1;
+$currentFullAction = $block->getRequest()->getFullActionName();
+$title = (string) $block->getTitle();
+$backgroundImage = $block->getViewFileUrl('images/newsletter-bg.jpg');
+$allowed = $homeOnly
+    ? in_array($currentFullAction, ['cms_index_index', ' '], true)
+    : in_array($currentFullAction, ['catalog_product_view', 'catalog_category_view', 'cms_index_index'], true);
+
+if (!$enabled || !$allowed) {
+    return;
+}
+?>
+<style>
+    .forever-newsletter-modal.hidden,
+    .forever-newsletter-modal[x-cloak] {
+        display: none !important;
+    }
+
+    body.forever-newsletter-visible {
+        overflow: hidden;
+    }
+
+    .forever-newsletter-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .forever-newsletter-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, .55);
+    }
+
+    .forever-newsletter-dialog {
+        position: relative;
+        z-index: 1;
+        width: min(930px, calc(100vw - 48px));
+        min-height: 460px;
+        max-height: calc(100vh - 48px);
+        overflow: visible;
+        padding: 70px 52px 52px;
+        background: #ffffff url("<?= $block->escapeUrl($backgroundImage) ?>") center / cover no-repeat;
+        box-shadow: 0 20px 34px rgba(0, 0, 0, .32);
+    }
+
+    .forever-newsletter-dialog::before {
+        content: "";
+        position: absolute;
+        inset: 22px;
+        border: 2px solid rgba(255, 255, 255, .96);
+        pointer-events: none;
+    }
+
+    .forever-newsletter-close {
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        z-index: 3;
+        display: flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 50%;
+        background: #dfa34a;
+        color: #ffffff;
+        font-family: Arial, sans-serif;
+        font-size: 28px;
+        font-weight: 300;
+        line-height: 28px;
+        padding: 0 0 2px;
+        cursor: pointer;
+    }
+
+    .forever-newsletter-dialog > *:not(.forever-newsletter-close) {
+        position: relative;
+        z-index: 2;
+        width: min(340px, 100%);
+        margin-left: auto;
+        text-align: center;
+    }
+
+    .forever-newsletter-dialog .sr-only {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+    }
+
+    .forever-newsletter-dialog .popup-icon {
+        width: 70px;
+        height: 42px;
+        margin: 0 auto 18px;
+        background: #dfa34a;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 64'%3E%3Cpath fill='black' d='M30 14h62v40H30V14Zm6 6 25 20 25-20H36Zm50 28V27L62 46a3 3 0 0 1-4 0L36 28v20h50ZM2 17h20v6H2v-6Zm8 14h18v6H10v-6Zm-8 14h20v6H2v-6Z'/%3E%3C/svg%3E") center / contain no-repeat;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 64'%3E%3Cpath fill='black' d='M30 14h62v40H30V14Zm6 6 25 20 25-20H36Zm50 28V27L62 46a3 3 0 0 1-4 0L36 28v20h50ZM2 17h20v6H2v-6Zm8 14h18v6H10v-6Zm-8 14h20v6H2v-6Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+
+    .forever-newsletter-dialog .popup-title {
+        margin-bottom: 28px;
+    }
+
+    .forever-newsletter-dialog .popup-title h2 {
+        margin: 0 0 12px;
+        color: #111111;
+        font-size: 35px;
+        font-weight: 400;
+        line-height: 1.2;
+    }
+
+    .forever-newsletter-dialog .popup-title span,
+    .forever-newsletter-dialog .popup-desc,
+    .forever-newsletter-dialog p {
+        color: #5f5f5f;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.35;
+    }
+
+    .forever-newsletter-dialog .popup-desc,
+    .forever-newsletter-dialog p {
+        margin-bottom: 28px;
+    }
+
+    .forever-newsletter-dialog .block.newsletter,
+    .forever-newsletter-dialog .block.newsletter .content,
+    .forever-newsletter-dialog .block.newsletter .form.subscribe {
+        width: 100%;
+        max-width: 340px;
+        margin: 0;
+    }
+
+    .forever-newsletter-dialog .block.newsletter {
+        margin-left: auto;
+    }
+
+    .forever-newsletter-dialog .block.newsletter .title,
+    .forever-newsletter-dialog .block.newsletter .label {
+        display: none !important;
+    }
+
+    .forever-newsletter-dialog .block.newsletter .form.subscribe {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        align-items: center;
+    }
+
+    .forever-newsletter-dialog .block.newsletter .field.newsletter,
+    .forever-newsletter-dialog .block.newsletter .control,
+    .forever-newsletter-dialog .block.newsletter label {
+        display: block;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .forever-newsletter-dialog .block.newsletter input[type="email"] {
+        width: 100%;
+        height: 39px;
+        min-height: 39px;
+        padding: 0 20px;
+        border: 1px solid #e6e6e6;
+        border-radius: 3px;
+        background: #ffffff;
+        color: #555555;
+        font-size: 15px;
+        line-height: 39px;
+        text-align: left;
+    }
+
+    .forever-newsletter-dialog .block.newsletter input[type="email"]:focus {
+        border-color: #e6e6e6;
+        outline: none;
+        box-shadow: none;
+    }
+
+    .forever-newsletter-dialog .block.newsletter .actions {
+        width: 100%;
+        margin-top: 26px;
+        text-align: center;
+    }
+
+    .forever-newsletter-dialog .block.newsletter .action.subscribe {
+        width: 150px;
+        min-width: 150px;
+        height: 40px;
+        min-height: 40px;
+        padding: 0 18px;
+        border: 1px solid #dfa34a;
+        border-radius: 4px;
+        background: #dfa34a;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        line-height: 40px;
+        text-transform: uppercase;
+    }
+
+    @media (max-width: 767px) {
+        .forever-newsletter-modal {
+            padding: 14px;
+        }
+
+        .forever-newsletter-dialog {
+            width: calc(100vw - 28px);
+            min-height: 0;
+            max-height: calc(100vh - 28px);
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding: 58px 24px 34px;
+            background-position: center top;
+        }
+
+        .forever-newsletter-dialog::before {
+            inset: 14px;
+        }
+
+        .forever-newsletter-close {
+            top: 8px;
+            right: 8px;
+        }
+
+        .forever-newsletter-dialog > *:not(.forever-newsletter-close) {
+            width: 100%;
+        }
+
+        .forever-newsletter-dialog .popup-title h2 {
+            font-size: 28px;
+        }
+    }
+</style>
+<script>
+    function initForeverNewsletterPopup() {
+        return {
+            open: false,
+            cookieMinutes: 1440,
+            init() {
+                this.$el.classList.remove('hidden');
+
+                if (this.hasCookie()) {
+                    return;
+                }
+
+                window.setTimeout(() => this.show(), 600);
+            },
+            show() {
+                if (this.hasCookie()) {
+                    return;
+                }
+
+                this.open = true;
+                this.setCookie();
+                document.body.classList.add('forever-newsletter-visible');
+            },
+            close() {
+                this.open = false;
+                document.body.classList.remove('forever-newsletter-visible');
+            },
+            cookieName() {
+                return this.$el.dataset.cookieName || 'news_letter_popup';
+            },
+            hasCookie() {
+                const name = `${this.cookieName()}=`;
+
+                return document.cookie.split('; ').some((cookie) => cookie.indexOf(name) === 0);
+            },
+            setCookie() {
+                const expires = new Date();
+                expires.setTime(expires.getTime() + (this.cookieMinutes * 60 * 1000));
+                document.cookie = `${this.cookieName()}=popupshow; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+            }
+        }
+    }
+
+    window.addEventListener('alpine:init', () => {
+        Alpine.data('initForeverNewsletterPopup', initForeverNewsletterPopup)
+    }, {once: true})
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>
+
+<div id="newsletter-validate-detail-modal"
+     class="forever-newsletter-modal hidden"
+     x-data="initForeverNewsletterPopup()"
+     x-init="init()"
+     x-show="open"
+     x-transition.opacity.duration.200ms
+     x-cloak
+     @keydown.escape.window="close()"
+     data-forever-newsletter-popup
+     data-auto-open="1"
+     data-cookie-name="news_letter_popup"
+     :aria-hidden="(!open).toString()"
+     aria-hidden="true">
+    <div class="forever-newsletter-backdrop"
+         data-forever-newsletter-close
+         @click="close()"></div>
+    <div class="forever-newsletter-dialog" role="dialog" aria-modal="true" aria-labelledby="forever-newsletter-title">
+        <button type="button"
+                class="forever-newsletter-close"
+         data-forever-newsletter-close
+         @click="close()"
+         aria-label="<?= $block->escapeHtmlAttr(__('Close')) ?>">&times;</button>
+        <span id="forever-newsletter-title" class="sr-only"><?= $block->escapeHtml($title) ?></span>
+        <?= $block->getLayout()->createBlock(Magento\Cms\Block\Block::class)
+            ->setBlockId('forever_newsletter_popup')
+            ->toHtml(); ?>
+        <?= $block->getLayout()->createBlock(Magento\Newsletter\Block\Subscribe::class)
+            ->setTemplate('Magento_Newsletter::subscribe.phtml')
+            ->toHtml(); ?>
+    </div>
+</div>

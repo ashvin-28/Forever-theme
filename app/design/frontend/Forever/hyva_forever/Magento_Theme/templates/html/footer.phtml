@@ -1,0 +1,197 @@
+<?php
+declare(strict_types=1);
+
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use Forever\Core\ViewModel\SystemConfigurations;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+
+$footerBlocksByStyle = [
+    'style-1' => [
+        'class' => 'footer-one',
+        'blocks' => [
+            'footer-1-footer-top-section',
+            'footer-1-footer-middle-section',
+            'footer-1-footer-bottom-section',
+        ],
+    ],
+    'style-2' => [
+        'class' => 'footer-two',
+        'blocks' => [
+            'footer-2-footer-top-section',
+            'footer-2-footer-middle-section',
+        ],
+    ],
+    'style-3' => [
+        'class' => 'footer-three',
+        'blocks' => [
+            'footer-3-footer-top-section',
+            'footer-3-footer-middle-section',
+            'footer-3-footer-bottom-section',
+        ],
+    ],
+    'style-4' => [
+        'class' => 'footer-four',
+        'blocks' => [
+            'footer-4-footer-top-section',
+            'footer-4-footer-middle-section',
+            'footer-4-footer-bottom-section',
+        ],
+    ],
+];
+
+/** @var SystemConfigurations|null $configViewModel */
+$configViewModel = $block->getData('view_model');
+$footerStyle = $configViewModel instanceof SystemConfigurations
+    ? (string) $configViewModel->getfooterStyle()
+    : 'style-1';
+$footerStyle = isset($footerBlocksByStyle[$footerStyle]) ? $footerStyle : 'style-1';
+$activeFooter = $footerBlocksByStyle[$footerStyle];
+$availableChildren = $block->getChildNames();
+$activeChildren = array_values(array_filter(
+    $activeFooter['blocks'],
+    static fn (string $childName): bool => in_array($childName, $availableChildren, true)
+));
+
+if (!$activeChildren) {
+    $activeChildren = $availableChildren;
+}
+?>
+<div class="forever-footer <?= $escaper->escapeHtmlAttr($activeFooter['class']) ?> footer-container__inner">
+    <?php foreach ($activeChildren as $childName): ?>
+        <?= /* @noEscape */ $block->getBlockHtml($childName) ?>
+    <?php endforeach; ?>
+</div>
+<script>
+(function () {
+    function initForeverFooterAccordions() {
+        var footer = document.querySelector('.forever-footer.footer-four');
+
+        if (!footer) {
+            return;
+        }
+
+        var areas = Array.prototype.slice.call(footer.querySelectorAll('.footer-area'));
+
+        areas.forEach(function (area, index) {
+            var heading = area.querySelector(':scope > h6');
+            var panel = area.querySelector(':scope > ul');
+
+            if (!heading || !panel) {
+                return;
+            }
+
+            if (!panel.id) {
+                panel.id = 'forever-footer-accordion-panel-' + index;
+            }
+
+            function syncAccordionState() {
+                if (window.innerWidth > 992) {
+                    area.classList.remove('is-open');
+                    heading.classList.remove('active');
+                    heading.removeAttribute('role');
+                    heading.removeAttribute('tabindex');
+                    heading.removeAttribute('aria-controls');
+                    heading.removeAttribute('aria-expanded');
+                    return;
+                }
+
+                heading.setAttribute('role', 'button');
+                heading.setAttribute('tabindex', '0');
+                heading.setAttribute('aria-controls', panel.id);
+                heading.setAttribute('aria-expanded', area.classList.contains('is-open') ? 'true' : 'false');
+            }
+
+            syncAccordionState();
+
+            if (heading.dataset.foreverFooterAccordionReady) {
+                return;
+            }
+
+            heading.dataset.foreverFooterAccordionReady = 'true';
+            heading.addEventListener('click', function () {
+                if (window.innerWidth > 992) {
+                    return;
+                }
+
+                var isOpen = area.classList.toggle('is-open');
+
+                heading.classList.toggle('active', isOpen);
+                heading.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+            heading.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    heading.click();
+                }
+            });
+        });
+
+        if (!window.foreverFooterAccordionResizeBound) {
+            window.foreverFooterAccordionResizeBound = true;
+            window.addEventListener('resize', initForeverFooterAccordions, { passive: true });
+        }
+    }
+
+    function initForeverBackToTop() {
+        var buttons = Array.prototype.slice.call(document.querySelectorAll('.top-bottom-arrow'));
+        if (!buttons.length) {
+            return;
+        }
+
+        var button = buttons[0];
+        buttons.slice(1).forEach(function (duplicate) {
+            duplicate.remove();
+        });
+
+        if (button.parentNode !== document.body) {
+            document.body.appendChild(button);
+        }
+
+        button.dataset.foreverBackToTop = 'ready';
+        button.setAttribute('role', 'button');
+        button.setAttribute('aria-label', 'Back to top');
+        button.setAttribute('aria-hidden', 'true');
+        button.setAttribute('tabindex', '-1');
+
+        function setVisibility() {
+            var isVisible = window.scrollY > 600;
+            button.classList.toggle('is-visible', isVisible);
+            button.setAttribute('aria-hidden', isVisible ? 'false' : 'true');
+            button.setAttribute('tabindex', isVisible ? '0' : '-1');
+        }
+
+        function scrollToTop(event) {
+            event.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        if (!button.dataset.foreverBackToTopClick) {
+            button.dataset.foreverBackToTopClick = 'ready';
+            button.addEventListener('click', scrollToTop);
+            button.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    scrollToTop(event);
+                }
+            });
+        }
+
+        setVisibility();
+        if (!window.foreverBackToTopScrollBound) {
+            window.foreverBackToTopScrollBound = true;
+            window.addEventListener('scroll', setVisibility, { passive: true });
+            window.addEventListener('resize', setVisibility, { passive: true });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initForeverFooterAccordions, { once: true });
+        document.addEventListener('DOMContentLoaded', initForeverBackToTop, { once: true });
+    } else {
+        initForeverFooterAccordions();
+        initForeverBackToTop();
+    }
+})();
+</script>

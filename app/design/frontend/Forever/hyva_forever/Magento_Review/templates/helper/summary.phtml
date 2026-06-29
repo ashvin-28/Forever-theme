@@ -1,0 +1,113 @@
+<?php
+/**
+ * Hyva-compatible review summary helper override.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+use Magento\Review\Block\Product\ReviewRenderer;
+
+/** @var ReviewRenderer $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+/** @var LucideIcons $lucideIcons */
+$lucideIcons = $viewModels->require(LucideIcons::class);
+
+$rating = $block->getRatingSummary();
+$ratingSteps = 5;
+$starsFilled = is_numeric($rating) ? (int) floor($rating / 100 * $ratingSteps) : 0;
+$starFragment = ($rating / 100 * $ratingSteps) - $starsFilled;
+$starsEmpty = (int) floor($ratingSteps - $starsFilled - $starFragment);
+$starIconSize = $block->getData('rating_icon_size') ?: 16;
+
+$reviewCount = $block->getReviewsCount();
+$product = $block->getProduct();
+?>
+<?php if ($block->isReviewEnabled()): ?>
+    <div class="forever-pdp-reviews-summary text-sm mt-3 mb-3" style="display: flex !important; flex-direction: row !important; flex-wrap: wrap !important; align-items: center !important; gap: 16px !important;">
+        <!-- Stars rating -->
+        <a
+            <?php if ($reviewCount): ?>
+                href="#customer-review-list"
+                itemprop="aggregateRating"
+                itemscope
+                itemtype="https://schema.org/AggregateRating"
+            <?php else: ?>
+                href="#review-form"
+            <?php endif; ?>
+            class="flex items-center gap-1"
+            style="display: inline-flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; text-decoration: none;"
+            aria-label="<?= $escaper->escapeHtmlAttr($rating
+                ? __('%1 rating. %2 out of %3 stars', $product->getName(), $starsFilled + $starFragment, $ratingSteps)
+                : __('Be the first to review this product')) ?>"
+        >
+            <?php if ($reviewCount): ?>
+                <span hidden itemprop="ratingValue"><?= $starsFilled + $starFragment; ?></span>
+                <span hidden itemprop="reviewCount"><?= (int) $reviewCount; ?></span>
+            <?php endif; ?>
+            
+            <span role="img" class="rating-summary" style="display: inline-flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; gap: 2px !important;">
+                <?php if ($rating): ?>
+                    <?php $i = 0; ?>
+                    <?php while ($i < $starsFilled): ?>
+                        <?= $lucideIcons->starHtml('forever-star-filled', $starIconSize, $starIconSize, ['aria-hidden' => 'true', 'style' => 'display: inline-block !important; float: none !important; clear: none !important; vertical-align: middle !important; margin: 0 !important; padding: 0 !important;']); ?>
+                        <?php $i++; ?>
+                    <?php endwhile; ?>
+                    <?php if ($starFragment > 0): ?>
+                        <span class="relative" style="display: inline-block !important; width: <?= (int)$starIconSize ?>px; height: <?= (int)$starIconSize ?>px; float: none !important; clear: none !important; vertical-align: middle !important; margin: 0 !important; padding: 0 !important;">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                width="0"
+                                height="0"
+                                aria-hidden="true"
+                            >
+                                <defs>
+                                    <linearGradient id="partialFill<?= /* @noEscape */ $block->getProduct()->getId() ?>">
+                                        <stop offset="0%" stop-color="var(--forever-primary)"/>
+                                        <stop offset="<?= $starFragment * 100 ?>%" stop-color="var(--forever-primary)"/>
+                                        <stop offset="<?= $starFragment * 100 ?>%" stop-color="#0000"/>
+                                        <stop offset="100%" stop-color="#0000"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <?= $lucideIcons->starHtml('', $starIconSize, $starIconSize, [
+                                'style' => 'fill: url(#partialFill' . (int)$block->getProduct()->getId() . '); color: var(--forever-primary); display: inline-block !important; float: none !important; clear: none !important; vertical-align: middle !important; margin: 0 !important; padding: 0 !important;',
+                                'aria-hidden' => 'true'
+                            ]); ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php $i = 0; ?>
+                    <?php while ($i < $starsEmpty): ?>
+                        <?= $lucideIcons->starHtml('forever-star-empty', $starIconSize, $starIconSize, ['aria-hidden' => 'true', 'style' => 'display: inline-block !important; float: none !important; clear: none !important; vertical-align: middle !important; margin: 0 !important; padding: 0 !important;']); ?>
+                        <?php $i++; ?>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <?php $i = 0; ?>
+                    <?php while ($i < $ratingSteps): ?>
+                        <?= $lucideIcons->starHtml('forever-star-empty', $starIconSize, $starIconSize, ['aria-hidden' => 'true', 'style' => 'display: inline-block !important; float: none !important; clear: none !important; vertical-align: middle !important; margin: 0 !important; padding: 0 !important;']); ?>
+                        <?php $i++; ?>
+                    <?php endwhile; ?>
+                <?php endif; ?>
+            </span>
+        </a>
+
+        <!-- Review Count and Add Review links -->
+        <?php if ($reviewCount): ?>
+            <a class="forever-pdp-review-count text-[#666] text-xs hover:underline hover:text-black" href="#customer-review-list">
+                <?= $escaper->escapeHtml($reviewCount) ?> <?= $escaper->escapeHtml($reviewCount > 1 ? __('Reviews') : __('Review')) ?>
+            </a>
+            <a class="forever-pdp-add-review text-[#666] text-xs hover:underline hover:text-black ml-4" href="#review-form">
+                <?= $escaper->escapeHtml(__('Add Your Review')) ?>
+            </a>
+        <?php else: ?>
+            <a class="forever-pdp-add-review text-[#666] text-xs hover:underline hover:text-black" href="#review-form">
+                <?= $escaper->escapeHtml(__('Be the first to review this product')) ?>
+            </a>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>

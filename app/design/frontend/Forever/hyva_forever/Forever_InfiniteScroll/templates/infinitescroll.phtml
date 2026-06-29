@@ -1,0 +1,397 @@
+<?php
+use Forever\InfiniteScroll\Block\InfiniteScroll;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Magento\Framework\Escaper;
+
+/** @var InfiniteScroll $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var HyvaCsp $hyvaCsp */
+
+$hyvaCsp = $viewModels->require(HyvaCsp::class);
+$isEnabled = $block->getConfigData('infinitescroll/general/enabled');
+if (!$isEnabled) {
+    return;
+}
+
+$loadingImage = $block->getConfigData('infinitescroll/general/infinitescroll_loadingimage');
+if ($loadingImage) {
+    $loadingImage = $block->getMedia('forever/infinitescroll/' . $loadingImage);
+} else {
+    $loadingImage = $block->getViewFileUrl('images/loader-1.gif');
+}
+
+$config = [
+    'container' => (string) $block->getConfigData('infinitescroll/general/infinitescroll_content'),
+    'item' => (string) $block->getConfigData('infinitescroll/general/infinitescroll_item'),
+    'pagination' => (string) $block->getConfigData('infinitescroll/general/infinitescroll_pagination'),
+    'next' => (string) $block->getConfigData('infinitescroll/general/infinitescroll_next'),
+    'delay' => max(0, (int) $block->getConfigData('infinitescroll/general/infinitescroll_delay')),
+    'loadingText' => (string) $block->getConfigData('infinitescroll/general/infinitescroll_loadingtext'),
+    'loadMoreThreshold' => max(1, (int) $block->getConfigData('infinitescroll/general/infinitescroll_loadmore')),
+    'loadMoreText' => (string) $block->getConfigData('infinitescroll/general/infinitescroll_loadmoretext'),
+    'loadingImage' => (string) $loadingImage,
+];
+?>
+<script>
+(() => {
+    "use strict";
+
+    const config = <?= /* @noEscape */ json_encode($config, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+
+    if (!config || window.foreverInfiniteScrollInitialized) {
+        return;
+    }
+
+    const productList = document.getElementById("product-list");
+
+    if (!productList) {
+        return;
+    }
+
+    window.foreverInfiniteScrollInitialized = true;
+    window.foreverHyvaInfiniteScroll = config;
+    document.body.classList.add("forever-infinite-scroll-enabled");
+
+    const state = {
+        loading: false,
+        finished: false,
+        nextUrl: null,
+        nextPage: null,
+        observer: null,
+        delay: Number.parseInt(config.delay, 10) || 0,
+        loadMoreThreshold: Number.parseInt(config.loadMoreThreshold, 10) || 999999
+    };
+
+    const selectors = {
+        container: [
+            config.container,
+            "#product-list .products.wrapper ul[role='list']",
+            "#product-list .products.wrapper ul",
+            "#layerednav-list-products .products.wrapper ul[role='list']",
+            ".products.wrapper ul[role='list']",
+            ".products.wrapper .product-items",
+            ".products-grid .product-items"
+        ].filter(Boolean),
+        item: [
+            config.item,
+            ".item.product.product-item",
+            ".product-item",
+            "li"
+        ].filter(Boolean),
+        pagination: [
+            config.pagination,
+            "#product-list .toolbar-products .pager",
+            "#product-list .pages",
+            ".toolbar-products .pager",
+            ".pages"
+        ].filter(Boolean),
+        next: [
+            config.next,
+            "a.pages-item-next:not([aria-disabled='true'])",
+            ".pages a.pages-item-next:not([aria-disabled='true'])",
+            ".pager a.pages-item-next:not([aria-disabled='true'])",
+            "a[rel='next']",
+            "a.next"
+        ].filter(Boolean)
+    };
+
+    const hidePagination = () => {
+        for (const selector of selectors.pagination) {
+            try {
+                document.querySelectorAll(selector).forEach((element) => {
+                    const toolbar = element.closest("#product-list > .toolbar-products");
+
+                    (toolbar || element).setAttribute("hidden", "");
+                });
+            } catch (error) {
+                // Invalid custom selectors should not break the product list.
+            }
+        }
+    };
+
+    const hasProductItem = (element) => selectors.item.some((selector) => {
+        try {
+            return element.matches(selector) || Boolean(element.querySelector(selector));
+        } catch (error) {
+            return false;
+        }
+    });
+
+    const getItemsContainer = (root) => {
+        for (const selector of selectors.container) {
+            try {
+                const candidates = Array.from(root.querySelectorAll(selector));
+                const productContainer = candidates.find((candidate) => {
+                    if (candidate.matches("ul, ol") && Array.from(candidate.children).some(hasProductItem)) {
+                        return true;
+                    }
+
+                    return Boolean(candidate.querySelector(".products.wrapper ul[role='list'], .products.wrapper ul, .product-items"));
+                });
+
+                if (!productContainer) {
+                    continue;
+                }
+
+                if (productContainer.matches("ul, ol")) {
+                    return productContainer;
+                }
+
+                const nestedContainer = productContainer.querySelector(
+                    ".products.wrapper ul[role='list'], .products.wrapper ul, .product-items"
+                );
+
+                return nestedContainer || productContainer;
+            } catch (error) {
+                // Keep trying configured fallbacks.
+            }
+        }
+
+        return null;
+    };
+
+    const getProductNodes = (container) => {
+        if (!container) {
+            return [];
+        }
+
+        if (container.matches("ul, ol")) {
+            return Array.from(container.children).filter(hasProductItem);
+        }
+
+        for (const selector of selectors.item) {
+            try {
+                const nodes = Array.from(container.querySelectorAll(selector));
+
+                if (nodes.length) {
+                    return nodes.map((node) => node.closest("li") || node);
+                }
+            } catch (error) {
+                // Try the next configured item selector.
+            }
+        }
+
+        return [];
+    };
+
+    const normalizeUrl = (url) => {
+        if (!url) {
+            return null;
+        }
+
+        const nextUrl = new URL(url, window.location.href);
+        nextUrl.hash = "";
+
+        return nextUrl.toString();
+    };
+
+    const getPageNumber = (url) => {
+        if (!url) {
+            return null;
+        }
+
+        const parsedUrl = new URL(url, window.location.href);
+        return Number.parseInt(parsedUrl.searchParams.get("p") || "1", 10) || 1;
+    };
+
+    const isUsableNextLink = (link) => {
+        return link
+            && link.getAttribute("href")
+            && link.getAttribute("aria-disabled") !== "true"
+            && !link.classList.contains("jump");
+    };
+
+    const getNextLink = (root) => {
+        for (const selector of selectors.next) {
+            try {
+                const links = Array.from(root.querySelectorAll(selector));
+                const link = links.find(isUsableNextLink);
+
+                if (link) {
+                    return link;
+                }
+            } catch (error) {
+                // Invalid custom selectors should not break infinite scroll.
+            }
+        }
+
+        return null;
+    };
+
+    const getNextUrl = (root) => {
+        const nextLink = getNextLink(root);
+
+        if (!nextLink) {
+            return null;
+        }
+
+        return normalizeUrl(nextLink.getAttribute("href"));
+    };
+
+    const removeStatus = () => {
+        document.querySelectorAll(".forever-infinite-status").forEach((element) => element.remove());
+    };
+
+    const createStatus = (type) => {
+        removeStatus();
+
+        const status = document.createElement("div");
+        status.className = `forever-infinite-status forever-infinite-${type}`;
+
+        if (type === "spinner") {
+            status.innerHTML = `
+                <div class="iass-spinner" role="status" aria-live="polite">
+                    ${config.loadingImage ? `<img src="${config.loadingImage}" alt="" loading="lazy">` : ""}
+                    <span>${config.loadingText || "<?= $escaper->escapeJs(__('Loading - please wait...')) ?>"}</span>
+                </div>
+            `;
+        } else {
+            const button = document.createElement("button");
+            button.className = "load-more";
+            button.type = "button";
+            button.textContent = config.loadMoreText || "<?= $escaper->escapeJs(__('Load more items')) ?>";
+            button.addEventListener("click", () => loadNextPage(true));
+            status.appendChild(button);
+        }
+
+        productList.appendChild(status);
+        return status;
+    };
+
+    const refreshNextState = (root = document) => {
+        state.nextUrl = getNextUrl(root);
+        state.nextPage = getPageNumber(state.nextUrl);
+
+        if (!state.nextUrl) {
+            state.finished = true;
+        }
+    };
+
+    const shouldUseLoadMoreButton = () => {
+        return state.nextPage !== null && state.nextPage >= state.loadMoreThreshold;
+    };
+
+    const showLoadMoreIfNeeded = () => {
+        removeStatus();
+
+        if (!state.finished && shouldUseLoadMoreButton()) {
+            createStatus("trigger");
+        }
+    };
+
+    const sleep = (duration) => new Promise((resolve) => {
+        window.setTimeout(resolve, duration);
+    });
+
+    const appendItems = (html) => {
+        const parser = new DOMParser();
+        const nextDocument = parser.parseFromString(html, "text/html");
+        const currentContainer = getItemsContainer(document);
+        const nextContainer = getItemsContainer(nextDocument);
+        const nextItems = getProductNodes(nextContainer);
+
+        if (!currentContainer || !nextItems.length) {
+            state.finished = true;
+            return;
+        }
+
+        const appendedItems = nextItems.map((item) => document.importNode(item, true));
+        const fragment = document.createDocumentFragment();
+        appendedItems.forEach((item) => fragment.appendChild(item));
+        currentContainer.appendChild(fragment);
+
+        document.body.dispatchEvent(new CustomEvent("contentUpdated", { bubbles: true }));
+        window.dispatchEvent(new CustomEvent("forever:infinite-scroll:loaded"));
+        refreshNextState(nextDocument);
+    };
+
+    async function loadNextPage(force = false) {
+        if (state.loading || state.finished || !state.nextUrl) {
+            return;
+        }
+
+        if (!force && shouldUseLoadMoreButton()) {
+            showLoadMoreIfNeeded();
+            return;
+        }
+
+        state.loading = true;
+        createStatus("spinner");
+
+        try {
+            if (state.delay) {
+                await sleep(state.delay);
+            }
+
+            const response = await fetch(state.nextUrl, {
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Unable to load ${state.nextUrl}`);
+            }
+
+            appendItems(await response.text());
+        } catch (error) {
+            state.finished = true;
+            window.console && window.console.warn && window.console.warn(error);
+        } finally {
+            state.loading = false;
+            showLoadMoreIfNeeded();
+        }
+    }
+
+    const createSentinel = () => {
+        let sentinel = document.querySelector(".forever-infinite-sentinel");
+
+        if (!sentinel) {
+            sentinel = document.createElement("div");
+            sentinel.className = "forever-infinite-sentinel";
+            sentinel.setAttribute("aria-hidden", "true");
+            productList.appendChild(sentinel);
+        }
+
+        return sentinel;
+    };
+
+    const initObserver = () => {
+        const sentinel = createSentinel();
+
+        if ("IntersectionObserver" in window) {
+            state.observer = new IntersectionObserver((entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) {
+                    loadNextPage(false);
+                }
+            }, { rootMargin: "600px 0px" });
+
+            state.observer.observe(sentinel);
+            return;
+        }
+
+        window.addEventListener("scroll", () => {
+            const scrollBottom = window.scrollY + window.innerHeight;
+            const threshold = document.documentElement.scrollHeight - 600;
+
+            if (scrollBottom >= threshold) {
+                loadNextPage(false);
+            }
+        }, { passive: true });
+    };
+
+    refreshNextState();
+
+    if (!state.nextUrl) {
+        return;
+    }
+
+    hidePagination();
+    initObserver();
+    showLoadMoreIfNeeded();
+})();
+</script>
+<?php $hyvaCsp->registerInlineScript() ?>

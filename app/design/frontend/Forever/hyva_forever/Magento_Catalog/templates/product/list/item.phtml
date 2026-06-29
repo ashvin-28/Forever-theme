@@ -1,0 +1,335 @@
+<?php
+/**
+ * Hyva product list item styled to match the original Forever furniture category cards.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\BlockJsDependencies;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\ProductCompare;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Hyva\Theme\ViewModel\ProductPage;
+use Hyva\Theme\ViewModel\Wishlist;
+use Magento\Catalog\Block\Product\View;
+use Magento\Catalog\Helper\Output as CatalogOutputHelper;
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\ViewModel\Product\OptionsData as ProductOptionsData;
+use Magento\Framework\Escaper;
+
+/** @var View $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$productViewModel = $viewModels->require(ProductPage::class);
+$productListItemViewModel = $viewModels->require(ProductListItem::class);
+$catalogOutputHelper = $this->helper(CatalogOutputHelper::class);
+$compareViewModel = $viewModels->require(ProductCompare::class);
+$wishlistViewModel = $viewModels->require(Wishlist::class);
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$productOptionsViewmodel = $viewModels->require(ProductOptionsData::class);
+
+/** @var Product|null $product */
+$product = $block->getData('product');
+if (!$product) {
+    return;
+}
+
+$viewModels->require(BlockJsDependencies::class)
+    ->setBlockTemplateDependency($block, 'Magento_Catalog::product/list/js/price-box.phtml');
+
+$parentBlock = $block->getParentBlock();
+$productId = (int) $product->getId();
+$productName = $catalogOutputHelper->productAttribute($product, $product->getName(), 'name');
+$productNameText = (string) $product->getName();
+$productUrl = (string) $product->getProductUrl();
+$viewMode = (string) $block->getData('view_mode');
+$showDescription = (bool) $block->getData('show_description');
+$hideDetails = (bool) $block->getData('hide_details');
+$hideRatingSummary = (bool) $block->getData('hide_rating_summary');
+$viewIsGrid = $viewMode === 'grid';
+$productType = (string) $product->getTypeId();
+$isComplexProduct = in_array($productType, ['bundle', 'grouped', 'configurable'], true);
+$showAddToWishlist = $wishlistViewModel->isEnabled();
+$showAddToCompare = $compareViewModel->showInProductList();
+$options = $productOptionsViewmodel->getOptionsData($product);
+$imageCustomAttributes = (array) ($product->getData('image_custom_attributes') ?: []);
+$imageLoading = ($imageCustomAttributes['loading'] ?? '') === 'eager' ? 'eager' : 'lazy';
+
+$getOriginalImageUrl = static function (Product $product): string {
+    $imageFile = (string) ($product->getSmallImage() ?: $product->getImage() ?: $product->getThumbnail());
+    if (!$imageFile || $imageFile === 'no_selection') {
+        $imageFile = (string) ($product->getImage() ?: $product->getThumbnail());
+    }
+
+    return $imageFile && $imageFile !== 'no_selection'
+        ? (string) $product->getMediaConfig()->getMediaUrl($imageFile)
+        : '';
+};
+
+$imageUrl = $getOriginalImageUrl($product);
+$switcherImageUrl = '';
+$imageSwitcherEnabled = false;
+try {
+    $imageSwitcher = $viewModels->require(\Forever\Core\ViewModel\Imageswitcher::class);
+    $imageSwitcherEnabled = $imageSwitcher && (bool) $imageSwitcher->getConfigData();
+    if ($imageSwitcherEnabled) {
+        $switcherImageUrl = (string) $imageSwitcher->getImageUrl($product);
+    }
+} catch (\Exception $e) {
+    $imageSwitcherEnabled = false;
+}
+
+$productLabels = [];
+try {
+    $labelViewModel = $viewModels->require(\Forever\Productlabel\ViewModel\ProductLabelViewModel::class);
+    $labelsEnabled = $labelViewModel
+        && (bool) $labelViewModel->getScopeconfig('productlabel/general/productlabelenable');
+    if ($labelsEnabled) {
+        $productLabels = (array) $labelViewModel->getProductlabel($product);
+    }
+} catch (\Exception $e) {
+    $productLabels = [];
+}
+
+$ratingSummary = (int) ($product->getRatingSummary() ?: $product->getData('rating_summary') ?: 0);
+$filledStars = max(0, min(5, (int) round($ratingSummary / 20)));
+$cardTag = $product->isSaleable() ? 'form' : 'article';
+$isPdpRelated = (bool) (
+    $block->getData('forever_pdp_related')
+    || ($parentBlock && $parentBlock->getData('forever_pdp_related'))
+);
+$cardClasses = 'forever-category-product-card'
+    . ($viewIsGrid ? '' : ' forever-category-product-card-list')
+    . ($isPdpRelated ? ' forever-pdp-related-item' : '');
+$labelTextClass = 'forever-category-product-action-label';
+$wishlistLabel = $isPdpRelated ? __('Add To Wish List') : __('Wishlist');
+$compareLabel = $isPdpRelated ? __('Add To Compare') : __('Compare');
+?>
+
+<<?= $cardTag ?>
+    <?php if ($product->isSaleable()): ?>
+        method="post"
+        action="<?= $escaper->escapeUrl($productViewModel->getAddToCartUrl($product, ['useUencPlaceholder' => true])) ?>"
+        <?php if ($product->getOptions()): ?>
+            enctype="multipart/form-data"
+        <?php endif; ?>
+    <?php endif; ?>
+    class="<?= $escaper->escapeHtmlAttr($cardClasses) ?> flex flex-col w-full relative group bg-white pb-4 transition-shadow duration-300 hover:shadow-sm"
+    <?php foreach ($block->getData('product_data_attributes') ?? [] as $attribute => $include): ?>
+        <?php if ($include): ?>
+            <?= $escaper->escapeHtml(sprintf('data-%s', $attribute)) ?>="<?= $escaper->escapeHtmlAttr($product->getData($attribute)) ?>"
+        <?php endif; ?>
+    <?php endforeach; ?>
+>
+    <?php if ($product->isSaleable()): ?>
+        <?= /** @noEscape */ $block->getBlockHtml('formkey') ?>
+        <input type="hidden" name="product" value="<?= (int) $productId ?>">
+        <?php foreach ($options as $optionItem): ?>
+            <input
+                type="hidden"
+                name="<?= $escaper->escapeHtml($optionItem['name']) ?>"
+                value="<?= $escaper->escapeHtml($optionItem['value']) ?>"
+            >
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <div class="forever-category-product-media relative w-full flex items-center justify-center mb-4<?= $isPdpRelated ? ' overflow-visible' : ' overflow-hidden' ?>" style="aspect-ratio: 4/5; background-color: #f5f5f5;">
+        <?php if ($productLabels): ?>
+            <div class="product_label_wrapper top_right absolute top-0 right-0 z-10">
+                <?php foreach ($productLabels as $productLabel): ?>
+                    <?php if ($productLabel): ?>
+                        <?php $labelClass = is_numeric($productLabel) ? 'discount' : strtolower(str_replace(' ', '', (string) $productLabel)); ?>
+                        <span class="productlabel <?= $escaper->escapeHtmlAttr($labelClass) ?> inline-block text-white text-[12px] px-3 py-1 font-medium" style="background-color: #f39c12;">
+                            <?= $escaper->escapeHtml(is_numeric($productLabel) ? $productLabel . '% off' : (string) $productLabel) ?>
+                        </span>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($imageSwitcherEnabled && $imageUrl && $switcherImageUrl): ?>
+            <a class="relative w-full h-full block group/image [perspective:1000px]" href="<?= $escaper->escapeUrl($productUrl) ?>">
+                <div class="relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d] group-hover/image:[transform:rotateY(180deg)]">
+                    <div class="absolute inset-0 w-full h-full [backface-visibility:hidden]">
+                        <img
+                            class="w-full h-full object-contain"
+                            src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                            alt="<?= $escaper->escapeHtmlAttr($productNameText) ?>"
+                            loading="<?= $escaper->escapeHtmlAttr($imageLoading) ?>"
+                            width="600"
+                            height="600"
+                        >
+                    </div>
+                    <div class="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                        <img
+                            class="w-full h-full object-contain"
+                            src="<?= $escaper->escapeUrl($switcherImageUrl) ?>"
+                            alt="<?= $escaper->escapeHtmlAttr($productNameText) ?>"
+                            loading="lazy"
+                            width="600"
+                            height="600"
+                        >
+                    </div>
+                </div>
+            </a>
+        <?php else: ?>
+            <a class="forever-category-product-image-link block w-full h-full" href="<?= $escaper->escapeUrl($productUrl) ?>">
+                <?php if ($imageUrl): ?>
+                    <img
+                        class="forever-category-product-image w-full h-full object-contain"
+                        src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                        alt="<?= $escaper->escapeHtmlAttr($productNameText) ?>"
+                        loading="<?= $escaper->escapeHtmlAttr($imageLoading) ?>"
+                        width="600"
+                        height="600"
+                    >
+                <?php endif; ?>
+            </a>
+        <?php endif; ?>
+
+        <div class="forever-category-product-actions flex flex-col items-end gap-2 absolute z-20 right-[15px] bottom-[15px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+            <?php if ($product->isSaleable()): ?>
+                <?php if ($isComplexProduct): ?>
+                    <a
+                        class="forever-category-product-action forever-category-cart-action"
+                        href="<?= $escaper->escapeUrl($productUrl) ?>"
+                        <?php if (!$isPdpRelated): ?>
+                            title="<?= $escaper->escapeHtmlAttr(__('Add to Cart')) ?>"
+                        <?php endif; ?>
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $productNameText) ?>"
+                    >
+                        <span class="<?= $escaper->escapeHtmlAttr($labelTextClass) ?>"><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                        <div class="forever-category-product-action-icon">
+                            <?= $lucideIcons->shoppingCartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        </div>
+                    </a>
+                <?php else: ?>
+                    <button
+                        class="forever-category-product-action forever-category-cart-action"
+                        type="submit"
+                        <?php if (!$isPdpRelated): ?>
+                            title="<?= $escaper->escapeHtmlAttr(__('Add to Cart')) ?>"
+                        <?php endif; ?>
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Cart') . ' ' . $productNameText) ?>"
+                        data-addto="cart"
+                    >
+                        <span class="<?= $escaper->escapeHtmlAttr($labelTextClass) ?>"><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                        <div class="forever-category-product-action-icon">
+                            <?= $lucideIcons->shoppingCartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        </div>
+                    </button>
+                <?php endif; ?>
+            <?php else: ?>
+                <div class="forever-category-stock">
+                    <?= $block->getChildBlock('stockstatus')->setData('product', $product)->toHtml() ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($showAddToWishlist): ?>
+                <?php
+                $authPopupBlock = $block->getLayout()->getBlock('wishlist');
+                $authPopupViewModel = $authPopupBlock ? $authPopupBlock->getViewmodels() : null;
+                $authPopupEnabled = $authPopupViewModel && (int) $authPopupViewModel->getScopeconfig() === 1;
+                ?>
+                <?php if ($authPopupEnabled): ?>
+                    <button
+                        type="button"
+                        class="forever-category-product-action cursor-pointer"
+                        data-forever-wishlist
+                        data-product-id="<?= (int) $productId ?>"
+                        data-action="add-to-wishlist"
+                        data-addto="wishlist"
+                        <?php if (!$isPdpRelated): ?>
+                            title="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                        <?php endif; ?>
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                    >
+                        <span class="<?= $escaper->escapeHtmlAttr($labelTextClass) ?>"><?= $escaper->escapeHtml($wishlistLabel) ?></span>
+                        <div class="forever-category-product-action-icon">
+                            <?= $lucideIcons->heartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        </div>
+                    </button>
+                <?php else: ?>
+                    <button
+                        x-data="initWishlist()"
+                        x-defer="intersect"
+                        @click.prevent="addToWishlist(<?= (int) $productId ?>)"
+                        class="forever-category-product-action cursor-pointer"
+                        data-addto="wishlist"
+                        <?php if (!$isPdpRelated): ?>
+                            title="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                        <?php endif; ?>
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                    >
+                        <span class="<?= $escaper->escapeHtmlAttr($labelTextClass) ?>"><?= $escaper->escapeHtml($wishlistLabel) ?></span>
+                        <div class="forever-category-product-action-icon">
+                            <?= $lucideIcons->heartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        </div>
+                    </button>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <?php if ($showAddToCompare): ?>
+                <button
+                    x-data="initCompareOnProductList()"
+                    x-defer="intersect"
+                    @click.prevent="addToCompare(<?= (int) $productId ?>)"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Compare') . ' ' . $productNameText) ?>"
+                    type="button"
+                    class="forever-category-product-action"
+                    data-addto="compare"
+                >
+                    <span class="<?= $escaper->escapeHtmlAttr($labelTextClass) ?>"><?= $escaper->escapeHtml($compareLabel) ?></span>
+                    <div class="forever-category-product-action-icon">
+                        <?= $lucideIcons->refreshCwHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                    </div>
+                </button>
+            <?php endif; ?>
+
+            <?php if ($addToBlock = $block->getChildBlock('addto')): ?>
+                <?= $addToBlock->setProduct($product)->getChildHtml() ?>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="forever-category-product-info px-4 flex flex-col flex-1 items-center text-center">
+        <a class="forever-category-product-name text-gray-800 font-normal text-[15px] capitalize tracking-wide hover:text-[#dda245] transition-colors mb-2 line-clamp-2" href="<?= $escaper->escapeUrl($productUrl) ?>">
+            <?= /** @noEscape */ $productName ?>
+        </a>
+
+        <?php if (!$hideRatingSummary): ?>
+            <div class="forever-category-product-rating flex items-center justify-center mb-2" aria-label="<?= $escaper->escapeHtmlAttr(__('%1 out of 5 stars', $filledStars)) ?>">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <span class="text-[16px] leading-none" style="color: <?= $i <= $filledStars ? '#dda245' : '#e5e7eb' ?>;">★</span>
+                <?php endfor; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($product->isAvailable() && !$hideDetails): ?>
+            <?= $block->getProductDetailsHtml($product) ?>
+        <?php endif; ?>
+
+        <?php if ($showDescription): ?>
+            <div class="forever-category-product-description">
+                <?= /** @noEscape */ $productViewModel->getShortDescriptionForProduct($product) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($isComplexProduct): ?>
+            <span class="sr-only">
+                <?= $escaper->escapeHtml(__('The price depends on the options chosen on the product page')) ?>
+            </span>
+        <?php endif; ?>
+
+        <div
+            class="forever-category-product-price text-gray-600 text-[14px] mt-auto flex justify-center w-full"
+            x-data="initPriceBox()"
+            x-defer="intersect"
+            @update-prices-<?= (int) $productId ?>.window="updatePrice($event.detail);"
+        >
+            <?= /** @noEscape */ $productListItemViewModel->getProductPriceHtml($product) ?>
+        </div>
+    </div>
+</<?= $cardTag ?>>

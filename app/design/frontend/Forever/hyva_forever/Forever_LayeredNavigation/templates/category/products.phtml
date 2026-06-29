@@ -1,0 +1,5 @@
+<?php if (!$block->isContentMode() || $block->isMixedMode()): ?>
+    <div id="layerednav-list-products">
+        <?= /** @noEscape */ $block->getProductListHtml() ?>
+    </div>
+<?php endif; ?>

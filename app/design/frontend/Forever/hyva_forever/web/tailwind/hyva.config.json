@@ -1,0 +1,33 @@
+{
+  "tailwind": {
+    "include": [
+      {
+        "src": "vendor/hyva-themes/magento2-default-theme"
+      },
+      {
+        "src": "app/code/Hyva"
+      }
+    ],
+    "exclude": []
+  },
+  "tokens": {
+    "values": {
+      "color": {
+        "primary": {
+          "lighter": "#e7bd7a",
+          "DEFAULT": "#dfa34a",
+          "darker": "#9a6724"
+        },
+        "secondary": {
+          "lighter": "#8bb9b3",
+          "DEFAULT": "#2f6f6a",
+          "darker": "#194844"
+        },
+        "on": {
+          "primary": "#111827",
+          "secondary": "#ffffff"
+        }
+      }
+    }
+  }
+}

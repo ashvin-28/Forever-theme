@@ -1,0 +1,67 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+/** @var \Magento\Catalog\Block\Product\View\Details $block */
+?>
+<?php if ($detailedInfoGroup = $block->getGroupSortedChildNames('detailed_info', 'getChildHtml')): ?>
+    <?php
+    $sections = [];
+    $layout = $block->getLayout();
+    foreach ($detailedInfoGroup as $name) {
+        $html = $layout->renderElement($name);
+        if (!trim($html)) {
+            continue;
+        }
+        $alias = $layout->getElementAlias($name);
+        $sections[] = [
+            'alias' => $alias,
+            'label' => $block->getChildData($alias, 'title'),
+            'html' => $html,
+        ];
+    }
+
+    $activeAlias = $sections[0]['alias'] ?? '';
+    ?>
+    <?php if ($sections): ?>
+    <section class="product info detailed forever-pdp-details" x-data="{ active: '<?= $block->escapeJs($activeAlias) ?>' }">
+        <div class="bestseller-slider-section">
+            <div class="block-title title page-title-wrapper">
+                <h3 class="page-title">
+                    <span id="block-related-heading" role="heading" aria-level="2"><?= $block->escapeHtml(__('Product Information')) ?></span>
+                </h3>
+            </div>
+        </div>
+        <div class="product data items">
+            <div class="forever-pdp-detail-tabs" role="tablist" aria-label="<?= $block->escapeHtmlAttr(__('Product information')) ?>">
+                <?php foreach ($sections as $section): ?>
+                    <button
+                            type="button"
+                            class="data item title"
+                            :class="{ 'active': active === '<?= $block->escapeJs($section['alias']) ?>' }"
+                            :aria-selected="active === '<?= $block->escapeJs($section['alias']) ?>' ? 'true' : 'false'"
+                            @click="active = '<?= $block->escapeJs($section['alias']) ?>'"
+                            id="tab-label-<?= $block->escapeHtmlAttr($section['alias']) ?>-title"
+                            role="tab"
+                    >
+                        <?= /* @noEscape */ $section['label'] ?>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+            <?php foreach ($sections as $section): ?>
+                <div class="data item content forever-pdp-detail-content"
+                     id="<?= $block->escapeHtmlAttr($section['alias']) ?>"
+                     aria-labelledby="tab-label-<?= $block->escapeHtmlAttr($section['alias']) ?>-title"
+                     x-show="active === '<?= $block->escapeJs($section['alias']) ?>'"
+                     x-cloak
+                     role="tabpanel"
+                >
+                    <?= /* @noEscape */ $section['html'] ?>
+                </div>
+            <?php endforeach;?>
+        </div>
+    </section>
+    <?php endif; ?>
+<?php endif; ?>

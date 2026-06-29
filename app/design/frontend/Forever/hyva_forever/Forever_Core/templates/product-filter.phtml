@@ -1,0 +1,580 @@
+<?php
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Magento\Framework\Escaper;
+
+/** @var \Forever\Core\Block\CategoryList|\Forever\Core\Block\BestsellerProduct $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var Escaper $escaper */
+
+if (!$block->isModuleEnabled()) {
+    return;
+}
+
+$selectedCategory = $block->getSelectedCategory();
+if (!$selectedCategory) {
+    return;
+}
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$authPopupEnabled = method_exists($block, 'getAuthenticationpopup') && (int) $block->getAuthenticationpopup() === 1;
+
+$resetPriceListState = static function () use ($block): void {
+    $priceRenderer = $block->getLayout()->getBlock('product.price.render.default');
+    if ($priceRenderer) {
+        $priceRenderer->setData('is_product_list', false);
+        $priceRenderer->unsetData('special_price_map');
+    }
+};
+
+$getOriginalImageUrl = static function ($product): string {
+    $imageFile = (string) ($product->getSmallImage() ?: $product->getImage() ?: $product->getThumbnail());
+    if (!$imageFile || $imageFile === 'no_selection') {
+        $imageFile = (string) ($product->getImage() ?: $product->getThumbnail());
+    }
+
+    return $imageFile && $imageFile !== 'no_selection'
+        ? (string) $product->getMediaConfig()->getMediaUrl($imageFile)
+        : '';
+};
+
+$renderProductCard = static function ($product) use ($block, $escaper, $lucideIcons, $authPopupEnabled, $getOriginalImageUrl): string {
+    $productId = (int) $product->getId();
+    $productName = (string) $product->getName();
+    $productUrl = (string) $product->getProductUrl();
+    $imageUrl = $getOriginalImageUrl($product);
+    $imageSwitcherEnabled = method_exists($block, 'getImageSwitcherConfigValue')
+        && (bool) $block->getImageSwitcherConfigValue();
+    $switcherImageUrl = $imageSwitcherEnabled && method_exists($block, 'getImageUrl')
+        ? (string) $block->getImageUrl($product)
+        : '';
+    $productLabels = method_exists($block, 'getProductlabel') ? (array) $block->getProductlabel($product) : [];
+    $ratingSummary = (int) ($product->getRatingSummary() ?: $product->getData('rating_summary') ?: 0);
+    $filledStars = max(0, min(5, (int) round($ratingSummary / 20)));
+    $priceHtml = method_exists($block, 'getProductPricetoHtml')
+        ? (string) $block->getProductPricetoHtml($product)
+        : (method_exists($block, 'getProductPrice') ? (string) $block->getProductPrice($product) : '');
+
+    ob_start();
+?>
+    <article class="forever-product-card"
+        data-product-url="<?= $escaper->escapeUrl($productUrl) ?>"
+        @click="openProduct($event)">
+        <div class="forever-product-image-wrap">
+            <?php if ($productLabels): ?>
+                <div class="product_label_wrapper top_right">
+                    <?php foreach ($productLabels as $productLabel): ?>
+                        <?php if ($productLabel): ?>
+                            <span class="productlabel <?= $escaper->escapeHtmlAttr(is_numeric($productLabel) ? 'discount' : strtolower(str_replace(' ', '', (string) $productLabel))) ?>">
+                                <?= $escaper->escapeHtml(is_numeric($productLabel) ? $productLabel . '% off' : (string) $productLabel) ?>
+                            </span>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($imageSwitcherEnabled && $imageUrl && $switcherImageUrl): ?>
+                <div class="forever-product-flip-box">
+                    <div class="forever-product-flip-inner">
+                        <a class="forever-product-image-link forever-product-flip-face forever-product-flip-front" href="<?= $escaper->escapeUrl($productUrl) ?>">
+                            <img class="forever-product-image"
+                                src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                                alt="<?= $escaper->escapeHtmlAttr($productName) ?>"
+                                loading="lazy"
+                                width="600"
+                                height="600">
+                        </a>
+                        <a class="forever-product-image-link forever-product-flip-face forever-product-flip-back" href="<?= $escaper->escapeUrl($productUrl) ?>">
+                            <img class="forever-product-image"
+                                src="<?= $escaper->escapeUrl($switcherImageUrl) ?>"
+                                alt="<?= $escaper->escapeHtmlAttr($productName) ?>"
+                                loading="lazy"
+                                width="600"
+                                height="600">
+                        </a>
+                    </div>
+                </div>
+            <?php else: ?>
+                <a class="forever-product-image-link" href="<?= $escaper->escapeUrl($productUrl) ?>">
+                    <?php if ($imageUrl): ?>
+                        <img class="forever-product-image"
+                            src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                            alt="<?= $escaper->escapeHtmlAttr($productName) ?>"
+                            loading="lazy"
+                            width="600"
+                            height="600">
+                    <?php endif; ?>
+                </a>
+            <?php endif; ?>
+            <div class="forever-product-actions">
+                <?php if ($product->isSaleable()): ?>
+                    <?php $postParams = $block->getAddToCartPostParams($product); ?>
+                    <form action="<?= $escaper->escapeUrl($postParams['action']) ?>" method="post" data-role="tocart-form" @click.stop>
+                        <input type="hidden" name="product" value="<?= $escaper->escapeHtmlAttr((string) $postParams['data']['product']) ?>">
+                        <input type="hidden" name="uenc" value="<?= $escaper->escapeHtmlAttr((string) $postParams['data']['uenc']) ?>">
+                        <?= $block->getBlockHtml('formkey') ?>
+                        <button class="forever-product-action forever-cart-action" type="submit" data-addto="cart" title="<?= $escaper->escapeHtmlAttr(__('Add to Cart')) ?>">
+                            <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                            <?= $lucideIcons->shoppingCartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                        </button>
+                    </form>
+                <?php else: ?>
+                    <a class="forever-product-action forever-cart-action" href="<?= $escaper->escapeUrl($productUrl) ?>" title="<?= $escaper->escapeHtmlAttr(__('Configure')) ?>">
+                        <span><?= $escaper->escapeHtml(__('Configure')) ?></span>
+                        <?= $lucideIcons->pencilHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                    </a>
+                <?php endif; ?>
+                <?php if ($authPopupEnabled): ?>
+                    <button
+                        x-data="initForeverHomeWishlist()"
+                        x-defer="intersect"
+                        @click.prevent.stop="addProductToWishlist(<?= (int) $productId ?>)"
+                        class="forever-product-action forever-wishlist-action cursor-pointer"
+                        type="button"
+                        data-forever-wishlist
+                        data-product-id="<?= (int) $productId ?>"
+                        data-action="add-to-wishlist"
+                        data-addto="wishlist"
+                        title="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                    >
+                        <span><?= $escaper->escapeHtml(__('Add to Wish List')) ?></span>
+                        <?= $lucideIcons->heartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                    </button>
+                <?php else: ?>
+                    <button
+                        x-data="initForeverHomeWishlist()"
+                        x-defer="intersect"
+                        @click.prevent.stop="addToWishlist(<?= (int) $productId ?>)"
+                        class="forever-product-action forever-wishlist-action cursor-pointer"
+                        data-addto="wishlist"
+                        title="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Add to Wish List')) ?>"
+                    >
+                        <span><?= $escaper->escapeHtml(__('Add to Wish List')) ?></span>
+                        <?= $lucideIcons->heartHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                    </button>
+                <?php endif; ?>
+                <a class="forever-product-action forever-compare-action" href="#" data-post='<?=
+                                                                        /** @noEscape */
+                                                                        $block->getCompareHelper()->getPostDataParams($product) ?>' title="<?= $escaper->escapeHtmlAttr(__('Add to Compare')) ?>">
+                    <span><?= $escaper->escapeHtml(__('Add To Compare')) ?></span>
+                    <?= $lucideIcons->refreshCwHtml('', 18, 18, ['aria-hidden' => 'true']) ?>
+                </a>
+            </div>
+        </div>
+        <div class="forever-product-info">
+            <a class="forever-product-name" href="<?= $escaper->escapeUrl($productUrl) ?>">
+                <?= $escaper->escapeHtml($productName) ?>
+            </a>
+            <div class="forever-product-rating" aria-label="<?= $escaper->escapeHtmlAttr(__('%1 out of 5 stars', $filledStars)) ?>">
+                <?php for ($i = 1; $i <= 5; $i++): ?>
+                    <span class="<?= $i <= $filledStars ? 'is-filled' : '' ?>">★</span>
+                <?php endfor; ?>
+            </div>
+            <div class="forever-product-price">
+                <?=
+                /** @noEscape */
+                $priceHtml ?>
+            </div>
+        </div>
+    </article>
+<?php
+    return (string) ob_get_clean();
+};
+
+$tabs = [];
+foreach ($selectedCategory as $categoryId => $categoryName) {
+    $products = $block->getCategoryProducts((int) $categoryId);
+    if ($products && $products->count()) {
+        $tabs[] = [
+            'id' => 'tab-' . (int) $categoryId,
+            'name' => (string) $categoryName,
+            'products' => $products,
+            'count' => $products->count(),
+        ];
+    }
+}
+
+if (!$tabs) {
+    return;
+}
+
+$activeTab = $tabs[0]['id'];
+?>
+<script>
+    window.initForeverHomeWishlist = window.initForeverHomeWishlist || function () {
+        const wishlistAddUrl = '<?= $escaper->escapeJs($block->getUrl('wishlist/index/add')) ?>';
+        const authWishlistUrl = '<?= $escaper->escapeJs($block->getUrl('ajaxlogin/index/addtowishlist')) ?>';
+        const wishlistIndexUrl = '<?= $escaper->escapeJs($block->getUrl('wishlist/index/index')) ?>';
+
+        const notify = function (type, text) {
+            if (typeof window.dispatchMessages !== 'undefined') {
+                window.dispatchMessages([{ type: type, text: text }], 5000);
+            }
+        };
+
+        const openLogin = function () {
+            const trigger = document.querySelector('[data-trigger-ajax-login], .trigger-ajax-login');
+            if (trigger) {
+                trigger.click();
+                return;
+            }
+
+            window.location.href = BASE_URL + 'customer/account/login/';
+        };
+
+        const resolveProductId = function (product) {
+            if (product && typeof product === 'object') {
+                return product.dataset.productId
+                    || product.getAttribute('data-product-id')
+                    || product.getAttribute('product-id')
+                    || '';
+            }
+
+            return product || '';
+        };
+
+        return {
+            addToWishlist(productId) {
+                const formKey = hyva.getFormKey();
+                const postData = new URLSearchParams({
+                    form_key: formKey,
+                    product: productId,
+                    uenc: hyva.getUenc()
+                });
+
+                fetch(wishlistAddUrl, {
+                    headers: {
+                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: postData.toString(),
+                    method: 'POST',
+                    mode: 'cors',
+                    credentials: 'include'
+                }).then(function (response) {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                        return null;
+                    }
+
+                    if (response.ok && (response.headers.get('content-type') || '').includes('application/json')) {
+                        return response.json();
+                    }
+
+                    if (response.ok) {
+                        window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                        notify('success', '<?= $escaper->escapeJs(__('Product has been added to your Wish List.')) ?>');
+                        return null;
+                    }
+
+                    notify('warning', '<?= $escaper->escapeJs(__('Could not add item to wishlist.')) ?>');
+
+                    return null;
+                }).then(function (response) {
+                    if (!response) {
+                        return;
+                    }
+
+                    notify(
+                        response.success ? 'success' : 'error',
+                        response.success
+                            ? '<?= $escaper->escapeJs(__('%1 has been added to your Wish List.', __('Product'))) ?>'
+                            : response.error_message
+                    );
+
+                    window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                }).catch(function (error) {
+                    notify('error', error);
+                });
+            },
+
+            addProductToWishlist(product) {
+                const productId = resolveProductId(product);
+                if (!productId) {
+                    return;
+                }
+
+                fetch(authWishlistUrl + (authWishlistUrl.indexOf('?') === -1 ? '?' : '&') + 'productId=' + encodeURIComponent(productId), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'include'
+                }).then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('<?= $escaper->escapeJs(__('Could not add item to wishlist.')) ?>');
+                    }
+
+                    return response.json();
+                }).then(function (response) {
+                    if (String(response.status) === '400') {
+                        localStorage.removeItem('wishlist_elem');
+                        localStorage.setItem('wishlist_elem', productId);
+                        openLogin();
+                        return;
+                    }
+
+                    localStorage.removeItem('wishlist_elem');
+
+                    if (response.redirect) {
+                        window.location.href = wishlistIndexUrl;
+                        return;
+                    }
+
+                    notify('success', response.message || '<?= $escaper->escapeJs(__('Product has been added to your Wish List.')) ?>');
+                    window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                }).catch(function (error) {
+                    notify('error', error.message || error);
+                });
+            }
+        };
+    };
+
+    window.addProductToWishlist = window.addProductToWishlist || function (product) {
+        window.initForeverHomeWishlist().addProductToWishlist(product);
+    };
+
+    window.initCompareOnProductList = window.initCompareOnProductList || function () {
+        return {
+            addToCompare(productId) {
+                const formKey = hyva.getFormKey();
+                const postUrl = BASE_URL + 'catalog/product_compare/add/';
+
+                fetch(postUrl, {
+                    headers: {
+                        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                    },
+                    body: 'form_key=' + encodeURIComponent(formKey)
+                        + '&product=' + encodeURIComponent(productId)
+                        + '&uenc=' + encodeURIComponent(hyva.getUenc()),
+                    method: 'POST',
+                    mode: 'cors',
+                    credentials: 'include'
+                }).then(function (response) {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                    }
+                }).catch(function (error) {
+                    if (typeof window.dispatchMessages !== 'undefined') {
+                        window.dispatchMessages([{ type: 'error', text: error }], 5000);
+                    }
+                });
+            }
+        };
+    };
+</script>
+<section class="home-page-product-slider bestseller-slider-section forever-new-arrival-section reveal"
+    data-active-tab="<?= $escaper->escapeHtmlAttr($activeTab) ?>"
+    x-data="{
+             active: '<?= $escaper->escapeJs($activeTab) ?>',
+             positions: {},
+             perView: 3,
+             dragging: false,
+             dragStartX: 0,
+             dragDelta: 0,
+             dragTab: null,
+             dragTotal: 0,
+             dragPointerId: null,
+             dragElement: null,
+             skipClick: false,
+             init() {
+                 this.updatePerView();
+             },
+             updatePerView() {
+                 const width = window.innerWidth || document.documentElement.clientWidth || 1280;
+                 this.perView = width >= 768 ? 3 : (width >= 520 ? 2 : 1);
+             },
+             select(tab) {
+                 this.active = tab;
+                 this.positions[tab] = this.positions[tab] || 0;
+             },
+             maxIndex(total) {
+                 return Math.max(total - this.perView, 0);
+             },
+             position(tab, total) {
+                 return Math.min(this.positions[tab] || 0, this.maxIndex(total));
+             },
+             trackStyle(tab, total) {
+                 const offset = this.position(tab, total) * (100 / this.perView);
+                 const drag = this.dragging && this.dragTab === tab ? this.dragDelta : 0;
+                 return 'transform: translate3d(calc(-' + offset + '% + ' + drag + 'px), 0, 0);';
+             },
+             next(tab, total) {
+                 const max = this.maxIndex(total);
+                 this.positions[tab] = Math.min(this.position(tab, total) + 1, max);
+             },
+             previous(tab, total) {
+                 this.positions[tab] = Math.max(this.position(tab, total) - 1, 0);
+             },
+             isLocked(total) {
+                 return total <= this.perView;
+             },
+             canPrevious(tab, total) {
+                 return !this.isLocked(total) && this.position(tab, total) > 0;
+             },
+             canNext(tab, total) {
+                 return !this.isLocked(total) && this.position(tab, total) < this.maxIndex(total);
+             },
+             startDrag(event, tab, total) {
+                 if (this.isLocked(total) || (event.button !== undefined && event.button !== 0)) {
+                     return;
+                 }
+                 if (event.target.closest('.forever-product-actions, .forever-new-arrival-controls, button, input, textarea, select, form')) {
+                     return;
+                 }
+                 this.dragging = true;
+                 this.dragStartX = event.clientX;
+                 this.dragDelta = 0;
+                 this.dragTab = tab;
+                 this.dragTotal = total;
+                 this.dragPointerId = event.pointerId;
+                 this.dragElement = event.currentTarget;
+                 this.skipClick = false;
+             },
+             moveDrag(event) {
+                 if (!this.dragging || event.pointerId !== this.dragPointerId) {
+                     return;
+                 }
+                 this.dragDelta = event.clientX - this.dragStartX;
+                 if (Math.abs(this.dragDelta) > 6) {
+                     this.skipClick = true;
+                     event.preventDefault();
+                 }
+             },
+             endDrag(event) {
+                 if (!this.dragging || event.pointerId !== this.dragPointerId) {
+                     return;
+                 }
+                 const delta = this.dragDelta;
+                 const tab = this.dragTab;
+                 const total = this.dragTotal;
+                 this.releaseDrag();
+                 if (Math.abs(delta) > 50) {
+                     delta > 0 ? this.previous(tab, total) : this.next(tab, total);
+                 }
+                 if (Math.abs(delta) > 6) {
+                     window.setTimeout(() => { this.skipClick = false; }, 350);
+                 }
+             },
+             releaseDrag() {
+                 if (this.dragElement && this.dragElement.releasePointerCapture && this.dragPointerId !== null) {
+                     try {
+                         this.dragElement.releasePointerCapture(this.dragPointerId);
+                     } catch (error) {}
+                 }
+                 this.dragging = false;
+                 this.dragDelta = 0;
+                 this.dragTab = null;
+                 this.dragTotal = 0;
+                 this.dragPointerId = null;
+                 this.dragElement = null;
+             },
+             blockClick(event) {
+                 if (!this.skipClick) {
+                     return;
+                 }
+                 event.preventDefault();
+                 event.stopPropagation();
+                 this.skipClick = false;
+             },
+             openProduct(event) {
+                 if (event.defaultPrevented || this.skipClick) {
+                     return;
+                 }
+                 if (event.target.closest('.forever-product-actions, a, button, input, textarea, select, form')) {
+                     return;
+                 }
+                 const productUrl = event.currentTarget.dataset.productUrl;
+                 if (productUrl) {
+                     window.location.href = productUrl;
+                 }
+             }
+         }"
+    x-init="init()"
+    @resize.window="updatePerView()"
+    @pointermove.window="moveDrag($event)"
+    @pointerup.window="endDrag($event)"
+    @pointercancel.window="releaseDrag()">
+    <div class="page-title-wrapper">
+        <h3 class="page-title">
+            <span><?= $escaper->escapeHtml(__('New Arrival Products')) ?></span>
+        </h3>
+    </div>
+    <div class="home-product-tab">
+        <div class="home-product-tab-content forever-tab-layout">
+            <div class="nav-tabs">
+                <ul class="tab-list" id="tabs-nav">
+                    <?php foreach ($tabs as $tab): ?>
+                        <?php $isActiveTab = $tab['id'] === $activeTab; ?>
+                        <li class="tablinks<?= $isActiveTab ? ' active' : '' ?>"
+                            data-forever-tab-nav="<?= $escaper->escapeHtmlAttr($tab['id']) ?>"
+                            :class="{ active: active === '<?= $escaper->escapeJs($tab['id']) ?>' }">
+                            <button type="button"
+                                class="forever-tab-trigger"
+                                data-forever-tab-trigger="<?= $escaper->escapeHtmlAttr($tab['id']) ?>"
+                                @click="select('<?= $escaper->escapeJs($tab['id']) ?>')">
+                                <span class="forever-tab-name"><?= $escaper->escapeHtml($tab['name']) ?></span>
+                                <span class="product-count">
+                                    <?= $escaper->escapeHtml((string) $tab['count']) ?>
+                                    <b><?= $escaper->escapeHtml(__('product')) ?></b>
+                                </span>
+                            </button>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php foreach ($tabs as $tab): ?>
+                <?php $isActiveTab = $tab['id'] === $activeTab; ?>
+                <div class="tab-content forever-new-arrival-panel" id="<?= $escaper->escapeHtmlAttr($tab['id']) ?>"
+                    data-forever-tab-panel="<?= $escaper->escapeHtmlAttr($tab['id']) ?>"
+                    x-show="active === '<?= $escaper->escapeJs($tab['id']) ?>'"
+                    <?php if (!$isActiveTab): ?>x-cloak style="display: none;"<?php endif; ?>>
+                    <div class="products-grid">
+                        <div class="products list items product-items forever-new-arrival-viewport"
+                            :class="{ 'is-dragging': dragging && dragTab === '<?= $escaper->escapeJs($tab['id']) ?>' }"
+                            @pointerdown="startDrag($event, '<?= $escaper->escapeJs($tab['id']) ?>', <?= (int) $tab['count'] ?>)"
+                            @click.capture="blockClick($event)"
+                            @dragstart.prevent>
+                            <div class="product-slider new-arrival-slider forever-new-arrival-track"
+                                :style="trackStyle('<?= $escaper->escapeJs($tab['id']) ?>', <?= (int) $tab['count'] ?>)">
+                                <?php foreach ($tab['products'] as $product): ?>
+                                    <?php $resetPriceListState(); ?>
+                                    <div class="item product product-item forever-home-product-tile forever-new-arrival-slide">
+                                        <?=
+                                        /** @noEscape */
+                                        $renderProductCard($product) ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="forever-new-arrival-controls" aria-label="<?= $escaper->escapeHtmlAttr(__('New Arrival slider controls')) ?>">
+                        <button class="forever-new-arrival-nav forever-new-arrival-prev"
+                            type="button"
+                            title="<?= $escaper->escapeHtmlAttr(__('Previous')) ?>"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Previous')) ?>"
+                            :disabled="!canPrevious('<?= $escaper->escapeJs($tab['id']) ?>', <?= (int) $tab['count'] ?>)"
+                            @click="previous('<?= $escaper->escapeJs($tab['id']) ?>', <?= (int) $tab['count'] ?>)">
+                            <?= $lucideIcons->chevronLeftHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                        </button>
+                        <button class="forever-new-arrival-nav forever-new-arrival-next"
+                            type="button"
+                            title="<?= $escaper->escapeHtmlAttr(__('Next')) ?>"
+                            aria-label="<?= $escaper->escapeHtmlAttr(__('Next')) ?>"
+                            :disabled="!canNext('<?= $escaper->escapeJs($tab['id']) ?>', <?= (int) $tab['count'] ?>)"
+                            @click="next('<?= $escaper->escapeJs($tab['id']) ?>', <?= (int) $tab['count'] ?>)">
+                            <?= $lucideIcons->chevronRightHtml('', 24, 24, ['aria-hidden' => 'true']) ?>
+                        </button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>

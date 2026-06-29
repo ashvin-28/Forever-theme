@@ -1,0 +1,496 @@
+<?php
+declare(strict_types=1);
+
+use Forever\Megamenu\Block\Menu;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\LucideIcons;
+use Hyva\Theme\ViewModel\StoreConfig;
+use Magento\Framework\Escaper;
+
+/** @var Menu $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$lucideIcons = $viewModels->require(LucideIcons::class);
+$storeConfig = $viewModels->require(StoreConfig::class);
+
+$menuConfig = is_array($block->_sysCfg->module ?? null) ? $block->_sysCfg->module : [];
+$homeConfig = is_array($block->_sysCfg->homebutton ?? null) ? $block->_sysCfg->homebutton : [];
+$desktopConfig = is_array($block->_sysCfg->desktop ?? null) ? $block->_sysCfg->desktop : [];
+$mobileConfig = is_array($block->_sysCfg->mobile ?? null) ? $block->_sysCfg->mobile : [];
+
+$isEnabled = (bool) (int) ($storeConfig->getStoreConfig('megamenu/module/enabled') ?? ($menuConfig['enabled'] ?? 0));
+$showHome = (bool) (int) ($storeConfig->getStoreConfig('megamenu/homebutton/homebuttonenabled') ?? ($homeConfig['homebuttonenabled'] ?? 0));
+$configuredMobilePosition = (string) ($storeConfig->getStoreConfig('megamenu/mobile/mobposition') ?? ($mobileConfig['mobposition'] ?? ''));
+$mobileClass = in_array($configuredMobilePosition, ['accordian', 'drilldrop'], true)
+    ? $configuredMobilePosition
+    : 'accordian';
+$desktopClass = ($desktopConfig['deskposition'] ?? '') === 'vertical'
+    ? 'vmegamenu vmagicmenu clearfix config-vertical vertical'
+    : 'megamenu magicmenu clearfix config-horizontal horizontal';
+
+$removeHomeMenuItem = static function (string $html): string {
+    if (trim($html) === '') {
+        return '';
+    }
+
+    if (!class_exists(\DOMDocument::class) || !class_exists(\DOMXPath::class)) {
+        return (string) preg_replace(
+            '#<li\b([^>]*\sclass=(["\'])(?=[^"\']*\bhome\b)[^"\']*\2[^>]*)>.*?</li>#is',
+            '',
+            $html
+        );
+    }
+
+    $previousErrors = libxml_use_internal_errors(true);
+    $document = new \DOMDocument('1.0', 'UTF-8');
+    $document->loadHTML(
+        '<!doctype html><html><body><ul id="forever-menu-filter-root">' . $html . '</ul></body></html>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+    );
+    libxml_clear_errors();
+    libxml_use_internal_errors($previousErrors);
+
+    $xpath = new \DOMXPath($document);
+    foreach ($xpath->query('//*[@id="forever-menu-filter-root"]/li') as $item) {
+        $classes = ' ' . strtolower((string) $item->getAttribute('class')) . ' ';
+        $labelNode = $xpath->query('./a[contains(concat(" ", normalize-space(@class), " "), " level-top ")]', $item)->item(0)
+            ?: $xpath->query('./span[contains(concat(" ", normalize-space(@class), " "), " level-top ")]', $item)->item(0);
+        $label = $labelNode ? trim(preg_replace('/\s+/', ' ', (string) $labelNode->textContent)) : '';
+
+        if (str_contains($classes, ' home ') || strcasecmp($label, 'Home') === 0) {
+            $item->parentNode?->removeChild($item);
+        }
+    }
+
+    $root = $document->getElementById('forever-menu-filter-root');
+    if (!$root) {
+        return $html;
+    }
+
+    $filteredHtml = '';
+    foreach ($root->childNodes as $child) {
+        $filteredHtml .= $document->saveHTML($child);
+    }
+
+    return trim($filteredHtml);
+};
+
+$extractMenuItemsHtml = static function (string $html): string {
+    $html = trim($html);
+    if ($html === '') {
+        return '';
+    }
+
+    if (preg_match('#<ul\b[^>]*>(.*)</ul>#is', $html, $matches)) {
+        return trim((string) $matches[1]);
+    }
+
+    return $html;
+};
+
+$getDefaultMenuItemsHtml = static function () use ($block, $extractMenuItemsHtml): string {
+    $nativeMenuBlock = $block->getLayout()->getBlock('forever.megamenu.default');
+    $nativeItemsHtml = '';
+
+    if ($nativeMenuBlock) {
+        $nativeItemsHtml = $extractMenuItemsHtml(trim((string) $nativeMenuBlock->toHtml()));
+
+        if ($nativeItemsHtml === '' && method_exists($nativeMenuBlock, 'getHtml')) {
+            $nativeItemsHtml = trim((string) $nativeMenuBlock->getHtml('level-top', 'submenu', 0));
+        }
+    }
+
+    if ($nativeItemsHtml === '') {
+        $nativeItemsHtml = $extractMenuItemsHtml(trim((string) $block->getChildHtml()));
+    }
+
+    return $nativeItemsHtml;
+};
+
+$hasMenuItems = static function (string $html): bool {
+    return (bool) preg_match('#<li\b#i', $html);
+};
+
+$buildCategoryMenuItemsHtml = static function () use ($block, $escaper): string {
+    $renderNodes = static function ($nodes, int $level = 0) use (&$renderNodes, $escaper): string {
+        $itemsHtml = '';
+
+        foreach ($nodes as $node) {
+            if ($node->getData('is_parent_active') === false) {
+                continue;
+            }
+
+            $name = trim((string) $node->getName());
+            $url = trim((string) $node->getUrl());
+
+            if ($name === '' || $url === '') {
+                continue;
+            }
+
+            $childrenHtml = '';
+            $children = $node->getChildren();
+            if ($children && $children->count()) {
+                $childrenHtml = $renderNodes($children, $level + 1);
+            }
+
+            $hasChildren = $childrenHtml !== '';
+            $itemClass = $level === 0
+                ? 'level0 category-item level-top cat' . ($hasChildren ? ' hasChild parent' : '')
+                : 'level' . $level . ' category-item' . ($hasChildren ? ' hasChild parent' : '');
+            $linkClass = $level === 0 ? ' class="level-top"' : '';
+
+            $itemsHtml .= '<li class="' . $escaper->escapeHtmlAttr($itemClass) . '">';
+            $itemsHtml .= '<a' . $linkClass . ' href="' . $escaper->escapeUrl($url) . '">';
+            $itemsHtml .= '<span>' . $escaper->escapeHtml($name) . '</span>';
+            if ($level === 0) {
+                $itemsHtml .= '<span class="boder-menu"></span>';
+            }
+            $itemsHtml .= '</a>';
+
+            if ($hasChildren) {
+                $itemsHtml .= '<ul class="submenu">' . $childrenHtml . '</ul>';
+            }
+
+            $itemsHtml .= '</li>';
+        }
+
+        return $itemsHtml;
+    };
+
+    try {
+        $root = $block->getMenu();
+        $children = $root ? $root->getChildren() : null;
+
+        if ($children && $children->count()) {
+            return trim($renderNodes($children));
+        }
+    } catch (\Throwable $exception) {
+        return '';
+    }
+
+    return '';
+};
+
+$buildFallbackMenuItemsHtml = static function () use (
+    $block,
+    $getDefaultMenuItemsHtml,
+    $buildCategoryMenuItemsHtml,
+    $hasMenuItems
+): string {
+    $categoryItemsHtml = $buildCategoryMenuItemsHtml();
+    if ($hasMenuItems($categoryItemsHtml)) {
+        return $categoryItemsHtml;
+    }
+
+    $defaultItemsHtml = $getDefaultMenuItemsHtml();
+    if ($hasMenuItems($defaultItemsHtml)) {
+        return $defaultItemsHtml;
+    }
+
+    return trim(
+        '<li class="level0 category-item level-top home"><a class="level-top" href="' . $block->getUrl('') . '"><span>Home</span></a></li>'
+        . '<li class="level0 category-item level-top cat parent hasChild"><a class="level-top" href="' . $block->getUrl('chairs.html') . '"><span>Chairs</span><span class="boder-menu"></span></a></li>'
+        . '<li class="level0 category-item level-top cat parent hasChild"><a class="level-top" href="' . $block->getUrl('accessories.html') . '"><span>Accessories</span><span class="boder-menu"></span></a></li>'
+    );
+};
+
+$decorateMobileMenu = static function (string $html, string $mode = 'accordian'): string {
+    if (trim($html) === '' || !class_exists(\DOMDocument::class) || !class_exists(\DOMXPath::class)) {
+        return $html;
+    }
+
+    $isDrilldrop = $mode === 'drilldrop';
+
+    $previousErrors = libxml_use_internal_errors(true);
+    $document = new \DOMDocument('1.0', 'UTF-8');
+    $document->loadHTML(
+        '<!doctype html><html><body><ul id="forever-mobile-menu-root">' . $html . '</ul></body></html>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+    );
+    libxml_clear_errors();
+    libxml_use_internal_errors($previousErrors);
+
+    $xpath = new \DOMXPath($document);
+    $submenuItems = $xpath->query(
+        '//*[@id="forever-mobile-menu-root"]//li[contains(concat(" ", normalize-space(@class), " "), " parent ") or contains(concat(" ", normalize-space(@class), " "), " hasChild ") or ./ul[contains(concat(" ", normalize-space(@class), " "), " submenu ")]]'
+    );
+    foreach ($submenuItems as $item) {
+        $submenu = $xpath->query(
+            './ul[contains(concat(" ", normalize-space(@class), " "), " submenu ")]',
+            $item
+        )->item(0);
+        $hasLinkedChildren = $submenu && $xpath->query(
+            './li[not(contains(concat(" ", normalize-space(@class), " "), " drilldrop-back ")) and .//a[normalize-space(.) != ""]]',
+            $submenu
+        )->length > 0;
+
+        if (!$hasLinkedChildren) {
+            $classes = preg_replace(
+                '/\b(?:hasChild|parent|forever-has-mobile-submenu)\b/',
+                '',
+                (string) $item->getAttribute('class')
+            );
+            $item->setAttribute('class', trim((string) preg_replace('/\s+/', ' ', $classes)));
+            $submenu?->parentNode?->removeChild($submenu);
+            continue;
+        }
+
+        $classes = trim((string) $item->getAttribute('class') . ' forever-has-mobile-submenu');
+        $item->setAttribute('class', $classes);
+
+        if (!$isDrilldrop && $submenu) {
+            $submenu->setAttribute('x-show.important', 'open');
+            $submenu->setAttribute('x-cloak', '');
+        }
+
+        if (!$isDrilldrop) {
+            $item->setAttribute('x-data', '{ open: false }');
+            $item->setAttribute('x-bind:class', "{ 'forever-mobile-open': open }");
+
+            if ($xpath->query('./button[contains(concat(" ", normalize-space(@class), " "), " forever-mobile-submenu-toggle ")]', $item)->length) {
+                continue;
+            }
+
+            $anchor = $xpath->query('./a[contains(concat(" ", normalize-space(@class), " "), " level-top ")]', $item)->item(0)
+                ?: $xpath->query('./a', $item)->item(0);
+            if (!$anchor) {
+                continue;
+            }
+
+            $button = $document->createElement('button');
+            $button->setAttribute('type', 'button');
+            $button->setAttribute('class', 'forever-mobile-submenu-toggle');
+            $button->setAttribute('aria-label', 'Toggle submenu');
+            $button->setAttribute('x-bind:aria-expanded', 'open.toString()');
+            $button->setAttribute('x-on:click.prevent.stop', 'open = !open');
+            $anchor->parentNode?->insertBefore($button, $anchor->nextSibling);
+
+            continue;
+        }
+
+        if ($xpath->query('./button[contains(concat(" ", normalize-space(@class), " "), " drilldrop-trigger ")]', $item)->length) {
+            continue;
+        }
+
+        $anchor = $xpath->query('./a[contains(concat(" ", normalize-space(@class), " "), " level-top ")]', $item)->item(0)
+            ?: $xpath->query('./a', $item)->item(0);
+        if (!$anchor) {
+            continue;
+        }
+
+        $button = $document->createElement('button');
+        $button->setAttribute('type', 'button');
+        $button->setAttribute('class', 'drilldrop-trigger');
+        $button->setAttribute('aria-label', 'Open submenu');
+        $button->setAttribute('aria-expanded', 'false');
+        $button->setAttribute(
+            'x-on:click.prevent.stop',
+            "const trigger = \$el; const item = trigger.closest('li'); if (item) { item.classList.add('drilldrop-current'); trigger.setAttribute('aria-expanded', 'true'); Array.from(item.parentElement.children).forEach((sibling) => { if (sibling !== item && !sibling.classList.contains('drilldrop-back')) sibling.classList.add('drilldrop-hidden'); }); }"
+        );
+        $button->appendChild($document->createElement('span'));
+        $anchor->parentNode?->insertBefore($button, $anchor->nextSibling);
+
+        if ($submenu && !$xpath->query('./li[contains(concat(" ", normalize-space(@class), " "), " drilldrop-back ")]', $submenu)->length) {
+            $backItem = $document->createElement('li');
+            $backItem->setAttribute('class', 'drilldrop-back');
+
+            $backButton = $document->createElement('button');
+            $backButton->setAttribute('type', 'button');
+            $backButton->setAttribute(
+                'x-on:click.prevent.stop',
+                "const submenu = \$el.closest('ul.submenu'); const item = submenu ? submenu.closest('li') : null; if (item) { item.classList.remove('drilldrop-current'); const trigger = item.querySelector(':scope > .drilldrop-trigger'); if (trigger) trigger.setAttribute('aria-expanded', 'false'); Array.from(item.parentElement.children).forEach((sibling) => sibling.classList.remove('drilldrop-hidden')); }"
+            );
+            $backButton->appendChild($document->createElement('span', 'Back'));
+            $backItem->appendChild($backButton);
+            $submenu->insertBefore($backItem, $submenu->firstChild);
+        }
+    }
+
+    $root = $document->getElementById('forever-mobile-menu-root');
+    if (!$root) {
+        return $html;
+    }
+
+    $decoratedHtml = '';
+    foreach ($root->childNodes as $child) {
+        $decoratedHtml .= $document->saveHTML($child);
+    }
+
+    return trim($decoratedHtml);
+};
+
+if (!$isEnabled) {
+    $nativeItemsHtml = $buildFallbackMenuItemsHtml();
+
+    if (!$showHome) {
+        $nativeItemsHtml = $removeHomeMenuItem($nativeItemsHtml);
+    }
+    $nativeMobileItemsHtml = $decorateMobileMenu($nativeItemsHtml, $mobileClass);
+
+    if ($nativeItemsHtml === '') {
+        return;
+    }
+    ?>
+    <div class="forever-megamenu-shell forever-megamenu-native-shell"
+        x-data="{ mobileOpen: false, mobileTab: 'menu' }"
+        @forever-toggle-mobile-menu.window="mobileOpen = !mobileOpen; mobileTab = 'menu'"
+        @keydown.escape.window="mobileOpen = false">
+        <button type="button"
+                class="forever-mobile-menu-toggle"
+                aria-controls="forever-mobile-menu-panel"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Open menu')) ?>"
+                :aria-expanded="mobileOpen"
+                @click="mobileOpen = !mobileOpen">
+            <?= $lucideIcons->menuHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+        </button>
+
+        <nav class="megamenu-native-desktop forever-megamenu-desktop"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Main menu')) ?>">
+            <ul class="nav-desktop">
+                <?= /** @noEscape */ $nativeItemsHtml ?>
+            </ul>
+        </nav>
+
+        <div id="forever-mobile-menu-panel"
+            class="forever-megamenu-mobile megamenu-native-mobile"
+            x-show.important="mobileOpen"
+            x-transition
+            x-cloak
+            @click.outside="mobileOpen = false">
+            <div class="forever-mobile-menu-tabs" role="tablist" aria-label="<?= $escaper->escapeHtmlAttr(__('Mobile menu tabs')) ?>">
+                <button type="button"
+                        class="forever-mobile-menu-tab"
+                        :class="{'is-active': mobileTab === 'menu'}"
+                        @click="mobileTab = 'menu'">
+                    <?= $escaper->escapeHtml(__('Menu')) ?>
+                </button>
+                <button type="button"
+                        class="forever-mobile-menu-tab"
+                        :class="{'is-active': mobileTab === 'account'}"
+                        @click="mobileTab = 'account'">
+                    <?= $escaper->escapeHtml(__('Account')) ?>
+                </button>
+            </div>
+            <nav class="navigation mean-nav forever-navigation-mobile <?= $escaper->escapeHtmlAttr($mobileClass) ?>"
+                role="navigation"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Mobile menu')) ?>"
+                x-show.important="mobileTab === 'menu'">
+                <ul class="nav-mobile">
+                    <?= /** @noEscape */ $nativeMobileItemsHtml ?>
+                </ul>
+            </nav>
+            <nav class="forever-mobile-account-links"
+                 aria-label="<?= $escaper->escapeHtmlAttr(__('Account links')) ?>"
+                 x-show.important="mobileTab === 'account'">
+                <a href="<?= $escaper->escapeUrl($block->getUrl('customer/account/login')) ?>">
+                    <?= $escaper->escapeHtml(__('Sign In')) ?>
+                </a>
+                <a href="<?= $escaper->escapeUrl($block->getUrl('customer/account/create')) ?>">
+                    <?= $escaper->escapeHtml(__('Create an Account')) ?>
+                </a>
+            </nav>
+        </div>
+    </div>
+    <?php
+    return;
+}
+
+$homeHtml = $showHome ? $block->drawHomeMenu() : '';
+$extraHtml = $block->drawExtraMenu();
+$mainMenu = $block->drawMainMenu();
+$desktopHtml = implode("\n", (array) ($mainMenu['desktop'] ?? []));
+$mobileHtml = trim((string) ($mainMenu['mobile'] ?? ''));
+$fallbackItemsHtml = $buildFallbackMenuItemsHtml();
+
+if ($desktopHtml === '' && $mobileHtml === '') {
+    $desktopHtml = $fallbackItemsHtml;
+    $mobileHtml = $desktopHtml;
+} elseif ($mobileHtml === '') {
+    $mobileHtml = trim($desktopHtml ?: $fallbackItemsHtml);
+} elseif ($desktopHtml === '') {
+    $desktopHtml = trim($mobileHtml ?: $fallbackItemsHtml);
+}
+$desktopItemsHtml = trim($homeHtml . "\n" . $desktopHtml . "\n" . $extraHtml);
+$mobileItemsHtml = trim($homeHtml . "\n" . $mobileHtml . "\n" . $extraHtml);
+
+if (!$showHome) {
+    $desktopItemsHtml = $removeHomeMenuItem($desktopItemsHtml);
+    $mobileItemsHtml = $removeHomeMenuItem($mobileItemsHtml);
+}
+
+if ($desktopItemsHtml === '') {
+    return;
+}
+
+if ($mobileItemsHtml === '') {
+    $mobileItemsHtml = $desktopItemsHtml;
+}
+
+if (!$hasMenuItems($mobileItemsHtml) && $hasMenuItems($fallbackItemsHtml)) {
+    $mobileItemsHtml = $fallbackItemsHtml;
+}
+
+$mobileItemsHtml = $decorateMobileMenu($mobileItemsHtml, $mobileClass);
+@file_put_contents(BP . '/var/log/megamenu_debug.html', $mobileItemsHtml);
+?>
+<div class="forever-megamenu-shell"
+     x-data="{ mobileOpen: false, mobileTab: 'menu' }"
+     @forever-toggle-mobile-menu.window="mobileOpen = !mobileOpen; mobileTab = 'menu'"
+     @keydown.escape.window="mobileOpen = false">
+    <button type="button"
+            class="forever-mobile-menu-toggle"
+            aria-controls="forever-mobile-menu-panel"
+            aria-label="<?= $escaper->escapeHtmlAttr(__('Open menu')) ?>"
+            :aria-expanded="mobileOpen"
+            @click="mobileOpen = !mobileOpen">
+        <?= $lucideIcons->menuHtml('', 22, 22, ['aria-hidden' => 'true']) ?>
+    </button>
+
+    <nav class="<?= $escaper->escapeHtmlAttr($desktopClass) ?> forever-megamenu-desktop"
+         aria-label="<?= $escaper->escapeHtmlAttr(__('Main menu')) ?>">
+            <ul class="nav-desktop">
+                <?= /** @noEscape */ $desktopItemsHtml ?>
+            </ul>
+    </nav>
+
+    <div id="forever-mobile-menu-panel"
+         class="forever-megamenu-mobile"
+         x-show.important="mobileOpen"
+         x-transition
+         x-cloak
+         @click.outside="mobileOpen = false">
+        <div class="forever-mobile-menu-tabs" role="tablist" aria-label="<?= $escaper->escapeHtmlAttr(__('Mobile menu tabs')) ?>">
+            <button type="button"
+                    class="forever-mobile-menu-tab"
+                    :class="{'is-active': mobileTab === 'menu'}"
+                    @click="mobileTab = 'menu'">
+                <?= $escaper->escapeHtml(__('Menu')) ?>
+            </button>
+            <button type="button"
+                    class="forever-mobile-menu-tab"
+                    :class="{'is-active': mobileTab === 'account'}"
+                    @click="mobileTab = 'account'">
+                <?= $escaper->escapeHtml(__('Account')) ?>
+            </button>
+        </div>
+        <nav class="navigation mean-nav forever-navigation-mobile <?= $escaper->escapeHtmlAttr($mobileClass) ?>"
+             role="navigation"
+             aria-label="<?= $escaper->escapeHtmlAttr(__('Mobile menu')) ?>"
+             x-show.important="mobileTab === 'menu'">
+            <ul class="nav-mobile">
+                <?= /** @noEscape */ $mobileItemsHtml ?>
+            </ul>
+        </nav>
+        <nav class="forever-mobile-account-links"
+             aria-label="<?= $escaper->escapeHtmlAttr(__('Account links')) ?>"
+             x-show.important="mobileTab === 'account'">
+            <a href="<?= $escaper->escapeUrl($block->getUrl('customer/account/login')) ?>">
+                <?= $escaper->escapeHtml(__('Sign In')) ?>
+            </a>
+            <a href="<?= $escaper->escapeUrl($block->getUrl('customer/account/create')) ?>">
+                <?= $escaper->escapeHtml(__('Create an Account')) ?>
+            </a>
+        </nav>
+    </div>
+</div>

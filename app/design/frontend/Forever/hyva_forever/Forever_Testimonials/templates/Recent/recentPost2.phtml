@@ -1,0 +1,270 @@
+<?php
+declare(strict_types=1);
+
+use Forever\Testimonials\Block\Recent\RecentPost;
+use Magento\Framework\Escaper;
+
+/** @var RecentPost $block */
+/** @var Escaper $escaper */
+
+if ((int) $block->getConfigData('testimonials/general/enable') !== 1) {
+    return;
+}
+
+$postsRecent = $block->getRecentPost();
+
+if (!$postsRecent || !$postsRecent->getSize()) {
+    return;
+}
+
+$testimonials = array_values(iterator_to_array($postsRecent));
+$testimonialCount = count($testimonials);
+
+if (!$testimonialCount) {
+    return;
+}
+
+$carouselTestimonials = [];
+$repeatCount = $testimonialCount > 1 ? 9 : 1;
+if ($testimonialCount > 1) {
+    for ($i = 0; $i < $repeatCount; $i++) {
+        $carouselTestimonials = array_merge($carouselTestimonials, $testimonials);
+    }
+} else {
+    $carouselTestimonials = $testimonials;
+}
+$carouselCount = count($carouselTestimonials);
+$middleGroup = $testimonialCount > 1 ? intdiv($repeatCount, 2) : 0;
+?>
+<section class="testimonial-container forever-testimonial-home reveal"
+    x-data="{
+        perView: 3,
+        total: <?= (int) $carouselCount ?>,
+        uniqueTotal: <?= (int) $testimonialCount ?>,
+        repeatCount: <?= (int) $repeatCount ?>,
+        middleGroup: <?= (int) $middleGroup ?>,
+        dragging: false,
+        dragStartX: 0,
+        dragStartScroll: 0,
+        dragPointerId: null,
+        dragElement: null,
+        skipClick: false,
+        init() {
+            this.updatePerView();
+            this.$nextTick(() => this.centerLoop());
+        },
+        updatePerView() {
+            if (document.body.classList.contains('cms-home-page2')) {
+                this.perView = 1;
+                this.$nextTick(() => this.centerLoop());
+                return;
+            }
+            const width = window.innerWidth || document.documentElement.clientWidth || 1280;
+            const basePerView = width >= 1024 ? 3 : (width >= 640 ? 2 : 1);
+            this.perView = this.uniqueTotal <= 1 ? 1 : basePerView;
+            this.$nextTick(() => this.centerLoop());
+        },
+        slideWidth() {
+            return this.$refs.viewport ? this.$refs.viewport.clientWidth / this.perView : 0;
+        },
+        groupWidth() {
+            return this.$refs.track && this.repeatCount ? this.$refs.track.scrollWidth / this.repeatCount : 0;
+        },
+        centerLoop() {
+            if (this.isLocked() || !this.$refs.viewport) {
+                return;
+            }
+            const width = this.groupWidth();
+            if (width > 0) {
+                this.$refs.viewport.scrollLeft = width * this.middleGroup;
+            }
+        },
+        trackStyle() {
+            return '--forever-testimonial-per-view: ' + this.perView + ';';
+        },
+        next() {
+            if (this.isLocked()) {
+                return;
+            }
+            this.$refs.viewport?.scrollBy({ left: this.slideWidth(), behavior: 'smooth' });
+        },
+        previous() {
+            if (this.isLocked()) {
+                return;
+            }
+            this.$refs.viewport?.scrollBy({ left: -this.slideWidth(), behavior: 'smooth' });
+        },
+        snapToNearest() {
+            if (this.isLocked() || !this.$refs.viewport) {
+                return;
+            }
+            const width = this.slideWidth();
+            if (width <= 0) {
+                return;
+            }
+            const target = Math.round(this.$refs.viewport.scrollLeft / width) * width;
+            this.$refs.viewport.scrollTo({ left: target, behavior: 'smooth' });
+        },
+        loopScroll() {
+            if (!this.dragging || this.isLocked() || !this.$refs.viewport || !this.$refs.track) {
+                return;
+            }
+            const width = this.groupWidth();
+            if (width <= 0) {
+                return;
+            }
+            const min = width * (this.middleGroup - 1);
+            const max = width * (this.middleGroup + 1);
+            if (this.$refs.viewport.scrollLeft < min) {
+                this.$refs.viewport.scrollLeft += width;
+            } else if (this.$refs.viewport.scrollLeft >= max) {
+                this.$refs.viewport.scrollLeft -= width;
+            }
+        },
+        isLocked() {
+            return this.uniqueTotal <= 1;
+        },
+        startDrag(event) {
+            if (this.isLocked() || (event.button !== undefined && event.button !== 0)) {
+                return;
+            }
+            this.dragging = true;
+            this.dragStartX = event.clientX;
+            this.dragStartScroll = event.currentTarget.scrollLeft;
+            this.dragPointerId = event.pointerId;
+            this.dragElement = event.currentTarget;
+            this.skipClick = false;
+            if (this.dragElement.setPointerCapture) {
+                this.dragElement.setPointerCapture(event.pointerId);
+            }
+        },
+        moveDrag(event) {
+            if (!this.dragging || event.pointerId !== this.dragPointerId) {
+                return;
+            }
+            const delta = event.clientX - this.dragStartX;
+            event.preventDefault();
+            this.dragElement.scrollLeft = this.dragStartScroll - delta;
+            this.loopScroll();
+            if (Math.abs(delta) > 6) {
+                this.skipClick = true;
+            }
+        },
+        endDrag(event) {
+            if (!this.dragging || event.pointerId !== this.dragPointerId) {
+                return;
+            }
+            this.releaseDrag();
+            this.snapToNearest();
+            if (this.skipClick) {
+                window.setTimeout(() => { this.skipClick = false; }, 350);
+            }
+        },
+        releaseDrag() {
+            if (this.dragElement && this.dragElement.releasePointerCapture && this.dragPointerId !== null) {
+                try {
+                    this.dragElement.releasePointerCapture(this.dragPointerId);
+                } catch (error) {}
+            }
+            this.dragging = false;
+            this.dragPointerId = null;
+            this.dragElement = null;
+        },
+        blockClick(event) {
+            if (!this.skipClick) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.skipClick = false;
+        }
+    }"
+    x-init="init()"
+    @resize.window="updatePerView()"
+    @pointermove.window="moveDrag($event)"
+    @pointerup.window="endDrag($event)"
+    @pointercancel.window="releaseDrag()"
+    @keydown.arrow-left.prevent="previous()"
+    @keydown.arrow-right.prevent="next()"
+    tabindex="0"
+    role="region"
+    aria-label="<?= $escaper->escapeHtmlAttr(__('Testimonial')) ?>">
+    <div class="testimonial-title-block">
+        <h3><?= $escaper->escapeHtml(__('Testimonial')) ?></h3>
+    </div>
+
+    <?php if ($testimonialCount > 1): ?>
+        <div class="forever-testimonial-nav" aria-label="<?= $escaper->escapeHtmlAttr(__('Testimonial slider controls')) ?>">
+            <button type="button"
+                class="forever-testimonial-nav-button forever-testimonial-prev"
+                @click="previous()"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Previous testimonial')) ?>">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button type="button"
+                class="forever-testimonial-nav-button forever-testimonial-next"
+                @click="next()"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Next testimonial')) ?>">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                    <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    <?php endif; ?>
+
+    <div class="testimonial-slider-container forever-testimonial-viewport"
+        x-ref="viewport"
+        :class="{ 'is-dragging': dragging }"
+        @scroll="dragging && loopScroll()"
+        @pointerdown="startDrag($event)"
+        @click.capture="blockClick($event)"
+        @dragstart.prevent>
+        <div class="testimonial-one forever-testimonial-track"
+            x-ref="track"
+            :style="trackStyle()">
+            <?php foreach ($carouselTestimonials as $post): ?>
+                <?php
+                $imageUrl = $post->getImage()
+                    ? $block->getMediaUrl() . 'testimonials/image/' . $post->getImage()
+                    : $block->getPlaceHolderImage();
+                $name = (string) $post->getName();
+                $imageAlt = $name !== '' ? $name : (string) __('Customer');
+                ?>
+                <div class="testimonial-wraper forever-testimonial-slide">
+                    <article class="customer">
+                        <div class="customer-inner">
+                            <div class="testimonial-avatar">
+                                <img src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                                    alt="<?= $escaper->escapeHtmlAttr($imageAlt) ?>"
+                                    width="160"
+                                    height="160"
+                                    loading="lazy">
+                            </div>
+                            <div class="testimonial-detail">
+                                <?php if ($name !== ''): ?>
+                                    <h4 class="entry-name"><?= $escaper->escapeHtml($name) ?></h4>
+                                <?php endif; ?>
+                                <div class="stars" aria-hidden="true">
+                                    <?php for ($i = 0; $i < 5; $i++): ?>
+                                        <span class="review">&#9733;</span>
+                                    <?php endfor; ?>
+                                </div>
+                                <div class="entry-comment">
+                                    <p><?= $escaper->escapeHtml((string) $post->getMessage(), ['br']) ?></p>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <div class="view-all">
+        <a class="view-all-btn action primary" href="<?= $escaper->escapeUrl($block->getUrl('testimonials')) ?>">
+            <?= $escaper->escapeHtml(__('View All')) ?>
+        </a>
+    </div>
+</section>

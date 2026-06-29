@@ -1,0 +1,139 @@
+<?php
+/**
+ * Hyva category product list adapted for the Forever furniture listing layout.
+ */
+
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\CurrentCategory;
+use Hyva\Theme\ViewModel\ProductListItem;
+use Hyva\Theme\ViewModel\ProductPage;
+use Hyva\Theme\ViewModel\StoreConfig;
+use Magento\Catalog\Block\Product\ListProduct;
+use Magento\Framework\Escaper;
+
+/** @var ListProduct $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+
+$productViewModel = $viewModels->require(ProductPage::class);
+$productListItemViewModel = $viewModels->require(ProductListItem::class);
+$currentCategoryViewModel = $viewModels->require(CurrentCategory::class);
+$storeConfig = $viewModels->require(StoreConfig::class);
+
+$eagerLoadImagesCount = (int) ($block->getData('eager_load_images_count') ?? 3);
+$productCollection = $block->getLoadedProductCollection();
+$isZoomInOutEnabled = filter_var(
+    $storeConfig->getStoreConfig('themedesign/zoominout/enable'),
+    FILTER_VALIDATE_BOOLEAN
+);
+?>
+<?php if (!$productCollection->count()): ?>
+    <div class="message info empty">
+        <div>
+            <?= $escaper->escapeHtml(__('We can\'t find products matching the selection.')) ?>
+        </div>
+    </div>
+<?php else: ?>
+    <?php
+    if ($block->getMode() === 'grid') {
+        $viewMode = 'grid';
+        $imageDisplayArea = 'category_page_grid';
+        $showDescription = false;
+        $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::SHORT_VIEW;
+    } else {
+        $viewMode = 'list';
+        $imageDisplayArea = 'category_page_list';
+        $showDescription = true;
+        $templateType = \Magento\Catalog\Block\Product\ReviewRendererInterface::FULL_VIEW;
+    }
+    ?>
+    <section
+        class="forever-category-listing"
+        id="product-list"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Product list')) ?>"
+        tabindex="-1"
+        x-data="{
+            gridCols: 3,
+            animate: false,
+            zoomInOutEnabled: <?= $isZoomInOutEnabled ? 'true' : 'false' ?>,
+            init() {
+                if (!this.zoomInOutEnabled) {
+                    this.gridCols = 3;
+                    return;
+                }
+                const saved = parseInt(window.localStorage.getItem('forever-category-grid-cols') || '3', 10);
+                this.gridCols = [2, 3, 4].includes(saved) ? saved : 3;
+            },
+            setGridCols(cols) {
+                if (!this.zoomInOutEnabled) return;
+                if (this.gridCols === cols) return;
+                this.animate = true;
+                this.gridCols = cols;
+                window.localStorage.setItem('forever-category-grid-cols', String(cols));
+                setTimeout(() => { this.animate = false; }, 250);
+            }
+        }"
+    >
+        <?= $block->getToolbarHtml() ?>
+        <?= $block->getAdditionalHtml() ?>
+
+        <?php if ($viewMode === 'grid' && $isZoomInOutEnabled): ?>
+            <div class="product-grid-options mb-6">
+                <div class="product-grid-options-list mt-3 flex justify-center items-center">
+                    <div class="grid-option-two common-grid cursor-pointer" :class="{ 'selected': gridCols === 2 }">
+                        <a href="javascript:void(0)" @click="setGridCols(2)" aria-label="2 Columns"></a>
+                    </div>
+                    <div class="grid-option-three common-grid cursor-pointer" :class="{ 'selected': gridCols === 3 }">
+                        <a href="javascript:void(0)" @click="setGridCols(3)" aria-label="3 Columns"></a>
+                    </div>
+                    <div class="grid-option-four common-grid cursor-pointer" :class="{ 'selected': gridCols === 4 }">
+                        <a href="javascript:void(0)" @click="setGridCols(4)" aria-label="4 Columns"></a>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <div class="products wrapper mode-<?= $escaper->escapeHtmlAttr($viewMode) ?> products-<?= $escaper->escapeHtmlAttr($viewMode) ?>">
+            <ul
+                role="list"
+                class="forever-category-product-items transition-all duration-200 ease-in-out <?= $viewMode === 'grid'
+                    ? 'forever-category-product-items-grid' . ($isZoomInOutEnabled ? '' : ' forever-grid-cols-3')
+                    : 'forever-category-product-items-list' ?>"
+                <?php if ($viewMode === 'grid' && $isZoomInOutEnabled): ?>
+                    :class="{
+                        'opacity-20 scale-98': animate,
+                        'opacity-100 scale-100': !animate,
+                        'forever-grid-cols-2': gridCols === 2,
+                        'forever-grid-cols-3': gridCols === 3,
+                        'forever-grid-cols-4': gridCols === 4
+                    }"
+                <?php endif; ?>
+            >
+                <?php foreach (array_values($productCollection->getItems()) as $i => $product): ?>
+                    <?php
+                    if ($i < $eagerLoadImagesCount) {
+                        $product->setData('image_custom_attributes', [
+                            'loading' => 'eager',
+                            'fetchpriority' => 'high',
+                        ]);
+                    }
+                    ?>
+                    <li class="forever-category-product-item">
+                        <?= $productListItemViewModel->getItemHtml(
+                            $product,
+                            $block,
+                            $viewMode,
+                            $templateType,
+                            $imageDisplayArea,
+                            $showDescription
+                        ) ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+
+        <?= $block->getChildBlock('toolbar')->setIsBottom(true)->toHtml() ?>
+    </section>
+<?php endif; ?>

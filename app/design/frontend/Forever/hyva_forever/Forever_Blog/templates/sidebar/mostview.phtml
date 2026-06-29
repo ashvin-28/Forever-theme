@@ -1,0 +1,47 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Forever\Blog\Block\Sidebar\MostView $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$viewModel = $block->getViewModel();
+$isEnableModule = (int) $viewModel->getConfig();
+$postsRecent = $block->getRecentPost();
+?>
+<?php if ($isEnableModule === 1): ?>
+<div class="mp-sidebar product info detailed forever-blog-sidebar-block">
+    <div class="data item title" id="tab-label-mostview">
+        <div><?= $escaper->escapeHtml(__('Latest')) ?></div>
+    </div>
+    <div class="data item content" id="tab-content-mostview">
+        <?php if ($postsRecent && $postsRecent->getSize()): ?>
+            <?php foreach ($postsRecent as $post): ?>
+                <div class="list-post-tabs">
+                    <div class="post-left">
+                    <?php
+                    $imageUrl = $post->getBlogImage()
+                        ? $block->getMediaUrl() . 'blog/image/' . $post->getBlogImage()
+                        : $block->getPlaceHolderImage();
+                    ?>
+                    <img src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                         alt="<?= $escaper->escapeHtmlAttr($post->getTitle()) ?>"
+                         width="200"
+                         height="200"
+                         loading="lazy"/>
+                    </div>
+                    <div class="post-right">
+                        <a href="<?= $escaper->escapeUrl($block->getViewUrl($post->getUrlKey())) ?>">
+                            <span><?= $escaper->escapeHtml($post->getTitle()); ?></span>
+                        </a>
+                        <span class="create-at">
+                            <?= $escaper->escapeHtml($post->getPublishTime()) ?>
+                        </span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="mostview-nopost"><?= $escaper->escapeHtml(__('No Posts')) ?></div>
+        <?php endif; ?>
+    </div>
+</div>
+<?php endif; ?>

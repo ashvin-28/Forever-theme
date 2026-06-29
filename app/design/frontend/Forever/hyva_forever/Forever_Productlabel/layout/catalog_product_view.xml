@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!--
+    Override Forever_Productlabel's catalog_product_view.xml which sets layout="2columns-left".
+    That Luma layout breaks Hyva PDP completely. This theme-level override forces 1column.
+    The labeldata block is removed here and re-added properly via Magento_Catalog/layout/catalog_product_view.xml.
+-->
+<page layout="1column" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="labeldata" remove="true"/>
+    </body>
+</page>

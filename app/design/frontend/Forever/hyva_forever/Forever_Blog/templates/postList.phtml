@@ -1,0 +1,70 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Forever\Blog\Block\PostList $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$collections = $block->getCollection();
+$viewModel = $block->getViewModel();
+$isEnableModule = (int) $viewModel->getConfig();
+?>
+<?php if ($isEnableModule === 1): ?>
+    <div class="blog-list-container">
+        <?php if ($block->getPagerHtml()): ?>
+            <div class="order-products-toolbar toolbar bottom">
+                <?= $block->getPagerHtml(); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($collections && count($collections)): ?>
+            <?php foreach ($collections as $item): ?>
+                <article class="blog-content">
+                    <?php $imageUrl = $item->getBlogImage()
+                        ? $viewModel->getMediaUrl() . 'blog/image/' . $item->getBlogImage()
+                        : $block->getPlaceHolderImage(); ?>
+                    <div class="blog-image">
+                        <a href="<?= $escaper->escapeUrl($block->getViewUrl($item->getUrlKey())) ?>">
+                            <img src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                                 alt="<?= $escaper->escapeHtmlAttr($item->getTitle()) ?>"
+                                 loading="lazy"
+                                 width="1440"
+                                 height="900">
+                        </a>
+                    </div>
+                    <div class="blog-description">
+                        <div class="blog-title">
+                            <h2>
+                                <a href="<?= $escaper->escapeUrl($block->getViewUrl($item->getUrlKey())) ?>">
+                                    <?= $escaper->escapeHtml($item->getTitle()) ?>
+                                </a>
+                            </h2>
+                        </div>
+                        <div class="blog-plublish-date">
+                            <span><?= $escaper->escapeHtml($item->getPublishTime()) ?></span>
+                            <?php if ($item->getAuthor()): ?>
+                                <span><?= $escaper->escapeHtml($item->getAuthor()) ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="blog-short-content">
+                            <div><?= /* @noEscape */ $item->getContentHeading(); ?></div>
+                        </div>
+                        <a class="read-more-btn action primary"
+                           href="<?= $escaper->escapeUrl($block->getViewUrl($item->getUrlKey())) ?>">
+                            <?= $escaper->escapeHtml(__('Read More...')) ?>
+                        </a>
+                    </div>
+                </article>
+            <?php endforeach; ?>
+
+            <?php if ($block->getPagerHtml()): ?>
+                <div class="order-products-toolbar toolbar bottom">
+                    <?= $block->getPagerHtml(); ?>
+                </div>
+            <?php endif; ?>
+        <?php else: ?>
+            <div class="message info empty">
+                <span><?= $escaper->escapeHtml(__('You have no any records in your custom collection.')); ?></span>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>

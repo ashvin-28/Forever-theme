@@ -1,0 +1,33 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Forever\Blog\Block\View $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$postData = $block->getRequest()->getParams();
+$urlKey = '';
+foreach ($postData as $key => $value) {
+    $urlKey = (string) $key;
+}
+$collections = $block->getPost($urlKey);
+$viewModel = $block->getViewModel();
+$isEnableModule = (int) $viewModel->getConfig();
+?>
+<?php if ($isEnableModule === 1 && $collections): ?>
+    <article class="blog-content forever-blog-detail">
+        <?php $imageUrl = $collections->getBlogImage()
+            ? $viewModel->getMediaUrl() . 'blog/image/' . $collections->getBlogImage()
+            : $block->getPlaceHolderImage(); ?>
+        <div class="blog-image">
+            <img src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                 alt="<?= $escaper->escapeHtmlAttr($collections->getTitle()) ?>"
+                 loading="eager"
+                 width="900"
+                 height="500">
+        </div>
+
+        <div class="blog-description">
+            <?= /* @noEscape */ $collections->getContent(); ?>
+        </div>
+    </article>
+<?php endif; ?>
