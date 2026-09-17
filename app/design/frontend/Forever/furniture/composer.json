@@ -14,10 +14,26 @@
         "php": ">=8.2",
         "magento/framework": "103.0.*",
         "magento/theme-frontend-blank": "100.4.*",
+        "forever/module-authenticationpopup": "^1.0",
+        "forever/module-bannerslider": "^1.0",
+        "forever/module-blog": "^2.4",
+        "forever/module-brand": "^1.0",
         "forever/module-core": "^1.0",
-        "forever/module-productlabel": "^2.4",
+        "forever/dailydeals": "^2.0",
+        "forever/module-demo-installer": "^1.0",
+        "forever/category-faq": "^2.0",
+        "forever/infinitescroll": "^1.0",
+        "forever/layered-navigation": "^4.0",
         "forever/lazyload": "^2.0",
-        "forever/module-authenticationpopup": "^1.0"
+        "forever/module-map": "^1.0",
+        "forever/module-megamenu": "^1.0",
+        "forever/module-newsletterpopup": "^1.0",
+        "forever/module-onestep": "^1.0",
+        "forever/module-productlabel": "^2.4",
+        "forever/productzoom": "^2.0",
+        "forever/module-storelocator": "^1.0",
+        "forever/module-team": "^1.0",
+        "forever/module-testimonials": "^1.0"
     },
     "autoload": {
         "files": [
