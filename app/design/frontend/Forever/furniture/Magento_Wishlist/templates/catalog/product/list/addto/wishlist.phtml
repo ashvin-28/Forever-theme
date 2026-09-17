@@ -8,13 +8,8 @@
 ?>
  <?php
 
-    $helper = \Magento\Framework\App\ObjectManager::getInstance()->get(\Forever\AuthenticationPopUp\Helper\Data::class);
+    $helper = $block->getAuthenticationPopupHelper();
     $values = $helper->isModuleEnabled();
-
-    // $viewModel = $block->getViewmodels();
-    // echo 1234;
-    // echo"<pre>";print_r(get_class_methods($viewModel),1);die;
-    // $enable = $viewModel->getScopeconfig();
 
     if ($values == 1) { ?>
 

@@ -25,9 +25,11 @@
                 data-target="dropdown">
                 <?php foreach ($block->getStores() as $_lang): ?>
                     <?php if ($_lang->getId() != $block->getCurrentStoreId()): ?>
+                        <?php $targetUrl = $block->getViewModel()->getTargetStoreRedirectUrl($_lang); ?>
+                        <?php $redirectUrl = $escaper->escapeUrl($targetUrl); ?>
                         <li class="view-<?= $escaper->escapeHtml($_lang->getCode()) ?> switcher-option">
-                            <a 
-                            href="<?= $escaper->escapeUrl($block->getViewModel()->getTargetStoreRedirectUrl($_lang)) ?>">
+                            <a
+                            href="<?= /* @noEscape */ $redirectUrl ?>">
                                 <?= $escaper->escapeHtml($_lang->getName()) ?>
                             </a>
                         </li>

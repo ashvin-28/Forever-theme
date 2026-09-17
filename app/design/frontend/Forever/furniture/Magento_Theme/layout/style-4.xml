@@ -17,11 +17,11 @@
             </arguments> 
         </block>
         <referenceContainer name="header.container"> 
-            <container name="header3-block" as="header1-block" label="Page Header block" htmlTag="div" htmlClass="header-one header-container__inner">
+            <container name="header3-block" as="header1-block" label="Page Header block" htmlTag="div" htmlClass="header-one header-container--inner">
             </container>
         </referenceContainer>
         <referenceContainer name="footer-container">
-            <container name="footer-block" as="footer-block" label="Page Footer block" htmlTag="div" htmlClass="footer-one footer-container__inner">
+            <container name="footer-block" as="footer-block" label="Page Footer block" htmlTag="div" htmlClass="footer-one footer-container--inner">
                 <block class="Magento\Cms\Block\Block" name="footer-1-footer-top-section">
                     <arguments>
                         <argument name="block_id" xsi:type="string">footer-1-footer-top-section</argument>
@@ -38,7 +38,7 @@
                     </arguments>
                 </block>
             </container>
-            <container name="footer-blocks" as="footer-blocks" label="Page Footer block" htmlTag="div" htmlClass="footer-two footer-container__inner">
+            <container name="footer-blocks" as="footer-blocks" label="Page Footer block" htmlTag="div" htmlClass="footer-two footer-container--inner">
                 <block class="Magento\Cms\Block\Block" name="footer-2-footer-top-section">
                     <arguments>
                         <argument name="block_id" xsi:type="string">footer-2-footer-top-section</argument>
@@ -50,7 +50,7 @@
                     </arguments>
                 </block>
             </container>
-            <container name="footer-block3" as="footer-block3" label="Page Footer block" htmlTag="div" htmlClass="footer-three footer-container__inner">
+            <container name="footer-block3" as="footer-block3" label="Page Footer block" htmlTag="div" htmlClass="footer-three footer-container--inner">
                 <block class="Magento\Cms\Block\Block" name="footer-3-footer-top-section">
                     <arguments>
                         <argument name="block_id" xsi:type="string">footer-3-footer-top-section</argument>
@@ -67,7 +67,7 @@
                     </arguments>
                 </block>
             </container>
-            <container name="footer-block4" as="footer-block4" label="Page Footer block" htmlTag="div" htmlClass="footer-four footer-container__inner">
+            <container name="footer-block4" as="footer-block4" label="Page Footer block" htmlTag="div" htmlClass="footer-four footer-container--inner">
                 <block class="Magento\Cms\Block\Block" name="footer-4-footer-top-section">
                     <arguments>
                         <argument name="block_id" xsi:type="string">footer-4-footer-top-section</argument>

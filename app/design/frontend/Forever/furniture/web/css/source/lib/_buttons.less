@@ -88,20 +88,7 @@
     transition-duration: .5s;
     transition-property: color;
 
-    ._lib-button-icon (
-        @_button-icon-use: @_button-icon-use,
-        @_icon-font-content: @_button-font-content,
-        @_icon-font: @_button-icon-font,
-        @_icon-font-size: @_button-icon-font-size,
-        @_icon-font-line-height: @_button-icon-font-line-height,
-        @_icon-font-color: @_button-icon-font-color,
-        @_icon-font-color-hover: @_button-icon-font-color-hover,
-        @_icon-font-color-active: @_button-icon-font-color-active,
-        @_icon-font-margin: @_button-icon-font-margin,
-        @_icon-font-vertical-align: @_button-icon-font-vertical-align,
-        @_icon-font-position: @_button-icon-font-position,
-        @_icon-font-text-hide: @_button-icon-font-text-hide
-    );
+    ._lib-button-icon(@_button-icon-use: @_button-icon-use, @_icon-font-content: @_button-font-content, @_icon-font: @_button-icon-font, @_icon-font-size: @_button-icon-font-size, @_icon-font-line-height: @_button-icon-font-line-height, @_icon-font-color: @_button-icon-font-color, @_icon-font-color-hover: @_button-icon-font-color-hover, @_icon-font-color-active: @_button-icon-font-color-active, @_icon-font-margin: @_button-icon-font-margin, @_icon-font-vertical-align: @_button-icon-font-vertical-align, @_icon-font-position: @_button-icon-font-position, @_icon-font-text-hide: @_button-icon-font-text-hide);
 
     &:focus,
     &:active {
@@ -149,7 +136,7 @@
     fieldset[disabled] & {
         .lib-css(opacity, @_button-disabled-opacity);
         cursor: default;
-        pointer-events: none; // Disabling of clicks;
+        pointer-events: none; // Disabling of clicks
     }
 }
 
@@ -257,9 +244,9 @@
 //  ---------------------------------------------
 
 .lib-button-reset() {
-    background-image: none; // Reset unusual Firefox-on-Android default style
-    background: none;
     -moz-box-sizing: content-box; // Hack: fix Firefox button line-height problem
+    background: none;
+    background-image: none; // Reset unusual Firefox-on-Android default style
     border: 0;
     box-shadow: none;
     line-height: inherit;
@@ -470,19 +457,7 @@
     @_icon-font-position: @button-icon__position,
     @_icon-font-text-hide: @button-icon__text-hide
 ) when (@_button-icon-use = true) {
-    .lib-button-icon (
-        @_icon-font-content: @_icon-font-content,
-        @_icon-font: @_icon-font,
-        @_icon-font-size: @_icon-font-size,
-        @_icon-font-line-height: @_icon-font-line-height,
-        @_icon-font-color: @_icon-font-color,
-        @_icon-font-color-hover: @_icon-font-color-hover,
-        @_icon-font-color-active: @_icon-font-color-active,
-        @_icon-font-margin: @_icon-font-margin,
-        @_icon-font-vertical-align: @_icon-font-vertical-align,
-        @_icon-font-position: @_icon-font-position,
-        @_icon-font-text-hide: @_icon-font-text-hide
-    );
+    .lib-button-icon(@_icon-font-content: @_icon-font-content, @_icon-font: @_icon-font, @_icon-font-size: @_icon-font-size, @_icon-font-line-height: @_icon-font-line-height, @_icon-font-color: @_icon-font-color, @_icon-font-color-hover: @_icon-font-color-hover, @_icon-font-color-active: @_icon-font-color-active, @_icon-font-margin: @_icon-font-margin, @_icon-font-vertical-align: @_icon-font-vertical-align, @_icon-font-position: @_icon-font-position, @_icon-font-text-hide: @_icon-font-text-hide);
 }
 
 .lib-button-icon (

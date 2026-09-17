@@ -103,7 +103,7 @@
 .lib-hyphens(@mode: auto) {
     -moz-hyphens: @mode;
     -webkit-hyphens: @mode;
-    -ms-hyphens: @mode; // IE10+
+    -ms-hyphens: @mode; // IE10 and above
     hyphens: @mode;
 }
 
@@ -193,7 +193,7 @@
 //  Base typography
 //  ---------------------------------------------
 
-.lib-typography__base(
+.lib-typography--base(
     @_abbr-border-color: @abbr__border-color,
     @_dfn-font-style: @font-style__emphasis,
     @_emphasis-font-style: @font-style__emphasis,
@@ -560,7 +560,7 @@
 //  ---------------------------------------------
 
 .lib-typography-all() {
-    .lib-typography__base();
+    .lib-typography--base();
     .lib-typography-headings();
     .lib-typography-links();
     .lib-typography-lists();

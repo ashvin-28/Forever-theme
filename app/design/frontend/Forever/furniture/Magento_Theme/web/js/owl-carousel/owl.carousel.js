@@ -463,7 +463,7 @@ define(['jquery'],function($){
 		// create stage
 		this.$stage = $('<' + this.settings.stageElement + '>', {
 			"class": this.settings.stageClass
-		}).wrap( $( '<div/>', {
+		}).wrap( $( '<div></div>', {
 			"class": this.settings.stageOuterClass
 		}));
 
@@ -2332,12 +2332,12 @@ define(['jquery'],function($){
 				icon = '<div class="owl-video-play-icon"></div>';
 
 				if (settings.lazyLoad) {
-					tnLink = $('<div/>',{
+					tnLink = $('<div></div>',{
 						"class": 'owl-video-tn ' + lazyClass,
 						"srcType": path
 					});
 				} else {
-					tnLink = $( '<div/>', {
+					tnLink = $( '<div></div>', {
 						"class": "owl-video-tn",
 						"style": 'opacity:1;background-image:url(' + path + ')'
 					});
@@ -2347,7 +2347,7 @@ define(['jquery'],function($){
 			};
 
 		// wrap video content into owl-video-wrapper div
-		target.wrap( $( '<div/>', {
+		target.wrap( $( '<div></div>', {
 			"class": "owl-video-wrapper",
 			"style": dimensions
 		}));
@@ -2441,7 +2441,7 @@ define(['jquery'],function($){
 			html.attr( 'src', '//view.vzaar.com/' + video.id + '/player?autoplay=true' );
 		}
 
-		iframe = $(html).wrap( '<div class="owl-video-frame" />' ).insertAfter(item.find('.owl-video'));
+		iframe = $(html).wrap( '<div class="owl-video-frame"></div>' ).insertAfter(item.find('.owl-video'));
 
 		this._playing = item.addClass('owl-video-playing');
 	};

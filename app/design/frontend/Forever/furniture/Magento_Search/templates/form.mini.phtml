@@ -3,13 +3,11 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
-
-// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
 ?>
 <?php
 /** @var $block \Magento\Framework\View\Element\Template */
 /** @var $helper \Magento\Search\Helper\Data */
-$helper = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Search\Helper\Data::class);
+$helper = $block->getSearchHelperViewModel()->getSearchHelper();
 ?>
 <div class="block block-search">
     <div class="block block-title"><strong><?= $escaper->escapeHtml(__('Search')) ?></strong></div>

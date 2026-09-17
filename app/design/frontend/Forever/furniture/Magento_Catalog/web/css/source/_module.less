@@ -227,7 +227,7 @@
             width: 100%;
         }
         .product-image-container {
-            width:100% !important;
+            width: 100% !important;
         }
     }
     .column.main .block.crosssell {
@@ -291,7 +291,8 @@
     }
     .quickview:after {
         background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0' y='0' viewBox='0 0 299.877 299.877' style='enable-background:new 0 0 299.877 299.877;' xml:space='preserve'%3e%3cpath d='M297.786,144.89c-33.023-33.015-91.535-66.338-147.877-66.352c-63.396,0-104.865,26.454-147.641,66.174 c-2.699,2.513-3.035,6.69-.764,9.618c2.128,2.735,53.214,67.009,148.433,67.009c59.947,0,133.354-44.347,148.74-67.437 C300.57,151.066,300.185,147.297,297.786,144.89z M149.938,207.058c-73.085,0-119.045-41.99-132.818-56.584 c46.481-41.919,83.017-57.656,132.818-57.656c56.006,.014,107.864,34.408,133.125,57.727 C264.185,170.48,201.246,207.058,149.938,207.058z'/%3e%3cpath d='M99.958,149.953c0,27.539,22.427,49.98,49.98,49.98c27.568,0,49.994-22.427,49.994-49.987 c0-27.56-22.427-49.987-49.994-49.987C122.385,99.958,99.958,122.385,99.958,149.953z M185.652,149.946 c0,19.678-16.022,35.7-35.714,35.7c-19.685,0-35.7-16.022-35.7-35.7c0-19.692,16.015-35.707,35.7-35.707 C169.63,114.238,185.652,130.261,185.652,149.946z'/%3e%3cpath d='M121.378,149.953c0,3.948,3.192,7.14,7.14,7.14c3.948,0,7.14-3.192,7.14-7.147c0-7.89,6.397-14.287,14.28-14.287 c3.948,0,7.14-3.192,7.14-7.14c0-3.948-3.192-7.14-7.14-7.14C134.187,121.378,121.378,134.195,121.378,149.953z'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;background-size: 21px;
+        background-repeat: no-repeat;
+        background-size: 21px;
         content: '';
         display: inline;
         height: 21px;
@@ -664,7 +665,7 @@
         }
     }
     //  related product
-    body.page-layout-1column  {
+    body.page-layout-1column {
         .products-grid.products-related li {
             padding: 0 10px;
             width: 100%;
@@ -1406,6 +1407,7 @@
 //
 //  Mobile @screen__m
 //  _____________________________________________
+
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__lll) {
     .page-products .zoom-in-out-button {
         display: none;
@@ -1610,7 +1612,7 @@
         }
     }
     .product-item-info {
-        .product-item-actions  {
+        .product-item-actions {
             flex-direction: column;
         }
         .product-image-section {
@@ -1929,11 +1931,11 @@
     }
 
     .table-wrapper.comparison {
+        border-top: 0;
         clear: both;
         max-width: 100%;
         overflow-x: auto;
         position: relative; // Needed for Safari(iOS) to properly render 'overflow-x' rule.
-        border-top: 0;
 
         .table-comparison > tbody > tr {
             > th {
@@ -2258,6 +2260,7 @@
 //
 //  Desktop
 //  _____________________________________________
+
 .media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__ml) {
     body.page-product-grouped .product-info-main .pdp-cutomization-section {
         align-items: flex-end;

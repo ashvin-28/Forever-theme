@@ -153,7 +153,7 @@
         }
     }
 
-    & when (@_breadcrumbs-icon-use = true) {  // Use font icon as a separating symbol
+    & when (@_breadcrumbs-icon-use = true) { // Use font icon as a separating symbol
         .item:not(:last-child) {
             .lib-icon-font(@_icon-font-content: @_breadcrumbs-icon-font-content, @_icon-font: @_icon-font, @_icon-font-size: @_icon-font-size, @_icon-font-line-height: @_icon-font-line-height, @_icon-font-color: @_icon-font-color, @_icon-font-margin: @_icon-font-margin, @_icon-font-vertical-align: middle, @_icon-font-position: after);
         }

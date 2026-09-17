@@ -189,8 +189,9 @@ $_item = null;
                 <?php if ($type == 'related' && $canItemsAddToCart):?>
                     <div class="block-actions">
                         <?= $escaper->escapeHtml(__('Check items to add to the cart or')) ?>
+                        <?php $selectAllLabel = $escaper->escapeHtml(__('select all')); ?>
                         <button type="button" class="action select"
-                                data-role="select-all"><span><?= $escaper->escapeHtml(__('select all')) ?></span></button>
+                                data-role="select-all"><span><?= /* @noEscape */ $selectAllLabel ?></span></button>
                     </div>
                 <?php endif; ?>
                 <div class="products wrapper grid products-grid products-<?= $escaper->escapeHtmlAttr($type) ?>">
@@ -371,17 +372,19 @@ $_item = null;
 
                                     <?php if ($canItemsAddToCart && !$_item->isComposite() && $_item->isSaleable()
                                         && $type == 'related'):?>
-                                        <?php if (!$_item->getRequiredOptions()):?>
+                                        <?php if (!$_item->getRequiredOptions()):
+                                            $relatedItemId = $escaper->escapeHtmlAttr($_item->getId());
+                                            ?>
                                             <div class="field choice related">
                                                 <input
                                                     type="checkbox"
                                                     class="checkbox related"
-                                                    id="related-checkbox<?= $escaper->escapeHtmlAttr($_item->getId()) ?>"
+                                                    id="related-checkbox<?= /* @noEscape */ $relatedItemId ?>"
                                                     name="related_products[]"
-                                                    value="<?= $escaper->escapeHtmlAttr($_item->getId()) ?>" />
+                                                    value="<?= /* @noEscape */ $relatedItemId ?>" />
                                                 <label class="label"
-                                                       for="related-checkbox<?= $escaper->escapeHtmlAttr($_item->getId())
-                                                        ?>"><span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
+                                                       for="related-checkbox<?= /* @noEscape */ $relatedItemId ?>"
+                                                       ><span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
                                                 </label>
                                             </div>
                                         <?php endif; ?>

@@ -7,7 +7,7 @@
 /** @var \Magento\Wishlist\Block\Catalog\Product\View\AddTo\Wishlist $block */
 ?>
 <?php
-    $helper = \Magento\Framework\App\ObjectManager::getInstance()->get(\Forever\AuthenticationPopUp\Helper\Data::class);
+    $helper = $block->getAuthenticationPopupHelper();
     $values = $helper->isModuleEnabled();
 
 if ($values == 1) {

@@ -124,18 +124,24 @@ $_helper = $block->getData('outputHelper');
                                             <?= $productImage->toHtml() ?>
                                         </a>
                                     </div>
-                                    <?php $productImageUrl = $viewmodel->getImageUrl($_product); ?>
+                                    <?php
+                                    $productImageUrl = $viewmodel->getImageUrl($_product);
+                                    $productImageWidth = $viewmodel->getImageWidth($_product);
+                                    $productImageHeight = $viewmodel->getImageHeight($_product);
+                                    $productImagePadding = $viewmodel->getImagePadding($_product) * 100;
+                                    ?>
                                     <div class="flip-box-back">
                                         <a href="<?= $escaper->escapeUrl($_product->getProductUrl()) ?>"
                                            class="product photo product-item-photo"
                                            tabindex="-1">
                                            <span class="product-image-container"
-                                           style="width:<?= /* @noEscape */ $viewmodel->getImageWidth($_product); ?>px;">
-                                                <span class="product-image-wrapper" style="padding-bottom:<?= /* @noEscape */ $viewmodel->getImagePadding($_product) * 100; ?>%">
+                                           style="width:<?= /* @noEscape */ $productImageWidth; ?>px;">
+                                                <span class="product-image-wrapper"
+                                                style="padding-bottom:<?= /* @noEscape */ $productImagePadding; ?>%">
                                                     <img src="<?= /* @noEscape */ $productImageUrl ?>"
                                                         alt="<?= /* @noEscape */ $_product->getName() ?>"
-                                                        width="<?= /* @noEscape */ $viewmodel->getImageWidth($_product); ?>"
-                                                        height="<?= /* @noEscape */ $viewmodel->getImageHeight($_product); ?>">
+                                                        width="<?= /* @noEscape */ $productImageWidth; ?>"
+                                                        height="<?= /* @noEscape */ $productImageHeight; ?>">
                                                 </span>
                                             </span>
                                         </a>

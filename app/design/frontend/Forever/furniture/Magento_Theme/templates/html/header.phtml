@@ -8,12 +8,13 @@
  * @var \Magento\Theme\Block\Html\Header $block
  */
 $welcomeMessage = $block->getWelcome();
+$welcomeGreeting = $escaper->escapeHtml(__(' %1!', '%1'));
 ?>
 <?php if ($block->getShowPart() == 'welcome'): ?>
     <li class="greet welcome" data-bind="scope: 'customer'">
         <!-- ko if: customer().fullname  -->
         <span class="logged-in"
-        data-bind="text: new String('<?= $escaper->escapeHtml(__(' %1!', '%1')) ?>').replace('%1', customer().firstname)">
+        data-bind="text: new String('<?= /* @noEscape */ $welcomeGreeting ?>').replace('%1', customer().firstname)">
         </span>
         <!-- /ko -->
         <!-- ko ifnot: customer().fullname  -->
