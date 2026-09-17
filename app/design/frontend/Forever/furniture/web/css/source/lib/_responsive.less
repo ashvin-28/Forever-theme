@@ -1,4 +1,4 @@
-// /**
+//  /**
 //  * Copyright © Magento, Inc. All rights reserved.
 //  * See COPYING.txt for license details.
 //  */
@@ -13,7 +13,8 @@
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__s) {
 }
 
-& when (@media-target = 'mobile'), (@media-target = 'all') {
+& when (@media-target = 'mobile'),
+(@media-target = 'all') {
 
     @media only screen and (max-width: @screen__m) {
         .media-width('max', (@screen__m + 1));
@@ -35,22 +36,22 @@
         .media-width('max', @screen__xxs);
     }
 
-    // max-width: 992px (@screen__ml - 1)
+    //  max-width: 992px (@screen__ml - 1)
     @media only screen and (max-width: 992px) {
         .media-width('max', @screen__ml);
     }
 
-    // max-width: 1024px (@screen__l - 1)
+    //  max-width: 1024px (@screen__l - 1)
     @media only screen and (max-width: 1024px) {
         .media-width('max', @screen__l);
     }
 
-    // max-width: 1200px (@screen__ll)
+    //  max-width: 1200px (@screen__ll)
     @media only screen and (max-width: 1200px) {
         .media-width('max', @screen__ll);
     }
 
-    // max-width: 1299px (@screen__lll - 1)
+    //  max-width: 1299px (@screen__lll - 1)
     @media only screen and (max-width: 1299px) {
         .media-width('max', @screen__lll);
     }
@@ -60,7 +61,8 @@
     }
 }
 
-& when (@media-target = 'desktop'), (@media-target = 'all') {
+& when (@media-target = 'desktop'),
+(@media-target = 'all') {
 
     @media all and (min-width: @screen__m),
     print {
@@ -82,19 +84,19 @@
         .media-width('min', @screen__l);
     }
 
-    // min-width: 993px (@screen__ml)
+    //  min-width: 993px (@screen__ml)
     @media all and (min-width: 993px),
     print {
         .media-width('min', @screen__ml);
     }
 
-    // min-width: 1200px (@screen__ll)
+    //  min-width: 1200px (@screen__ll)
     @media all and (min-width: 1200px),
     print {
         .media-width('min', @screen__ll);
     }
 
-    // min-width: 1300px (@screen__lll)
+    //  min-width: 1300px (@screen__lll)
     @media all and (min-width: 1300px),
     print {
         .media-width('min', @screen__lll);

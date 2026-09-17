@@ -1,4 +1,4 @@
-// /**
+//  /**
 //  * Copyright © Magento, Inc. All rights reserved.
 //  * See COPYING.txt for license details.
 //  */
@@ -8,25 +8,18 @@
 //  _____________________________________________
 
 .lib-message(@_message-type: info) {
-    @_message-background: "message-@{_message-type}__background";
-    @_message-border-color: "message-@{_message-type}__border-color";
-    @_message-color: "message-@{_message-type}__color";
-    @_message-link-color: "message-@{_message-type}-link__color";
-    @_message-link-color-hover: "message-@{_message-type}-link__color-hover";
-    @_message-link-color-active: "message-@{_message-type}-link__color-active";
-    @_message-icon-top: "message-@{_message-type}-icon__top";
-    @_message-icon-right: "message-@{_message-type}-icon__right";
-    @_message-icon-bottom: "message-@{_message-type}-icon__bottom";
-    @_message-icon-left: "message-@{_message-type}-icon__left";
+    @_message-background: 'message-@{_message-type}__background';
+    @_message-border-color: 'message-@{_message-type}__border-color';
+    @_message-color: 'message-@{_message-type}__color';
+    @_message-link-color: 'message-@{_message-type}-link__color';
+    @_message-link-color-hover: 'message-@{_message-type}-link__color-hover';
+    @_message-link-color-active: 'message-@{_message-type}-link__color-active';
+    @_message-icon-top: 'message-@{_message-type}-icon__top';
+    @_message-icon-right: 'message-@{_message-type}-icon__right';
+    @_message-icon-bottom: 'message-@{_message-type}-icon__bottom';
+    @_message-icon-left: 'message-@{_message-type}-icon__left';
     ._lib-message();
-    ._lib-message-style(
-        @_message-color: @@_message-color,
-        @_message-background: @@_message-background,
-        @_message-link-color: @@_message-link-color,
-        @_message-link-color-hover: @@_message-link-color-hover,
-        @_message-link-color-active: @@_message-link-color-active,
-        @_message-border-color: @@_message-border-color
-    );
+    ._lib-message-style(@_message-color: @@_message-color, @_message-background: @@_message-background, @_message-link-color: @@_message-link-color, @_message-link-color-hover: @@_message-link-color-hover, @_message-link-color-active: @@_message-link-color-active, @_message-border-color: @@_message-border-color);
 }
 
 ._lib-message(
@@ -38,14 +31,7 @@
     .lib-css(margin, @_message-margin);
     .lib-css(padding, @_message-padding);
     display: block;
-    .lib-typography(
-        @_color: @message__color,
-        @_font-size: @message__font-size,
-        @_font-family: @message__font-family,
-        @_font-weight: @message__font-weight,
-        @_font-style: @message__font-style,
-        @_line-height: @message__line-height
-    );
+    .lib-typography(@_color: @message__color, @_font-size: @message__font-size, @_font-family: @message__font-family, @_font-weight: @message__font-weight, @_font-style: @message__font-style, @_line-height: @message__line-height);
     ._lib-message-border(@message__border-width, @message__border-style);
 }
 
@@ -87,44 +73,27 @@ and not (@_message-border-style = false) {
 .lib-message-icon-lateral(@_message-type: info, @_message-position: right) {
     .lib-message(@_message-type);
     @_message-icon-position: @_message-position;
-    @_message-icon: "message-@{_message-type}-icon";
-    @_message-icon-color: "message-@{_message-type}-icon__color-lateral";
-    @_message-icon-background: "message-@{_message-type}-icon__background";
-    @_message-icon-top: "message-@{_message-type}-icon__top";
-    @_message-icon-right: "message-@{_message-type}-icon__right";
-    @_message-icon-bottom: "message-@{_message-type}-icon__bottom";
-    @_message-icon-left: "message-@{_message-type}-icon__left";
-    ._lib-message-icon-lateral(
-        @_message-icon-position,
-        @@_message-icon,
-        @@_message-icon-color,
-        @@_message-icon-background,
-        @@_message-icon-top,
-        @@_message-icon-left,
-        @@_message-icon-bottom,
-        @@_message-icon-right
-    );
+    @_message-icon: 'message-@{_message-type}-icon';
+    @_message-icon-color: 'message-@{_message-type}-icon__color-lateral';
+    @_message-icon-background: 'message-@{_message-type}-icon__background';
+    @_message-icon-top: 'message-@{_message-type}-icon__top';
+    @_message-icon-right: 'message-@{_message-type}-icon__right';
+    @_message-icon-bottom: 'message-@{_message-type}-icon__bottom';
+    @_message-icon-left: 'message-@{_message-type}-icon__left';
+    ._lib-message-icon-lateral(@_message-icon-position, @@_message-icon, @@_message-icon-color, @@_message-icon-background, @@_message-icon-top, @@_message-icon-left, @@_message-icon-bottom, @@_message-icon-right);
 }
 
 //  Messages with inner icon
 .lib-message-icon-inner(@_message-type: info) {
     .lib-message(@_message-type);
-    @_message-icon: "message-@{_message-type}-icon";
-    @_message-icon-color: "message-@{_message-type}-icon__color-inner";
-    @_message-icon-background: "message-@{_message-type}-icon__background";
-    @_message-icon-top: "message-@{_message-type}-icon__top";
-    @_message-icon-right: "message-@{_message-type}-icon__right";
-    @_message-icon-bottom: "message-@{_message-type}-icon__bottom";
-    @_message-icon-left: "message-@{_message-type}-icon__left";
-    ._lib-message-icon-inner(
-        @@_message-icon,
-        @@_message-icon-color,
-        @@_message-icon-background,
-        @@_message-icon-top,
-        @@_message-icon-left,
-        @@_message-icon-bottom,
-        @@_message-icon-right
-    );
+    @_message-icon: 'message-@{_message-type}-icon';
+    @_message-icon-color: 'message-@{_message-type}-icon__color-inner';
+    @_message-icon-background: 'message-@{_message-type}-icon__background';
+    @_message-icon-top: 'message-@{_message-type}-icon__top';
+    @_message-icon-right: 'message-@{_message-type}-icon__right';
+    @_message-icon-bottom: 'message-@{_message-type}-icon__bottom';
+    @_message-icon-left: 'message-@{_message-type}-icon__left';
+    ._lib-message-icon-inner(@@_message-icon, @@_message-icon-color, @@_message-icon-background, @@_message-icon-top, @@_message-icon-left, @@_message-icon-bottom, @@_message-icon-right);
 }
 
 //  Private mixins
@@ -164,15 +133,7 @@ and not (@_message-border-style = false) {
 
     > *:first-child {
         &:after {
-            ._lib-icon-font(
-                @_icon-font-content: @_message-icon,
-                @_icon-font: @icon-font,
-                @_icon-font-size: @message-icon__font-size,
-                @_icon-font-line-height: @message-icon__font-line-height,
-                @_icon-font-color: @_message-icon-color,
-                @_icon-font-margin: -@message-icon__font-size/2 0 0,
-                @_icon-font-vertical-align: @icon-font__vertical-align
-            );
+            ._lib-icon-font(@_icon-font-content: @_message-icon, @_icon-font: @icon-font, @_icon-font-size: @message-icon__font-size, @_icon-font-line-height: @message-icon__font-line-height, @_icon-font-color: @_message-icon-color, @_icon-font-margin: -@message-icon__font-size/2 0 0, @_icon-font-vertical-align: @icon-font__vertical-align);
             .lib-css(bottom, @_message-icon-bottom);
             .lib-css(left, @_message-icon-left);
             .lib-css(right, @_message-icon-right);
@@ -183,10 +144,7 @@ and not (@_message-border-style = false) {
         }
     }
 
-    ._lib-message-icon-lateral-position(
-        @_message-icon-position,
-        @_message-icon-background
-    );
+    ._lib-message-icon-lateral-position(@_message-icon-position, @_message-icon-background);
 }
 
 ._lib-message-icon-lateral-position(
@@ -261,23 +219,15 @@ and not (@_message-border-style = false) {
     position: relative;
 
     > *:first-child:before {
-        ._lib-icon-font(
-            @_icon-font-content: @_message-icon,
-            @_icon-font: @icon-font,
-            @_icon-font-size: @message-icon__font-size,
-            @_icon-font-line-height: @message-icon__font-line-height,
-            @_icon-font-color: @_message-icon-color,
-            @_icon-font-margin: -@message-icon__font-size/2 0 0,
-            @_icon-font-vertical-align: @icon-font__vertical-align
-        );
+        ._lib-icon-font(@_icon-font-content: @_message-icon, @_icon-font: @icon-font, @_icon-font-size: @message-icon__font-size, @_icon-font-line-height: @message-icon__font-line-height, @_icon-font-color: @_message-icon-color, @_icon-font-margin: -@message-icon__font-size/2 0 0, @_icon-font-vertical-align: @icon-font__vertical-align);
         .lib-css(bottom, @_message-icon-bottom);
         .lib-css(left, @_message-icon-left);
         .lib-css(right, @_message-icon-right);
         .lib-css(top, @_message-icon-top);
         .lib-css(width, @message-icon__inner-padding-left);
-        position: absolute;
-        text-align: center;
         font-size: 27px;
         line-height: 29px;
+        position: absolute;
+        text-align: center;
     }
 }

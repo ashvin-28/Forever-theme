@@ -12,29 +12,29 @@
 $helper = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Search\Helper\Data::class);
 ?>
 <div class="block block-search">
-    <div class="block block-title"><strong><?= $block->escapeHtml(__('Search')) ?></strong></div>
+    <div class="block block-title"><strong><?= $escaper->escapeHtml(__('Search')) ?></strong></div>
     <div class="block block-content">
         <form class="form minisearch" id="search_mini_form"
-        action="<?= $block->escapeUrl($helper->getResultUrl()) ?>" method="get">
+        action="<?= $escaper->escapeUrl($helper->getResultUrl()) ?>" method="get">
             <div class="field search">
                 <label class="label" for="search" data-role="minisearch-label">
-                    <span><?= $block->escapeHtml(__('Search')) ?></span>
+                    <span><?= $escaper->escapeHtml(__('Search')) ?></span>
                 </label>
                 <div class="control">
                     <div class="control-wrapper">
                         <input id="search"
                                data-mage-init='{"quickSearch":{
                                     "formSelector":"#search_mini_form",
-                                    "url":"<?= $block->escapeUrl($helper->getSuggestUrl())?>",
+                                    "url":"<?= $escaper->escapeUrl($helper->getSuggestUrl())?>",
                                     "destinationSelector":"#search_autocomplete",
-                                    "minSearchLength":"<?= $block->escapeHtml($helper->getMinQueryLength()) ?>"}
+                                    "minSearchLength":"<?= $escaper->escapeHtml($helper->getMinQueryLength()) ?>"}
                                }'
                                type="text"
-                               name="<?= $block->escapeHtmlAttr($helper->getQueryParamName()) ?>"
-                               value="<?= $block->escapeHtmlAttr($helper->getEscapedQueryText()) ?>"
-                               placeholder="<?= $block->escapeHtmlAttr(__('Search...')) ?>"
+                               name="<?= $escaper->escapeHtmlAttr($helper->getQueryParamName()) ?>"
+                               value="<?= $escaper->escapeHtmlAttr($helper->getEscapedQueryText()) ?>"
+                               placeholder="<?= $escaper->escapeHtmlAttr(__('Search...')) ?>"
                                class="input-text"
-                               maxlength="<?= $block->escapeHtmlAttr($helper->getMaxQueryLength()) ?>"
+                               maxlength="<?= $escaper->escapeHtmlAttr($helper->getMaxQueryLength()) ?>"
                                role="combobox"
                                aria-haspopup="false"
                                aria-autocomplete="both"
@@ -48,11 +48,11 @@ $helper = \Magento\Framework\App\ObjectManager::getInstance()->get(\Magento\Sear
             </div>
             <div class="actions">
                 <button type="submit"
-                    title="<?= $block->escapeHtmlAttr(__('Search')) ?>"
+                    title="<?= $escaper->escapeHtmlAttr(__('Search')) ?>"
                     class="action search"
                     aria-label="Search"
                 >
-                    <span><?= $block->escapeHtml(__('Search')) ?></span>
+                    <span><?= $escaper->escapeHtml(__('Search')) ?></span>
                 </button>
             </div>
         </form>

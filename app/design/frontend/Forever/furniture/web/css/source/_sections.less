@@ -1,4 +1,4 @@
-// /**
+//  /**
 //  * Copyright © Magento, Inc. All rights reserved.
 //  * See COPYING.txt for license details.
 //  */
@@ -15,13 +15,13 @@
     }
     .catalog-product-view {
         .product.data.items > .item.content {
-            border: 1px solid #ececec;
-        } 
+            border: 1px solid @color-xececec;
+        }
         .product.data.items .product.description .value {
+            color: @color-x868686;
             font-size: 16px;
-            line-height: 26px;
             letter-spacing: 1px;
-            color: #868686;
+            line-height: 26px;
         }
     }
     .product.data.items {
@@ -35,18 +35,7 @@
         .item.title {
             a {
                 position: relative;
-                .lib-icon-font(
-                    @_icon-font-content: @icon-down,
-                    @_icon-font-size: @font-size__base,
-                    @_icon-font-line-height: @icon-font__line-height,
-                    @_icon-font-color: @icon-font__color,
-                    @_icon-font-color-hover: @icon-font__color-hover,
-                    @_icon-font-color-active: @icon-font__color-active,
-                    @_icon-font-margin: @icon-font__margin,
-                    @_icon-font-vertical-align: @icon-font__vertical-align,
-                    @_icon-font-position: after,
-                    @_icon-font-display: false
-                );
+                .lib-icon-font(@_icon-font-content: @icon-down, @_icon-font-size: @font-size__base, @_icon-font-line-height: @icon-font__line-height, @_icon-font-color: @icon-font__color, @_icon-font-color-hover: @icon-font__color-hover, @_icon-font-color-active: @icon-font__color-active, @_icon-font-margin: @icon-font__margin, @_icon-font-vertical-align: @icon-font__vertical-align, @_icon-font-position: after, @_icon-font-display: false);
 
                 &:after {
                     position: absolute;
@@ -56,7 +45,7 @@
             }
 
             &.active a {
-                background: #ffffff;
+                background: @color-white;
                 color: @primary__color;
                 &:after {
                     content: @icon-up;
@@ -95,35 +84,35 @@
     }
     .catalog-product-view {
         .product.data.items > .item.title > .switch {
-            height: auto;
             background: transparent;
-            font-size: 20px;
-            padding: 0px;
             border: 0;
             display: inline-block;
-            position: relative;
+            font-size: 20px;
+            height: auto;
             letter-spacing: 1px;
+            padding: 0;
+            position: relative;
             &:before {
-                position: absolute;
-                bottom: 0;
-                content: "";
-                left: 50%;
                 -webkit-transform: translateX(-50%);
-                transform: translateX(-50%);
                 -webkit-transition: all .3s ease;
+                background: @color-black;
+                bottom: 0;
+                content: '';
+                height: 2px;
+                left: 50%;
+                position: absolute;
+                transform: translateX(-50%);
                 transition: all .3s ease;
                 width: 0;
-                height: 2px;
-                background: #000;
             }
             &:hover {
-                padding:0px;
+                padding: 0;
                 &:before {
-                    width:100%;
+                    width: 100%;
                 }
             }
             &:focus {
-                padding:0px;
+                padding: 0;
             }
         }
         .product.data.items > .item.title.active > .switch:before {
@@ -136,8 +125,8 @@
             text-align: left;
         }
         .product.data.items > .item.title {
-            float: none;
             display: inline-block;
+            float: none;
             margin: 0 20px;
         }
     }
@@ -163,16 +152,16 @@
     }
     .block.review-add .review-fieldset .review-field-nickname,
     .block.review-add .review-fieldset .review-field-summary {
-        padding-right: 0;
         padding-left: 0;
+        padding-right: 0;
         width: 100%;
     }
     .product.data.items {
         .item.title {
             > .switch {
-                padding: 7px 15px 7px;
                 font-size: 17px;
                 letter-spacing: 1px;
+                padding: 7px 15px 7px;
             }
         }
 

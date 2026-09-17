@@ -28,7 +28,7 @@ $formData = $block->getFormData();
       autocomplete="off">
     <?= /* @noEscape */ $block->getBlockHtml('formkey') ?>
     <fieldset class="fieldset create info w-50">
-        <div class="filedset_inner">
+        <div class="filedset-inner">
         <legend class="legend"><span><?= $escaper->escapeHtml(__('Personal Information')) ?></span></legend><br>
         <input type="hidden" name="success_url" value="<?= $escaper->escapeUrl($block->getSuccessUrl()) ?>">
         <input type="hidden" name="error_url" value="<?= $escaper->escapeUrl($block->getErrorUrl()) ?>">
@@ -227,7 +227,7 @@ $formData = $block->getFormData();
     <?php endif; ?>
     <fieldset class="fieldset create account w-50"
               data-hasrequired="<?= $escaper->escapeHtmlAttr(__('* Required Fields')) ?>">
-        <div class="filedset_inner">
+        <div class="filedset-inner">
         <legend class="legend"><span><?= $escaper->escapeHtml(__('Sign-in Information')) ?></span></legend><br>
         <div class="field required">
             <label for="email_address" class="label"><span><?= $escaper->escapeHtml(__('Email')) ?></span></label>
@@ -287,7 +287,7 @@ $formData = $block->getFormData();
    </div>
    </fieldset>
 
-    <fieldset class="fieldset additional_info">
+    <fieldset class="fieldset additional-info">
         <?= $block->getChildHtml('form_additional_info') ?>
     </fieldset>
 

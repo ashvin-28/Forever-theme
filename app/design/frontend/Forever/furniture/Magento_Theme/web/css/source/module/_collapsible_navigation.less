@@ -1,4 +1,4 @@
-// /**
+//  /**
 //  * Copyright © Magento, Inc. All rights reserved.
 //  * See COPYING.txt for license details.
 //  */
@@ -28,7 +28,7 @@
 
     .block-collapsible-nav {
         .content {
-            border: 1px solid #ececec;
+            border: 1px solid @color-xececec;
         }
         .item {
             margin: 0;
@@ -39,11 +39,11 @@
             a,
             > strong {
                 .lib-css(color, @collapsible-nav-color);
+                border-bottom: 1px solid @color-xececec;
                 display: block;
-                padding: 14px 18px;
                 font-size: 16px;
                 letter-spacing: 1px;
-                border-bottom: 1px solid #ececec;
+                padding: 14px 18px;
             }
 
             a {
@@ -59,7 +59,7 @@
                 > strong {
                     .lib-css(font-weight, @collapsible-nav-current-font-weight);
                     background: @SecondaryColor;
-                    color: #fff;
+                    color: @color-white;
                 }
 
                 a {

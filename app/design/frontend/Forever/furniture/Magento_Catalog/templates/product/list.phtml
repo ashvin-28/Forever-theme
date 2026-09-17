@@ -81,7 +81,7 @@ $_helper = $block->getData('outputHelper');
                     <?php
                             $viewmodel=$block->getImageswticher();
                             $isEnable = $viewmodel->getConfigData();
-                        ?>
+                    ?>
                         <?php if ($isEnable): ?>
                             <!-- product label -->
                             <?php //$viewModellabel = $block->getProductlabelmodel();
@@ -97,7 +97,7 @@ $_helper = $block->getData('outputHelper');
                                 'productlabel/general/productlabelenable'
                             );
                             if ($confproductlabel && !empty($productlabel)):?>
-                                <div class="product_label_wrapper <?= /* @noEscape */ $productoption ?>"><?php
+                                <div class="product-label-wrapper <?= /* @noEscape */ $productoption ?>"><?php
                                 foreach ($productlabel as $productlabelvalue):
                                     if ($productlabelvalue):?>
                                         <span class="productlabel <?= /* @noEscape */
@@ -118,7 +118,7 @@ $_helper = $block->getData('outputHelper');
                             <div class="flip-box">
                                  <div class="flip-box-inner">
                                     <div class="flip-box-front">
-                                        <a href="<?= $block->escapeUrl($_product->getProductUrl()) ?>"
+                                        <a href="<?= $escaper->escapeUrl($_product->getProductUrl()) ?>"
                                            class="product photo product-item-photo"
                                            tabindex="-1">
                                             <?= $productImage->toHtml() ?>
@@ -126,16 +126,16 @@ $_helper = $block->getData('outputHelper');
                                     </div>
                                     <?php $productImageUrl = $viewmodel->getImageUrl($_product); ?>
                                     <div class="flip-box-back">
-                                        <a href="<?= $block->escapeUrl($_product->getProductUrl()) ?>"
+                                        <a href="<?= $escaper->escapeUrl($_product->getProductUrl()) ?>"
                                            class="product photo product-item-photo"
                                            tabindex="-1">
                                            <span class="product-image-container"
-                                           style="width:<?php echo $viewmodel->getImageWidth($_product); ?>px;">
-                                                <span class="product-image-wrapper" style="padding-bottom:<?php echo $viewmodel->getImagePadding($_product) * 100; ?>%">
+                                           style="width:<?= /* @noEscape */ $viewmodel->getImageWidth($_product); ?>px;">
+                                                <span class="product-image-wrapper" style="padding-bottom:<?= /* @noEscape */ $viewmodel->getImagePadding($_product) * 100; ?>%">
                                                     <img src="<?= /* @noEscape */ $productImageUrl ?>"
                                                         alt="<?= /* @noEscape */ $_product->getName() ?>"
-                                                        width="<?php echo $viewmodel->getImageWidth($_product); ?>"
-                                                        height="<?php echo $viewmodel->getImageHeight($_product); ?>">
+                                                        width="<?= /* @noEscape */ $viewmodel->getImageWidth($_product); ?>"
+                                                        height="<?= /* @noEscape */ $viewmodel->getImageHeight($_product); ?>">
                                                 </span>
                                             </span>
                                         </a>
@@ -143,7 +143,7 @@ $_helper = $block->getData('outputHelper');
                                 </div>
                             </div>
                         <?php else: ?>
-                            <a href="<?= $block->escapeUrl($_product->getProductUrl()) ?>"
+                            <a href="<?= $escaper->escapeUrl($_product->getProductUrl()) ?>"
                                class="product photo product-item-photo"
                                tabindex="-1">
                                 <?= $productImage->toHtml() ?>

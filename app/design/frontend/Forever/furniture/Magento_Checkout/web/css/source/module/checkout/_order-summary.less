@@ -1,4 +1,4 @@
-// /**
+//  /**
 //  * Copyright © Magento, Inc. All rights reserved.
 //  * See COPYING.txt for license details.
 //  */
@@ -31,10 +31,10 @@
                 padding-left: 15px;
                 .details-qty {
                     font-size: 16px;
-                    margin-bottom:10px;
+                    margin-bottom: 10px;
                 }
             }
-        } 
+        }
     }
 
     //
@@ -48,11 +48,11 @@
         &:extend(.abs-add-box-sizing all);
 
         > .title {
+            color: @primary__color;
             display: block;
             font-size: 18px;
-            line-height: 26px;
             font-weight: 600;
-            color: @primary__color;
+            line-height: 26px;
         }
 
         //  Totals table
@@ -100,15 +100,7 @@
                 border-bottom: @border-width__base solid @primary__color;
                 .lib-css(padding, @indent__s @indent__xl @indent__s 0);
                 cursor: pointer;
-                .lib-icon-font(
-                @icon-down,
-                @_icon-font-size: 12px,
-                @_icon-font-line-height: 12px,
-                @_icon-font-text-hide: true,
-                @_icon-font-margin: 3px 0 0,
-                @_icon-font-position: after,
-                @_icon-font-display: block
-                );
+                .lib-icon-font(@icon-down, @_icon-font-size: 12px, @_icon-font-line-height: 12px, @_icon-font-text-hide: true, @_icon-font-margin: 3px 0 0, @_icon-font-position: after, @_icon-font-display: block);
                 margin-bottom: 0;
                 position: relative;
 
@@ -127,10 +119,7 @@
 
             &.active {
                 > .title {
-                    .lib-icon-font-symbol(
-                    @_icon-font-content: @icon-up,
-                    @_icon-font-position: after
-                    );
+                    .lib-icon-font-symbol(@_icon-font-content: @icon-up, @_icon-font-position: after);
                 }
             }
 
@@ -155,7 +144,7 @@
             .product-item {
                 margin: 0;
                 padding-left: 0;
-                padding-right:0px;
+                padding-right: 0;
             }
         }
 
@@ -222,14 +211,14 @@
 //  Mobile
 //  _____________________________________________
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__ml) {
-   .opc-block-summary {
-        padding:22px 15px;
-   }
-   .checkout-index-index {
+    .opc-block-summary {
+        padding: 22px 15px;
+    }
+    .checkout-index-index {
         .minicart-items .product-item-details {
             padding-left: 8px;
         }
-   }
+    }
 }
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__s) {
     .opc-block-summary {

@@ -1,4 +1,4 @@
-// /**
+//  /**
 //  * Copyright © Magento, Inc. All rights reserved.
 //  * See COPYING.txt for license details.
 //  */
@@ -20,15 +20,15 @@
         font-family: @family-name;
         src: url('@{font-path}.woff2') format('woff2'),
         url('@{font-path}.woff') format('woff');
-        font-weight: @font-weight;
-        font-style: @font-style;
         font-display: @font-display;
+        font-style: @font-style;
+        font-weight: @font-weight;
     }
 }
 
-// When need specify font format also should define font type include
-// The available types for @font-type are 'woff', 'woff2', 'truetype', 'opentype', 'embedded-opentype', and 'svg'
-// Enclose it in single quotes
+//  When need specify font format also should define font type include
+//  The available types for @font-type are 'woff', 'woff2', 'truetype', 'opentype', 'embedded-opentype', and 'svg'
+//  Enclose it in single quotes
 //  _____________________________________________
 
 .lib-font-face(
@@ -41,11 +41,11 @@
     @font-type: false
 ) when not (@font-format = false) and not (@font-type = false) {
     @font-face {
-        font-family: @family-name;
-        src: url('@{font-path}.@{font-format}') format(@font-type);
-        font-weight: @font-weight;
-        font-style: @font-style;
         font-display: @font-display;
+        font-family: @family-name;
+        font-style: @font-style;
+        font-weight: @font-weight;
+        src: url('@{font-path}.@{font-format}') format(@font-type);
     }
 }
 
@@ -78,10 +78,10 @@
 }
 
 .lib-wrap-words() {
-    overflow-wrap: break-word;
-    word-wrap: break-word;
     -ms-word-break: break-all;
+    overflow-wrap: break-word;
     word-break: break-word;
+    word-wrap: break-word;
     .lib-hyphens();
 }
 
@@ -101,10 +101,10 @@
 
 //  Optional hyphenation
 .lib-hyphens(@mode: auto) {
+    -moz-hyphens: @mode;
     -webkit-hyphens: @mode;
-       -moz-hyphens: @mode;
-        -ms-hyphens: @mode; // IE10+
-            hyphens: @mode;
+    -ms-hyphens: @mode; // IE10+
+    hyphens: @mode;
 }
 
 .lib-typography(
@@ -168,22 +168,15 @@
 }
 
 .lib-heading(@_heading_level: h1) {
-    @_font-color: "@{_heading_level}__font-color";
-    @_font-size: "@{_heading_level}__font-size";
-    @_font-family: "@{_heading_level}__font-family";
-    @_font-weight: "@{_heading_level}__font-weight";
-    @_line-height: "@{_heading_level}__line-height";
-    @_font-style: "@{_heading_level}__font-style";
-    @_margin-top: "@{_heading_level}__margin-top";
-    @_margin-bottom: "@{_heading_level}__margin-bottom";
-    .lib-typography(
-        @@_font-size,
-        @@_font-color,
-        @@_font-family,
-        @@_font-weight,
-        @@_line-height,
-        @@_font-style
-    );
+    @_font-color: '@{_heading_level}__font-color';
+    @_font-size: '@{_heading_level}__font-size';
+    @_font-family: '@{_heading_level}__font-family';
+    @_font-weight: '@{_heading_level}__font-weight';
+    @_line-height: '@{_heading_level}__line-height';
+    @_font-style: '@{_heading_level}__font-style';
+    @_margin-top: '@{_heading_level}__margin-top';
+    @_margin-bottom: '@{_heading_level}__margin-bottom';
+    .lib-typography(@@_font-size, @@_font-color, @@_font-family, @@_font-weight, @@_line-height, @@_font-style);
 
     & {
         .lib-font-size-value(@@_margin-top);
@@ -220,8 +213,8 @@
 ) {
     html {
         .lib-css(font-size, @_root-font-size);
-        -webkit-text-size-adjust: 100%;
         -ms-text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
         font-size-adjust: 100%;
     }
 
@@ -328,14 +321,15 @@
         .lib-heading(h6);
     }
 
-    h1, h2, h3, h4, h5, h6 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         small,
         .small {
-            .lib-typography(
-            @_heading-small-size,
-            @_heading-small-color,
-            @_line-height: @_heading-small-line-height
-            );
+            .lib-typography(@_heading-small-size, @_heading-small-color, @_line-height: @_heading-small-line-height);
         }
     }
 }
@@ -509,10 +503,7 @@
         .lib-css(border-left, @_blockquote-border-width solid @_blockquote-border-color);
         .lib-css(margin, @_blockquote-margin);
         .lib-css(padding, @_blockquote-padding);
-        .lib-typography(
-            @_font-size: @_blockquote-font-size,
-            @_font-style: @_blockquote-font-style
-        );
+        .lib-typography(@_font-size: @_blockquote-font-size, @_font-style: @_blockquote-font-style);
 
         p,
         ul,

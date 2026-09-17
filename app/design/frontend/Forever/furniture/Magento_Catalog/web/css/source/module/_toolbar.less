@@ -1,4 +1,4 @@
-// /**
+//  /**
 //  * Copyright © Magento, Inc. All rights reserved.
 //  * See COPYING.txt for license details.
 //  */
@@ -35,19 +35,19 @@
             z-index: 1;
         }
         select.sorter-options {
-            height: 40px;
-            line-height: 40px;
-            padding-top:0px;
-            padding-bottom:0px;
-            min-width: 150px;
+            color: @color-black;
             font-weight: 600;
+            height: 40px;
             letter-spacing: 1px;
-            color: #000;
+            line-height: 40px;
+            margin-right: 0;
+            min-width: 150px;
+            padding-bottom: 0;
+            padding-top: 0;
             text-transform: uppercase;
-            margin-right: 0px;
         }
         select.sorter-options:not([disabled]):focus {
-            box-shadow:none;
+            box-shadow: none;
         }
         .toolbar .sorter-action {
             display: none;
@@ -58,22 +58,24 @@
         .toolbar {
             .pages {
                 .action {
-                    box-shadow: none; 
-                    background:transparent;
+                    background: transparent;
+                    box-shadow: none;
                     &:hover {
-                        background: #000;
+                        background: @color-black;
                         &:before {
-                            color: #fff;
+                            color: @color-white;
                         }
                     }
                 }
-                .item ,.item strong , .item a {
-                    font-size:15px;
-                    color:#707070;
+                .item,
+                .item strong,
+                .item a {
                     background: transparent;
+                    color: @color-gray-middle5;
+                    font-size: 15px;
                 }
                 .item a:hover {
-                    color:#707070;
+                    color: @color-gray-middle5;
                 }
             }
             strong.page {
@@ -87,9 +89,9 @@
         text-align: center;
 
         select {
-            background-color: #fff;
-            box-shadow: none;
+            background-color: @color-white;
             border-radius: 3px;
+            box-shadow: none;
         }
         .sorter-action {
             position: relative;
@@ -148,12 +150,7 @@
         }
 
         &-action {
-            .lib-icon-font(
-            @icon-arrow-up,
-            @_icon-font-size: 16px,
-            @_icon-font-color: @header-icons-color,
-            @_icon-font-color-hover: @header-icons-color-hover
-            );
+            .lib-icon-font(@icon-arrow-up, @_icon-font-size: 16px, @_icon-font-color: @header-icons-color, @_icon-font-color-hover: @header-icons-color-hover);
             .lib-icon-text-hide();
 
             &.sort-desc:before {
@@ -192,7 +189,7 @@
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__lll) {
     .page-products {
         .sorter-options {
-            margin: 0px;
+            margin: 0;
         }
     }
 }
@@ -211,19 +208,19 @@
     .toolbar {
         .pages {
             .pages-items {
-                padding:0px;
                 display: flex;
+                padding: 0;
             }
             .action {
-                border:1px solid #ececec;
-                margin-left: 0px;
-                margin-right: 0px;
+                border: 1px solid @color-xececec;
+                margin-left: 0;
+                margin-right: 0;
             }
             a.page {
-                padding: 0px;
+                padding: 0;
             }
             strong.page {
-                padding: 0px;
+                padding: 0;
             }
             li.item {
                 position: static;
@@ -245,8 +242,8 @@
 .media-width(@extremum, @break) when (@extremum = 'min') and (@break = @screen__m) {
     .page-products {
         .toolbar-products {
+            align-items: center;
             display: flex;
-            align-items:center;
         }
         .columns {
             padding-top: 0;
@@ -256,13 +253,13 @@
     }
 
     .toolbar-amount {
+        color: @color-gray-middle5;
         display: block;
         float: left;
-        position: static;
-        color: #707070;
-        font-weight: 600;
         font-size: 15px;
+        font-weight: 600;
         letter-spacing: 1px;
+        position: static;
     }
 
     .toolbar {
@@ -272,7 +269,7 @@
         }
         .modes-mode {
             &:before {
-                color: #ccc;
+                color: @color-gray80;
             }
             &.active {
                 &:before {
@@ -297,9 +294,9 @@
 
     .modes-mode {
         background-color: transparent;
-        box-shadow: none;
         border: 1px solid @border-color__base;
         border-right: 0;
+        box-shadow: none;
         float: left;
         font-weight: @font-weight__regular;
         line-height: 1;
@@ -315,13 +312,7 @@
             border-right: 1px solid @border-color__base;
         }
 
-        .lib-icon-font(
-        @icon-grid,
-        @_icon-font-size: @toolbar-mode-icon-font-size,
-        @_icon-font-text-hide: true,
-        @_icon-font-color: @text__color__muted,
-        @_icon-font-color-hover: @text__color__muted
-        );
+        .lib-icon-font(@icon-grid, @_icon-font-size: @toolbar-mode-icon-font-size, @_icon-font-text-hide: true, @_icon-font-color: @text__color__muted, @_icon-font-color-hover: @text__color__muted);
     }
 
     .sorter {

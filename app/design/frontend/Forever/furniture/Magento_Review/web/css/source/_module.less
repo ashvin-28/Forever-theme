@@ -1,4 +1,4 @@
-// /**
+//  /**
 //  * Copyright © Magento, Inc. All rights reserved.
 //  * See COPYING.txt for license details.
 //  */
@@ -18,37 +18,37 @@
         margin-top: 60px;
     }
     body {
-        .abs-rating-summary .rating-label, 
+        .abs-rating-summary .rating-label,
         .review-ratings .rating-label,
         .customer-review .review-details .customer-review-rating .rating-label {
-            color: #707070;
+            color: @color-gray-middle5;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: .5px;
         }
         .review-toolbar {
-            border-top: 1px solid #ececec;
+            border-top: 1px solid @color-xececec;
         }
     }
     #product-review-container {
         .review-list {
             .block-title {
                 strong {
-                    font-weight: 700;
-                    letter-spacing: 1px;
                     color: @SecondaryColor;
                     font-size: 30px;
+                    font-weight: 700;
+                    letter-spacing: 1px;
                 }
             }
         }
         .review-item {
+            border-bottom: 1px solid @color-xececec;
             padding: 10px 0;
-            border-bottom: 1px solid #ececec;
             &:last-child {
                 border: 0;
             }
             .review-title {
                 margin: 0 0 10px;
-            }  
+            }
         }
     }
     .block.review-add {
@@ -62,15 +62,16 @@
                     letter-spacing: 1px;
                 }
             }
-            .review-field-nickname, .review-field-summary {
-                width: 50%;
+            .review-field-nickname,
+            .review-field-summary {
                 box-sizing: border-box;
+                width: 50%;
             }
             .review-field-text {
                 width: 100%;
                 textarea {
-                    resize: none;
                     line-height: revert;
+                    resize: none;
                 }
             }
             .review-field-summary {
@@ -90,10 +91,10 @@
             display: flex;
             width: 100%;
             legend.label {
-                font-weight: 700;
-                letter-spacing: 1px;
                 color: @SecondaryColor;
                 font-size: 30px;
+                font-weight: 700;
+                letter-spacing: 1px;
                 &:after {
                     display: none;
                 }
@@ -113,7 +114,7 @@
                 }
             }
         }
-        .review-fieldset br{
+        .review-fieldset br {
             display: none;
         }
     }
@@ -144,9 +145,7 @@
         .lib-rating-vote();
 
         &:before {
-            .lib-rating-icons-content(
-                @_icon-content: @icon-star-empty
-            );
+            .lib-rating-icons-content(@_icon-content: @icon-star-empty);
         }
     }
 
@@ -286,9 +285,9 @@
                 letter-spacing: 1px;
             }
             .review-details-value {
+                font-size: 16px;
                 font-weight: 700;
                 letter-spacing: 1px;
-                font-size: 16px;
             }
         }
 
@@ -336,10 +335,10 @@
         }
     }
     .block.review-add {
-        float: left;
-        width: 50%;
-        padding: 0 0px 0 0px;
         box-sizing: border-box;
+        float: left;
+        padding: 0 0 0 0;
+        width: 50%;
     }
 }
 
@@ -583,19 +582,19 @@
 
             .review-title {
                 .lib-heading(h3);
-                font-weight: @font-weight__semibold;
-                margin-bottom: @indent__base;
+                color: @color-black;
                 font-size: 21px;
-                color: #000;
+                font-weight: @font-weight__semibold;
                 letter-spacing: 1px;
+                margin-bottom: @indent__base;
             }
 
             .review-content {
-                margin: 0;
-                margin-bottom: @indent__base;
+                font-size: 16px;
                 font-weight: 300;
                 letter-spacing: 1px;
-                font-size: 16px;
+                margin: 0;
+                margin-bottom: @indent__base;
             }
 
             .review-date {

@@ -9,9 +9,9 @@
 ?>
 
 <div data-block="minicart" class="minicart-wrapper" id="minicart-dialog-data">
-    <a class="action showcart" href="<?= $block->escapeUrl($block->getShoppingCartUrl()) ?>"
+    <a class="action showcart" href="<?= $escaper->escapeUrl($block->getShoppingCartUrl()) ?>"
        data-bind="scope: 'minicart_content'" id="minicart-dialog-content">
-        <span class="text"><?= $block->escapeHtml(__('My Cart')) ?></span>
+        <span class="text"><?= $escaper->escapeHtml(__('My Cart')) ?></span>
         <span class="counter qty empty"
               data-bind="css: { empty: !!getCartParam('summary_count') == false && !isLoading() },
                blockLoader: isLoading">
@@ -60,15 +60,15 @@ script;
             "Magento_Ui/js/core/app": <?= /* @noEscape */ $block->getJsLayout() ?>
         },
         "*": {
-            "Magento_Ui/js/block-loader": "<?= $block->escapeJs(
-                $block->escapeUrl($block->getViewFileUrl('images/loader-1.gif'))
+            "Magento_Ui/js/block-loader": "<?= $escaper->escapeJs(
+                $escaper->escapeUrl($block->getViewFileUrl('images/loader-1.gif'))
             ) ?>"
         }
     }
     </script>
 
 
-    <script type="text/javascript">
+    <script>
     require(['jquery', 'jquery/ui'], function($){
      jQuery(document).ready( function() {
 
