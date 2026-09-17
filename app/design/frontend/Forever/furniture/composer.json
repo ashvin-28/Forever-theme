@@ -1,5 +1,5 @@
 {
-    "name": "magento/theme-frontend-furniture",
+    "name": "forever/theme-furniture",
     "description": "N/A",
     "type": "magento2-theme",
     "license": [
@@ -11,9 +11,13 @@
     },
     "version": "100.4.9",
     "require": {
-        "php": "~8.3.0||~8.4.0||~8.5.0",
+        "php": ">=8.2",
         "magento/framework": "103.0.*",
-        "magento/theme-frontend-blank": "100.4.*"
+        "magento/theme-frontend-blank": "100.4.*",
+        "forever/module-core": "^1.0",
+        "forever/module-productlabel": "^2.4",
+        "forever/lazyload": "^2.0",
+        "forever/module-authenticationpopup": "^1.0"
     },
     "autoload": {
         "files": [
