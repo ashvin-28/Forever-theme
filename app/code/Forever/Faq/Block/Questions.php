@@ -10,11 +10,22 @@ use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\Template;
 use Magento\Store\Model\ScopeInterface;
 
+/**
+ * FAQ questions block.
+ */
 class Questions extends Template
 {
     public const MAIN_LABEL = 'Default';
     public const MODULE_ENABLE = 'faq/general/enable';
 
+    /**
+     * Questions constructor.
+     *
+     * @param Template\Context $context
+     * @param CollectionFactory $collectionFactory
+     * @param ScopeConfigInterface $scopeConfig
+     * @param array $data
+     */
     public function __construct(
         Template\Context $context,
         protected readonly CollectionFactory $collectionFactory,

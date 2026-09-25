@@ -10,6 +10,11 @@ use Magento\Framework\Controller\Result\Page;
 
 class Add extends Action
 {
+    /**
+     * Display FAQ question add page
+     *
+     * @return Page
+     */
     public function execute(): Page
     {
         /** @var Page $result */

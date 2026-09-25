@@ -6,8 +6,16 @@ namespace Forever\Faq\Block\Adminhtml\Question\Buttons;
 
 use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
+/**
+ * Save and continue edit button on FAQ question edit page
+ */
 class SaveAndContinueButton extends GenericButton implements ButtonProviderInterface
 {
+    /**
+     * Get button data
+     *
+     * @return array
+     */
     public function getButtonData(): array
     {
         return [

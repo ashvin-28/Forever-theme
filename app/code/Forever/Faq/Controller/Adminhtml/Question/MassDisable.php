@@ -14,6 +14,12 @@ use Magento\Ui\Component\MassAction\Filter;
 
 class MassDisable extends Action
 {
+    /**
+     * @param Context $context
+     * @param Filter $filter
+     * @param CollectionFactory $collectionFactory
+     * @param QuestionResource $questionResource
+     */
     public function __construct(
         Context $context,
         private readonly Filter $filter,
@@ -23,6 +29,11 @@ class MassDisable extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Disable selected FAQ questions
+     *
+     * @return Redirect
+     */
     public function execute(): Redirect
     {
         $collection = $this->filter->getCollection($this->collectionFactory->create());

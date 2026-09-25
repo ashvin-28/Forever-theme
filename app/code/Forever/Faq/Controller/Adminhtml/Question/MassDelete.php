@@ -13,8 +13,19 @@ use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Ui\Component\MassAction\Filter;
 
+/**
+ * Deletes selected FAQ questions.
+ */
 class MassDelete extends Action
 {
+    /**
+     * MassDelete constructor.
+     *
+     * @param Context $context
+     * @param Filter $filter
+     * @param CollectionFactory $collectionFactory
+     * @param QuestionResource $questionResource
+     */
     public function __construct(
         Context $context,
         private readonly Filter $filter,
@@ -24,6 +35,11 @@ class MassDelete extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Execute mass delete action.
+     *
+     * @return Redirect
+     */
     public function execute(): Redirect
     {
         $collection = $this->filter->getCollection($this->collectionFactory->create());

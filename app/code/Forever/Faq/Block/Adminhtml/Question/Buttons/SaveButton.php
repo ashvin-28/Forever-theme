@@ -6,8 +6,16 @@ namespace Forever\Faq\Block\Adminhtml\Question\Buttons;
 
 use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
+/**
+ * Provides the save button for an FAQ question.
+ */
 class SaveButton implements ButtonProviderInterface
 {
+    /**
+     * Get button data.
+     *
+     * @return array
+     */
     public function getButtonData(): array
     {
         return [

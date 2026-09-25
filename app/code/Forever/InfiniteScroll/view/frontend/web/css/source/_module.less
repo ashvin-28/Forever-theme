@@ -1,51 +1,54 @@
-& when (@media-common = true) {    
-    .iass-spinner{
-        text-align: center;
+& when (@media-common = true) {
+    @infinite-scroll-text-color: #333;
+    @infinite-scroll-hover-color: #0491ff;
+
+    .iass-spinner {
+        color: @infinite-scroll-text-color;
+        display: block;
         font-size: 16px;
-        color: #333;
-        display: block; 
-    }
-    .ias-noneleft{
         text-align: center;
-        color: #333;
-        letter-spacing: 0px;
+    }
+    .ias-noneleft {
+        color: @infinite-scroll-text-color;
         font-size: 14px;
         font-weight: 400;
+        letter-spacing: 0;
+        text-align: center;
     }
     .iass-spinner img,
-    .ias-noneleft img{
-        display:inline-block;
-        margin-left:auto;
-        margin-right:auto;
+    .ias-noneleft img {
+        display: inline-block;
+        margin-left: auto;
+        margin-right: auto;
     }
     .iass-spinner,
-    .ias-noneleft{
+    .ias-noneleft {
         display: inline-block;
         width: 100%;
     }
 
-    .ias-trigger-next{
-        text-align: center;
+    .ias-trigger-next {
         cursor: pointer;
         display: inline-block;
+        text-align: center;
         width: 100%;
     }
 
-    .load-more{
-        font-size:15px;
+    .load-more {
         border: none;
+        font-size: 15px;
     }
-    .load-more::hover{
-        background:#0491ff;
+    .load-more::hover {
+        background: @infinite-scroll-hover-color;
     }
-    .ias-trigger-prev{
-        text-align: center;
+    .ias-trigger-prev {
         cursor: pointer;
+        text-align: center;
     }
     .iass-spinner img {
         height: 40px;
-        width: 40px;
         margin-bottom: 7px;
+        width: 40px;
     }
 
 }

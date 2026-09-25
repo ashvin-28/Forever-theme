@@ -11,8 +11,18 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\Redirect;
 
+/**
+ * Saves an FAQ question.
+ */
 class Save extends Action
 {
+    /**
+     * Save constructor.
+     *
+     * @param Context $context
+     * @param QuestionFactory $questionFactory
+     * @param QuestionResource $questionResource
+     */
     public function __construct(
         Context $context,
         private readonly QuestionFactory $questionFactory,
@@ -21,6 +31,11 @@ class Save extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Execute save action.
+     *
+     * @return Redirect
+     */
     public function execute(): Redirect
     {
         $data = $this->getRequest()->getPostValue();

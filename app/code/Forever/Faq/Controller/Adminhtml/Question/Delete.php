@@ -11,8 +11,16 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\Redirect;
 
+/**
+ * Delete FAQ question controller
+ */
 class Delete extends Action
 {
+    /**
+     * @param Context $context
+     * @param QuestionFactory $questionFactory
+     * @param QuestionResource $questionResource
+     */
     public function __construct(
         Context $context,
         private readonly QuestionFactory $questionFactory,
@@ -21,6 +29,11 @@ class Delete extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Delete FAQ question
+     *
+     * @return Redirect
+     */
     public function execute(): Redirect
     {
         $resultRedirect = $this->resultRedirectFactory->create();

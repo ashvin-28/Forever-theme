@@ -6,8 +6,16 @@ namespace Forever\Faq\Block\Adminhtml\Question\Buttons;
 
 use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
+/**
+ * Provides the delete button for an FAQ question.
+ */
 class DeleteButton extends GenericButton implements ButtonProviderInterface
 {
+    /**
+     * Get button data.
+     *
+     * @return array
+     */
     public function getButtonData(): array
     {
         if (!$this->getId()) {
@@ -24,6 +32,11 @@ class DeleteButton extends GenericButton implements ButtonProviderInterface
         ];
     }
 
+    /**
+     * Get delete URL.
+     *
+     * @return string
+     */
     public function getDeleteUrl(): string
     {
         return $this->getUrl('*/*/delete', ['id' => $this->getId()]);

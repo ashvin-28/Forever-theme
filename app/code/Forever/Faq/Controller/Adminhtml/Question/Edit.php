@@ -10,6 +10,11 @@ use Magento\Framework\Controller\Result\Page;
 
 class Edit extends Action
 {
+    /**
+     * Display FAQ question edit page
+     *
+     * @return Page
+     */
     public function execute(): Page
     {
         /** @var Page $result */

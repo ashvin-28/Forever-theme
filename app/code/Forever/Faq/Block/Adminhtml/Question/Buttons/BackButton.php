@@ -6,8 +6,16 @@ namespace Forever\Faq\Block\Adminhtml\Question\Buttons;
 
 use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 
+/**
+ * Back button on FAQ question edit page
+ */
 class BackButton extends GenericButton implements ButtonProviderInterface
 {
+    /**
+     * Get button data
+     *
+     * @return array
+     */
     public function getButtonData(): array
     {
         return [
@@ -18,6 +26,11 @@ class BackButton extends GenericButton implements ButtonProviderInterface
         ];
     }
 
+    /**
+     * Get back URL
+     *
+     * @return string
+     */
     public function getBackUrl(): string
     {
         return $this->getUrl('*/*/index');

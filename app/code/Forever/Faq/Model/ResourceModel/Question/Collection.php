@@ -15,6 +15,9 @@ class Collection extends AbstractCollection
      */
     protected $_idFieldName = 'id';
 
+    /**
+     * Initialize resource model
+     */
     protected function _construct(): void
     {
         $this->_init(Question::class, QuestionResource::class);

@@ -13,8 +13,17 @@ use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Ui\Component\MassAction\Filter;
 
+/**
+ * Mass enable FAQ questions controller
+ */
 class MassEnable extends Action
 {
+    /**
+     * @param Context $context
+     * @param Filter $filter
+     * @param CollectionFactory $collectionFactory
+     * @param QuestionResource $questionResource
+     */
     public function __construct(
         Context $context,
         private readonly Filter $filter,
@@ -24,6 +33,11 @@ class MassEnable extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Enable selected FAQ questions
+     *
+     * @return Redirect
+     */
     public function execute(): Redirect
     {
         $collection = $this->filter->getCollection($this->collectionFactory->create());
