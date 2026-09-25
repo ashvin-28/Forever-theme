@@ -32,6 +32,8 @@ class Wishlist extends Block
     }
 
     /**
+     * Get wishlist helper
+     *
      * @return WishlistHelper
      * @since 100.1.1
      */

@@ -15,14 +15,14 @@ use Magento\Search\Controller\RegistryConstants;
 class GenericButton
 {
     /**
-     * Url Builder
+     * URL builder instance used to generate admin action links
      *
      * @var \Magento\Framework\UrlInterface
      */
     protected $urlBuilder;
 
     /**
-     * Registry
+     * Application registry instance
      *
      * @var \Magento\Framework\Registry
      */
@@ -56,9 +56,9 @@ class GenericButton
     /**
      * Generate url by route and parameters
      *
-     * @param   string $route
-     * @param   array $params
-     * @return  string
+     * @param string $route
+     * @param array $params
+     * @return string
      */
     public function getUrl($route = '', $params = [])
     {

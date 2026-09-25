@@ -7,6 +7,12 @@ use Magento\Framework\Event\ObserverInterface;
 
 class Productcount implements ObserverInterface
 {
+    /**
+     * Append the product count to the category page title
+     *
+     * @param Observer $observer
+     * @return void
+     */
     public function execute(Observer $observer)
     {
         if ($observer->getEvent()->getData('full_action_name') === 'catalog_category_view') {

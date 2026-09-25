@@ -19,14 +19,16 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            .icon:before {
-                background: url('../images/svg/payment.svg');
-                background-repeat: no-repeat;
-                background-size: 120px;
-                content: ' ';
-                display: inline-block;
-                height: 40px;
-                vertical-align: middle;
+            .icon {
+                &:before {
+                    background: url('../images/svg/payment.svg');
+                    background-repeat: no-repeat;
+                    background-size: 120px;
+                    content: ' ';
+                    display: inline-block;
+                    height: 40px;
+                    vertical-align: middle;
+                }
             }
             .icon-paypal:before {
                 background-position: center -4px;

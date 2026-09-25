@@ -10,21 +10,21 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
     protected $_idFieldName = 'id';
 
     /**
-     * Load data for preview flag
+     * Preview mode flag
      *
      * @var bool
      */
     protected $_previewFlag;
 
     /**
-     * Event prefix
+     * Collection event prefix
      *
      * @var string
      */
     protected $_eventPrefix = 'brand_entity_collection';
 
     /**
-     * Event object
+     * Collection event object
      *
      * @var string
      */

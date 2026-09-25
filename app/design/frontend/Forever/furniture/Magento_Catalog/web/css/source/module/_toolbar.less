@@ -153,8 +153,10 @@
             .lib-icon-font(@icon-arrow-up, @_icon-font-size: 16px, @_icon-font-color: @header-icons-color, @_icon-font-color-hover: @header-icons-color-hover);
             .lib-icon-text-hide();
 
-            &.sort-desc:before {
-                content: @icon-arrow-down;
+            &.sort-desc {
+                &:before {
+                    content: @icon-arrow-down;
+                }
             }
         }
     }
@@ -274,7 +276,7 @@
             }
             &.active {
                 &:before {
-                    color: @SecondaryColor;
+                    color: @secondary__color;
                 }
             }
         }

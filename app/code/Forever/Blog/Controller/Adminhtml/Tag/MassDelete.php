@@ -44,6 +44,11 @@ class MassDelete extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Delete the selected tags
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
     public function execute()
     {
         $collection = $this->filter->getCollection($this->collectionFactory->create());
@@ -59,6 +64,8 @@ class MassDelete extends Action
     }
 
     /**
+     * Check whether the current admin user is allowed to delete tags
+     *
      * @return bool
      */
     protected function isAllowed()

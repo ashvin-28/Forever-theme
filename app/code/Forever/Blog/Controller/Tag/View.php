@@ -21,6 +21,11 @@ class View implements HttpGetActionInterface
         $this->resultPageFactory = $resultPageFactory;
     }
 
+    /**
+     * Render the tag view page
+     *
+     * @return \Magento\Framework\View\Result\Page
+     */
     public function execute()
     {
         return $this->resultPageFactory->create();

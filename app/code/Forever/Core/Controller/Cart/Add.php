@@ -5,8 +5,9 @@ namespace Forever\Core\Controller\Cart;
 class Add extends \Magento\Checkout\Controller\Cart\Add
 {
     /**
-     * return urls
-     * @return string
+     * Add a product to the shopping cart
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
      */
     public function execute()
     {
@@ -30,8 +31,8 @@ class Add extends \Magento\Checkout\Controller\Cart\Add
             }
 
             $product = $this->_initProduct();
-             $related = $this->getRequest()->getParam('related_product');
-          
+            $related = $this->getRequest()->getParam('related_product');
+
             if (!$product) {
                 return $this->goBack();
             }
@@ -72,7 +73,10 @@ class Add extends \Magento\Checkout\Controller\Cart\Add
             }
             return $this->goBack($url);
         } catch (\Exception $e) {
-            $this->messageManager->addExceptionMessage($e, __('We can\'t add this item to your shopping cart right now.'));
+            $this->messageManager->addExceptionMessage(
+                $e,
+                __('We can\'t add this item to your shopping cart right now.')
+            );
             $this->_objectManager->get(\Psr\Log\LoggerInterface::class)->critical($e);
             return $this->goBack();
         }

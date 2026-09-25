@@ -9,7 +9,7 @@ use Forever\Brand\Model\ResourceModel\Brand as BrandResource;
 
 class Delete extends Action
 {
-    const ADMIN_RESOURCE = 'Forever_Brand::brand';
+    public const ADMIN_RESOURCE = 'Forever_Brand::brand';
 
     /**
      * @var BrandFactory
@@ -36,6 +36,9 @@ class Delete extends Action
         $this->brandResource = $brandResource;
     }
 
+    /**
+     * Execute the delete action.
+     */
     public function execute()
     {
         $resultRedirect = $this->resultRedirectFactory->create();

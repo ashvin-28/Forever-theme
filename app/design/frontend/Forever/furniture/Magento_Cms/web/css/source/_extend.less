@@ -16,36 +16,36 @@
     .blog-wrapper-container .blog-holder .blog-items .owl-stage .owl-item .item .article-thumbnail .blog-excerpt {
         min-height: 70px;
     }
-    .blog-wrapper-container .blog-holder .blog-items .owl-stage .owl-item .item .article-thumbnail {
-        .img-inner {
-            height: 0;
-            overflow: hidden;
-            padding-top: 63%;
-            position: relative;
-            img {
-                height: 100%;
-                left: 0;
-                object-fit: contain;
-                position: absolute;
-                top: 0;
-                width: 100%;
-            }
-        }
+    .blog-wrapper-container .blog-holder .blog-items .owl-stage .owl-item .item .article-thumbnail .img-inner {
+        height: 0;
+        overflow: hidden;
+        padding-top: 63%;
+        position: relative;
+    }
+    .blog-wrapper-container .blog-holder .blog-items .owl-stage .owl-item .item .article-thumbnail .img-inner img {
+        height: 100%;
+        left: 0;
+        object-fit: contain;
+        position: absolute;
+        top: 0;
+        width: 100%;
     }
     .faq-list {
         padding: 14px 0;
-        .faq-answers:before,
-        .faq-questions .faq-title:before {
-            display: block;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: .02em;
-            line-height: 46px;
-            min-height: 46px;
-            position: absolute;
-            text-align: center;
-            text-transform: uppercase;
-            width: 46px;
+        .faq-answers,
+        .faq-questions .faq-title {
+            &:before {
+                display: block;
+                font-size: 18px;
+                font-weight: 700;
+                letter-spacing: .02em;
+                line-height: 46px;
+                min-height: 46px;
+                position: absolute;
+                text-align: center;
+                text-transform: uppercase;
+                width: 46px;
+            }
         }
         .faq-answers {
             padding-bottom: 20px;

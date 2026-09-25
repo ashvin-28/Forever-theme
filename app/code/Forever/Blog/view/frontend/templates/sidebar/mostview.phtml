@@ -1,5 +1,6 @@
 <?php
 use Forever\Blog\Block\Sidebar\MostView;
+
 $viewModel = $block->getViewModel();
 $isEnableModule = $viewModel->getConfig();
 /** @var MostView $block */
@@ -8,7 +9,7 @@ $postsRecent = $block->getRecentPost();
 <?php if ($isEnableModule == 1): ?>
 <div class="mp-sidebar product info detailed">                  
         <div class="data item title" data-role="collapsible" id="tab-label-mostview">            
-                <div><?= $block->escapeHtml(__('Latest')) ?></div>            
+                <div><?= $escaper->escapeHtml(__('Latest')) ?></div>            
         </div>
         <div class="data item content" id="tab-content-mostview" data-role="content">
             <?php if ($postsRecent->getSize()): ?>
@@ -39,7 +40,7 @@ $postsRecent = $block->getRecentPost();
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <div class="mostview-nopost"><?= /* @noEscape */ $block->escapeHtml(__('No Posts')) ?></div>
+                <div class="mostview-nopost"><?= /* @noEscape */ $escaper->escapeHtml(__('No Posts')) ?></div>
             <?php endif; ?>
         </div>
 </div>

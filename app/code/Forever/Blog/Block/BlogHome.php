@@ -8,7 +8,7 @@ use Forever\Blog\Model\ResourceModel\Blog\CollectionFactory as BlogCollectionFac
 
 class BlogHome extends Template
 {
-    const XML_PATH_EMAIL_RECIPIENT = 'blog/general/enable';
+    public const XML_PATH_EMAIL_RECIPIENT = 'blog/general/enable';
 
     /**
      * @var BlogCollectionFactory
@@ -62,6 +62,8 @@ class BlogHome extends Template
     }
 
     /**
+     * Get the published blog post collection
+     *
      * @return \Forever\Blog\Model\ResourceModel\Blog\Collection
      */
     public function getBlogCollection()
@@ -77,6 +79,8 @@ class BlogHome extends Template
     }
 
     /**
+     * Get the formatted blog post date
+     *
      * @param string $dateTime
      * @return string
      */
@@ -87,6 +91,8 @@ class BlogHome extends Template
     }
 
     /**
+     * Get the blog post image URL
+     *
      * @param string $image
      * @return string
      */
@@ -100,6 +106,8 @@ class BlogHome extends Template
     }
 
     /**
+     * Get the truncated blog post short content
+     *
      * @param string $shortContent
      * @return string
      */
@@ -113,6 +121,8 @@ class BlogHome extends Template
     }
 
     /**
+     * Get the blog post view URL
+     *
      * @param string $viewUrlKey
      * @return string
      */
@@ -123,6 +133,8 @@ class BlogHome extends Template
     }
 
     /**
+     * Get the blog module enable config value
+     *
      * @return mixed
      */
     public function getConfig()
@@ -132,6 +144,8 @@ class BlogHome extends Template
     }
 
     /**
+     * Get the placeholder image URL
+     *
      * @return string
      */
     public function getPlaceHolderImage()

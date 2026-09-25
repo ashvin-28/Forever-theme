@@ -12,8 +12,8 @@ use Magento\Ui\Component\Listing\Columns\Column;
 class Action extends Column
 {
     /** Url path */
-    const URL_PATH_EDIT = "brand/index/edit";
-    const URL_PATH_DELETE = "brand/index/delete";
+    public const URL_PATH_EDIT = "brand/index/edit";
+    public const URL_PATH_DELETE = "brand/index/delete";
 
     /**
      * @var \Magento\Framework\UrlInterface
@@ -33,7 +33,6 @@ class Action extends Column
     /**
      * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
-     * @param UrlBuilder $actionUrlBuilder
      * @param UrlInterface $urlBuilder
      * @param array $components
      * @param array $data
@@ -94,9 +93,12 @@ class Action extends Column
     }
 
     /**
-     * Get instance of escaper
+     * Get the legacy escaper instance.
+     *
+     * @deprecated 101.0.7 Use the injected escaper or template escaper instead.
+     * @see \Magento\Framework\Escaper
+     *
      * @return Escaper
-     * @deprecated 101.0.7
      */
     private function getEscaper()
     {

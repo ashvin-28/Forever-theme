@@ -11,9 +11,13 @@ class GenerateCss extends \Magento\Backend\App\Action
      */
     protected $_objectManager;
 
+    /**
+     * @var array
+     */
     protected $_publicActions = ['generatecss'];
 
     /**
+     * @param \Magento\Backend\App\Action\Context $context
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
      */
     public function __construct(
@@ -22,8 +26,14 @@ class GenerateCss extends \Magento\Backend\App\Action
     ) {
         parent::__construct($context);
 
-        $this->_objectManager= $objectManager;
+        $this->_objectManager = $objectManager;
     }
+
+    /**
+     * Generate the store's design CSS file and redirect back to the referring page
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
     public function execute()
     {
         $this->_objectManager->get(\Forever\Core\Model\Cssconfig\Generator::class)->generateCss('css', '', '');

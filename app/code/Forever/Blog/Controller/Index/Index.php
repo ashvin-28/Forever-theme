@@ -21,6 +21,11 @@ class Index implements HttpGetActionInterface
         $this->resultPageFactory = $resultPageFactory;
     }
 
+    /**
+     * Render the blog home page
+     *
+     * @return \Magento\Framework\View\Result\Page
+     */
     public function execute()
     {
         $resultPage = $this->resultPageFactory->create();

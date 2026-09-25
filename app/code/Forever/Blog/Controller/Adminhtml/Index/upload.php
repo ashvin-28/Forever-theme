@@ -18,15 +18,14 @@ use Magento\Framework\Controller\ResultInterface;
 class Upload extends Action implements HttpPostActionInterface
 {
     /**
-     * Image uploader
-     *
      * @var \Magento\Catalog\Model\ImageUploader
      */
     protected $imageUploader;
+
     /**
-     * @var \Magento\Framework\Filesystem
+     * @param \Magento\Backend\App\Action\Context $context
+     * @param ImageUploader $imageUploader
      */
-    
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
         ImageUploader $imageUploader

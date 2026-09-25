@@ -5,8 +5,9 @@ namespace Forever\Core\Controller\Adminhtml\System\Config;
 abstract class Cms extends \Magento\Backend\App\Action
 {
     /**
-     * Return Import Type.
-     * @return string
+     * Import CMS sample data for the requested import type
+     *
+     * @return \Magento\Framework\DataObject
      */
     protected function _import()
     {

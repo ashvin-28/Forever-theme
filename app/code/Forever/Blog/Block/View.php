@@ -52,6 +52,8 @@ class View extends Template
     }
 
     /**
+     * Get the blog post by its URL key
+     *
      * @param string $urlKey
      * @return \Forever\Blog\Model\Blog
      */
@@ -63,6 +65,8 @@ class View extends Template
     }
 
     /**
+     * Get the placeholder image URL
+     *
      * @return string
      */
     public function getPlaceHolderImage()

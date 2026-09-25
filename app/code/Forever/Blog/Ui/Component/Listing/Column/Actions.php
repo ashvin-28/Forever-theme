@@ -6,11 +6,11 @@ use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 use Magento\Framework\UrlInterface;
- 
+
 class Actions extends Column
 {
-    const URL_PATH_EDIT = 'blog/index/edit';
-    const URL_PATH_DELETE = 'blog/index/delete';
+    public const URL_PATH_EDIT = 'blog/index/edit';
+    public const URL_PATH_DELETE = 'blog/index/delete';
 
     /**
      * @var $urlBuilder
@@ -23,12 +23,12 @@ class Actions extends Column
     private $editUrl;
 
     /**
-     * @param ContextInterface   $context
+     * @param ContextInterface $context
      * @param UiComponentFactory $uiComponentFactory
-     * @param UrlInterface       $urlBuilder
-     * @param array              $components
-     * @param array              $data
-     * @param [type]             $editUrl
+     * @param UrlInterface $urlBuilder
+     * @param array $components
+     * @param array $data
+     * @param string $editUrl
      */
     public function __construct(
         ContextInterface $context,
@@ -44,21 +44,24 @@ class Actions extends Column
     }
 
     /**
-     * @return prepareDataSource
+     * Prepare data source
+     *
+     * @param array $dataSource
+     * @return array
      */
     public function prepareDataSource(array $dataSource)
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
                 $name = $this->getData('name');
- 
+
                 if (isset($item['blog_id'])) {
                     $item[$name]['edit'] = [
                         'href' => $this->urlBuilder->getUrl(
                             self::URL_PATH_EDIT,
                             [
-                                    'blog_id' => $item['blog_id']
-                                ]
+                                'blog_id' => $item['blog_id']
+                            ]
                         ),
                         'label' => __('Edit')
                     ];
@@ -66,8 +69,8 @@ class Actions extends Column
                         'href' => $this->urlBuilder->getUrl(
                             self::URL_PATH_DELETE,
                             [
-                                    'blog_id' => $item['blog_id']
-                                ]
+                                'blog_id' => $item['blog_id']
+                            ]
                         ),
                         'label' => __('Delete'),
                         'confirm' => [

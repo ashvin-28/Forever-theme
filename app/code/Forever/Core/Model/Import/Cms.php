@@ -25,7 +25,7 @@ class Cms extends \Magento\Framework\App\Helper\AbstractHelper
     protected $_storeManager;
     
     /**
-     * @var \app/code/Forever/Core/etc/import
+     * @var string
      */
     private $_importPath;
     
@@ -78,6 +78,7 @@ class Cms extends \Magento\Framework\App\Helper\AbstractHelper
      * @param PageCollectionFactory $pageCollectionFactory
      * @param \Magento\Cms\Api\PageRepositoryInterface $pageRepository
      * @param PageFactory $pageFactory
+     * @param \Magento\Framework\Filesystem\Driver\File $fileSystem
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -106,7 +107,8 @@ class Cms extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * This Funcation Save Block And Pages Content and Display Message.
      *
-     * @return Mixed | String | Int
+     * @param string $type
+     * @return DataObject
      */
     public function importCms($type)
     {
@@ -122,7 +124,9 @@ class Cms extends \Magento\Framework\App\Helper\AbstractHelper
             $overwrite = false;
 
             if (!$this->fileSystem->isReadable($xmlPath)) {
-                $this->messageManager->addErrorMessage(__("Can't get the data file for import cms blocks/pages: " . $xmlPath));
+                $this->messageManager->addErrorMessage(
+                    __("Can't get the data file for import cms blocks/pages: " . $xmlPath)
+                );
             }
             $data = $this->_parser->load($xmlPath)->xmlToArray();
             $cms_collection = null;
@@ -151,11 +155,7 @@ class Cms extends \Magento\Framework\App\Helper\AbstractHelper
                         if ($exist) {
                             $conflictingOldItems[] = $_item['identifier'];
                             $value = $cms_collection->getFirstItem();
-                            if ($type == "blocks" && $value->getId()) {
-                                $value->setContent($_item['content'])->save();
-                            } else {
-                                     $value->setContent($_item['content'])->save();
-                            }
+                            $value->setContent($_item['content'])->save();
                         }
                     } else {
                         if ($exist) {

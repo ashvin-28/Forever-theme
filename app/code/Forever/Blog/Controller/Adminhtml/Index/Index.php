@@ -28,20 +28,27 @@ class Index extends \Magento\Backend\App\Action
         parent::__construct($context);
         $this->resultPageFactory = $resultPageFactory;
     }
-     
+    /**
+     * Render the blog post grid page
+     *
+     * @return \Magento\Framework\View\Result\Page
+     */
     public function execute()
     {
         $resultPage = $this->resultPageFactory->create();
         $resultPage->getConfig()->getTitle()->prepend((__('Manage Blog ')));
         $this->_setActiveMenu('Forever_Blog::index_index');
- 
+
         $resultPage->addBreadcrumb(__('blog'), __('Index'));
         $resultPage->addBreadcrumb(__('blog'), __('Manage Blog '));
- 
+
         return $resultPage;
     }
+
     /**
-     * @return $_isAllowed
+     * Check whether the current admin user is allowed to view the blog post grid
+     *
+     * @return bool
      */
     protected function isAllowed()
     {

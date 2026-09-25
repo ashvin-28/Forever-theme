@@ -7,7 +7,7 @@ class Brand extends \Magento\Framework\Model\AbstractModel
     /**
      * CMS page cache tag.
      */
-    const CACHE_TAG = 'brand_records';
+    public const CACHE_TAG = 'brand_records';
 
     /**
      * @var string

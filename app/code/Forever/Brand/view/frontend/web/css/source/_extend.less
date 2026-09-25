@@ -1,47 +1,46 @@
 & when (@media-common = true) {
-	.brand-index-index {
-		.brand-section {
-			display: flex;
-			flex-wrap: wrap;
-			margin: 0 -20px;
-			.item {
-				flex:0 0 25%;
-				max-width: 25%;
-
-				margin-bottom: 30px;
-				padding: 0 20px;
-    			box-sizing: border-box;
-			}
-		}
-	}
+    .brand-index-index {
+        .brand-section {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -20px;
+            .item {
+                box-sizing: border-box;
+                flex: 0 0 25%;
+                margin-bottom: 30px;
+                max-width: 25%;
+                padding: 0 20px;
+            }
+        }
+    }
 }
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__ml) {
-	.brand-index-index {
-		.brand-section {
-			div.item {
-				flex:0 0 33.33%;
-				max-width: 33.33%;
-			}
-		}
-	}
+    .brand-index-index {
+        .brand-section {
+            div.item {
+                flex: 0 0 33.33%;
+                max-width: 33.33%;
+            }
+        }
+    }
 }
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__m) {
-	.brand-index-index {
-		.brand-section {
-			div.item {
-				flex:0 0 50%;
-				max-width: 50%;
-			}
-		}
-	}
+    .brand-index-index {
+        .brand-section {
+            div.item {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+    }
 }
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__xs) {
-	.brand-index-index {
-		.brand-section {
-			div.item {
-				flex:0 0 100%;
-				max-width: 100%;
-			}
-		}
-	}
+    .brand-index-index {
+        .brand-section {
+            div.item {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+    }
 }

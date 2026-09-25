@@ -43,6 +43,11 @@ class Delete extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Delete a tag
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
     public function execute()
     {
         $id = $this->getRequest()->getParam('tag_id');

@@ -37,6 +37,11 @@ class Save extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Save a blog post
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
     public function execute()
     {
         $data = $this->getRequest()->getPost();
@@ -72,7 +77,7 @@ class Save extends Action
             } else {
                 if ($urlCheckModel->getId()) {
                     $this->messageManager->addErrorMessage(__('Duplicate Url not Allowded.'));
-                    return $resultRedirect->setPath('*/*/');;
+                    return $resultRedirect->setPath('*/*/');
                 } else {
                     $rowData->setUrlKey($data['url_key']);
                 }
@@ -81,9 +86,12 @@ class Save extends Action
                 $this->blogResource->save($rowData);
                 $this->messageManager->addSuccessMessage(__('Row data has been successfully saved.'));
                 if ($this->getRequest()->getParam('back')) {
-                    return $resultRedirect->setPath('*/*/edit', ['blog_id' => $rowData->getBlogId(), '_current' => true]);
+                    return $resultRedirect->setPath(
+                        '*/*/edit',
+                        ['blog_id' => $rowData->getBlogId(), '_current' => true]
+                    );
                 }
-                return $resultRedirect->setPath('*/*/');;
+                return $resultRedirect->setPath('*/*/');
             } catch (\Magento\Framework\Exception\LocalizedException $e) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             } catch (\RuntimeException $e) {
@@ -93,6 +101,6 @@ class Save extends Action
             }
             return $resultRedirect->setPath('*/*/edit', ['blog_id' => $this->getRequest()->getParam('blog_id')]);
         }
-        return $resultRedirect->setPath('*/*/');;
+        return $resultRedirect->setPath('*/*/');
     }
 }

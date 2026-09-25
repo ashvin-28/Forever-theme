@@ -22,7 +22,10 @@ class RemoveBlockForHeaderFooter implements ObserverInterface
     }
 
     /**
+     * Remove the footer/header layout blocks not used by the configured style
+     *
      * @param \Magento\Framework\Event\Observer $observer
+     * @return void
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {

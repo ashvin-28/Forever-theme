@@ -9,28 +9,28 @@ use Magento\Catalog\Model\Product;
 
 class CategoryList extends \Magento\Framework\View\Element\Template
 {
-    const ISENABLE = 'themedesign/imageswitcher/enable';
-    const XML_PATH_NEW_ARRIVAL = 'forever_categories/general/enabled';
-    const CATEGORIES_SELECT ='forever_categories/home_page/category_select';
-    const XML_PATH_CART = 'checkout/cart/redirect_to_cart';
-    
+    public const ISENABLE = 'themedesign/imageswitcher/enable';
+    public const XML_PATH_NEW_ARRIVAL = 'forever_categories/general/enabled';
+    public const CATEGORIES_SELECT = 'forever_categories/home_page/category_select';
+    public const XML_PATH_CART = 'checkout/cart/redirect_to_cart';
+
     /**
      * @var \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory
      */
     protected $productCollectionFactory;
 
     /**
-     * @var \Magento\Catalog\Model\CategoryFactory $categoryFactory
+     * @var \Magento\Catalog\Model\CategoryFactory
      */
     protected $categoryFactory;
-    
+
     /**
-     * @var \Magento\Catalog\Model\Config\Source\Category
+     * @var \Forever\Core\Model\Config\Category
      */
     protected $category;
 
     /**
-     * @var Magento\Framework\App\Config\ScopeConfigInterface
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
     protected $scopeConfig;
 
@@ -64,27 +64,40 @@ class CategoryList extends \Magento\Framework\View\Element\Template
      */
     protected $specialPriceMap = [];
 
+    /**
+     * @var ListProduct
+     */
     protected $listProductBlock;
+
+    /**
+     * @var \Magento\Catalog\Helper\Product\Compare
+     */
     protected $compareProduct;
+
+    /**
+     * @var \Magento\Wishlist\Helper\Data
+     */
     protected $wishlistHelper;
+
+    /**
+     * @var \Forever\AuthenticationPopUp\ViewModel\AuthenticationViewModel
+     */
     protected $authenticationviewmodel;
 
     /**
-     * @param Context $context
-     * @param Context $gridcontext
-     * @param Resolver $layerResolver
+     * @param \Magento\Framework\View\Element\Template\Context $context
+     * @param \Magento\Catalog\Block\Product\Context $gridcontext
      * @param ListProduct $listProductBlock
-     * @param ScopeConfigInterface $scopeConfig
-     * @param Category $category
-     * @param CategoryFactory $categoryFactory
-     * @param array $data $productCollectionFactory
-     * @param OutputHelper|null $outputHelper
-     * @param Magento\Catalog\Helper\Image $helperData
-     * @param Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param Forever\Productlabel\ViewModel\ProductLabelViewModel
-     * @param Forever\AuthenticationPopUp\ViewModel\AuthenticationViewModel
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Forever\Core\Model\Config\Category $category
+     * @param \Magento\Catalog\Model\CategoryFactory $categoryFactory
+     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
+     * @param \Magento\Catalog\Helper\Image $helperData
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Forever\Productlabel\ViewModel\ProductLabelViewModel $productLabelViewModel
+     * @param \Forever\AuthenticationPopUp\ViewModel\AuthenticationViewModel $authenticationviewmodel
+     * @param array $data
      */
-
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Catalog\Block\Product\Context $gridcontext,
@@ -99,7 +112,6 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         \Forever\AuthenticationPopUp\ViewModel\AuthenticationViewModel $authenticationviewmodel,
         array $data = []
     ) {
-        
         $this->listProductBlock = $listProductBlock;
         $this->scopeConfig = $scopeConfig;
         $this->category = $category;
@@ -127,6 +139,21 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         );
     }
 
+    /**
+     * Get the category factory instance
+     *
+     * @return \Magento\Catalog\Model\CategoryFactory
+     */
+    public function getCategoryFactory()
+    {
+        return $this->categoryFactory;
+    }
+
+    /**
+     * Check whether the cart redirect config is enabled
+     *
+     * @return bool
+     */
     public function isRedirectToCartEnabled()
     {
         return $this->scopeConfig->getValue(
@@ -135,17 +162,31 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         );
     }
 
+    /**
+     * Get the add-to-cart post params for the given product
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return array
+     */
     public function getAddToCartPostParams($product)
     {
         return $this->listProductBlock->getAddToCartPostParams($product);
     }
 
+    /**
+     * Get the add-to-wishlist params for the given product
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return array
+     */
     public function getAddToWishlistParams($product)
     {
         return $this->wishlistHelper->getAddParams($product);
     }
-    
+
     /**
+     * Get the compare product helper
+     *
      * @return \Magento\Catalog\Helper\Product\Compare
      * @since 101.0.1
      */
@@ -154,6 +195,11 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         return $this->compareProduct;
     }
 
+    /**
+     * Get the selected category
+     *
+     * @return array|null
+     */
     public function getSelectedCategory()
     {
         return $this->category->getSelected(
@@ -165,10 +211,11 @@ class CategoryList extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * return detail of products
+     * Return detail of products
      *
-     * @return html
-     **/
+     * @param \Magento\Catalog\Model\Product $product
+     * @return string
+     */
     public function getProductDetailsHtml(\Magento\Catalog\Model\Product $product)
     {
         $renderer = $this->getDetailsRenderer($product->getTypeId());
@@ -180,10 +227,11 @@ class CategoryList extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * return detail renderer
+     * Return detail renderer
      *
-     * @return rendererlist
-     **/
+     * @param string|null $type
+     * @return mixed
+     */
     public function getDetailsRenderer($type = null)
     {
         if ($type === null) {
@@ -195,7 +243,12 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         }
         return null;
     }
-    
+
+    /**
+     * Get the details renderer list block
+     *
+     * @return mixed
+     */
     protected function getDetailsRendererList()
     {
         return $this->getDetailsRendererListName() ? $this->getLayout()->getBlock(
@@ -204,7 +257,14 @@ class CategoryList extends \Magento\Framework\View\Element\Template
             'homepage.toprenderers'
         );
     }
-    
+
+    /**
+     * Get the rendered product price html
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @param string|null $priceType
+     * @return string
+     */
     public function getProductPricetoHtml(
         \Magento\Catalog\Model\Product $product,
         $priceType = null
@@ -229,6 +289,12 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         return $price;
     }
 
+    /**
+     * Get the products of the given category
+     *
+     * @param int $categoryId
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     */
     public function getCategoryProducts($categoryId)
     {
         $ids = $this->getSelectedCategoryIds();
@@ -249,6 +315,8 @@ class CategoryList extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Get the special price map for the given product
+     *
      * @param \Magento\Catalog\Model\Product $product
      * @return array
      */
@@ -262,6 +330,8 @@ class CategoryList extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Get the special price bulk resolver instance
+     *
      * @return \Magento\Catalog\Pricing\Price\SpecialPriceBulkResolverInterface
      */
     protected function getSpecialPriceBulkResolver()
@@ -275,6 +345,11 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         return $this->specialPriceBulkResolver;
     }
 
+    /**
+     * Get the visible, enabled product collection
+     *
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     */
     public function getProductCollection()
     {
         if (!$this->productCollection) {
@@ -293,6 +368,11 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         return $this->productCollection;
     }
 
+    /**
+     * Get the selected category ids
+     *
+     * @return array
+     */
     public function getSelectedCategoryIds()
     {
         return $this->category->getSelectedCategoryByIds(
@@ -303,11 +383,12 @@ class CategoryList extends \Magento\Framework\View\Element\Template
         );
     }
 
-     /**
-      * Get Image URL
-      *
-      * @return Image URL | string
-      */
+    /**
+     * Get Image URL
+     *
+     * @param \Magento\Catalog\Model\Product $_product
+     * @return string
+     */
     public function getImageUrl($_product)
     {
         $productImage = $this->helperData->init(
@@ -338,6 +419,7 @@ class CategoryList extends \Magento\Framework\View\Element\Template
     /**
      * Get product label
      *
+     * @param \Magento\Catalog\Model\Product $product
      * @return array
      */
     public function getProductlabel($product)
@@ -348,17 +430,21 @@ class CategoryList extends \Magento\Framework\View\Element\Template
     /**
      * Get store config value
      *
+     * @param string $value
      * @return array
      */
     public function getScopeconfig($value)
     {
-
         return $this->productLabelViewModel->getScopeconfig($value);
     }
 
+    /**
+     * Get the authentication popup config value
+     *
+     * @return mixed
+     */
     public function getAuthenticationpopup()
     {
-        
         return $this->authenticationviewmodel->getScopeconfig();
     }
 }

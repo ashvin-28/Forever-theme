@@ -10,7 +10,9 @@ namespace Forever\Blog\Model\ResourceModel;
 class Blog extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
     /**
-     * @return _construct
+     * Initialize the blog post resource model
+     *
+     * @return void
      */
     protected function _construct()
     {

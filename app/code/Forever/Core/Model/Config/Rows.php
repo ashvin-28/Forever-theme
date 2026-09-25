@@ -3,8 +3,9 @@ namespace Forever\Core\Model\Config;
 
 class Rows implements \Magento\Framework\Option\ArrayInterface
 {
-    /*
+    /**
      * Option getter
+     *
      * @return array
      */
     public function toOptionArray()

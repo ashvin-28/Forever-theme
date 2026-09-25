@@ -5,16 +5,24 @@ namespace Forever\Core\Model\Config;
 class Category implements \Magento\Framework\Option\ArrayInterface
 {
 
-    const CATEGORY_LEVEL = 3;
-    const ROOT_CATALOG_LABEL = 'Root Catalog';
-    const DEFAULT_CATEGORY_LABEL = 'Default Category';
+    public const CATEGORY_LEVEL = 3;
+    public const ROOT_CATALOG_LABEL = 'Root Catalog';
+    public const DEFAULT_CATEGORY_LABEL = 'Default Category';
+
     /**
      * @var \Magento\Catalog\Model\Config\Source\Category
      */
     protected $category;
 
+    /**
+     * @var \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory
+     */
     protected $categoryCollectionFactory;
 
+    /**
+     * @param \Magento\Catalog\Model\Config\Source\Category $category
+     * @param \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory
+     */
     public function __construct(
         \Magento\Catalog\Model\Config\Source\Category $category,
         \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory
@@ -47,14 +55,14 @@ class Category implements \Magento\Framework\Option\ArrayInterface
     }
 
     /**
-     * Options getter
+     * Get the selected category labels keyed by category id
      *
-     * @return array
+     * @param string $optionIds
+     * @return array|null
      */
-
     public function getSelected($optionIds)
     {
-        if ($optionIds) {    
+        if ($optionIds) {
             $categoryId = explode(',', $optionIds);
             $option = $this->toOptionArray();
             $result = [];
@@ -68,6 +76,12 @@ class Category implements \Magento\Framework\Option\ArrayInterface
         }
     }
 
+    /**
+     * Get the selected category values keyed numerically
+     *
+     * @param string $optionIds
+     * @return array
+     */
     public function getSelectedCategoryByIds($optionIds)
     {
         $categoryId= explode(',', $optionIds);

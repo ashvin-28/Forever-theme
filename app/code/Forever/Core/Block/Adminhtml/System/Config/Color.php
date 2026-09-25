@@ -7,9 +7,10 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 class Color extends Field
 {
     /**
-     * @param object $element
+     * Render the color picker markup when the element is clicked
      *
-     * render color picker when click on element
+     * @param AbstractElement $element
+     * @return string
      */
     protected function _getElementHtml(AbstractElement $element)
     {

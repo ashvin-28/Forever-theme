@@ -20,6 +20,8 @@ class SigninLinkPlugin
     }
 
     /**
+     * Replace the sign-in link href with a popup trigger when the authentication popup is enabled
+     *
      * @param AuthorizationLink $subject
      * @param string $result
      * @return string

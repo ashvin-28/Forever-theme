@@ -41,6 +41,8 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
     }
 
     /**
+     * Load brand data for the form.
+     *
      * @return array
      */
     public function getData()

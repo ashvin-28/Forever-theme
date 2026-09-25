@@ -26,12 +26,12 @@ class PostList extends Template
     protected $storManager;
 
     /**
-     * @return helperImageFactory
+     * @var \Magento\Catalog\Helper\ImageFactory
      */
     protected $helperImageFactory;
 
     /**
-     * @return assetRepos
+     * @var \Magento\Framework\View\Asset\Repository
      */
     protected $assetRepos;
 
@@ -40,8 +40,8 @@ class PostList extends Template
      * @param \Forever\Blog\Model\ResourceModel\Blog\CollectionFactory $collectionFactory
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Store\Model\StoreManagerInterface $storManager
-     * @param Repository            $assetRepos
-     * @param ImageFactory          $helperImageFactory
+     * @param \Magento\Framework\View\Asset\Repository $assetRepos
+     * @param \Magento\Catalog\Helper\ImageFactory $helperImageFactory
      * @param array $data
      */
     public function __construct(
@@ -62,7 +62,9 @@ class PostList extends Template
     }
 
     /**
-     * @return getCollection
+     * Get the paginated blog post collection
+     *
+     * @return \Forever\Blog\Model\ResourceModel\Blog\Collection
      */
     public function getCollection()
     {
@@ -83,7 +85,9 @@ class PostList extends Template
     }
 
     /**
-     * @return _prepareLayout
+     * Prepare the pager child block for the blog post list
+     *
+     * @return $this
      */
     protected function _prepareLayout()
     {
@@ -113,7 +117,9 @@ class PostList extends Template
     }
 
     /**
-     * @return getPagerHtml
+     * Get the pager block html
+     *
+     * @return string
      */
     public function getPagerHtml()
     {
@@ -121,7 +127,10 @@ class PostList extends Template
     }
 
     /**
-     * @return blog view URL
+     * Get the blog post view URL
+     *
+     * @param string $viewUrlKey
+     * @return string
      */
     public function getViewUrl($viewUrlKey)
     {
@@ -135,7 +144,9 @@ class PostList extends Template
     }
 
     /**
-     * @return Place Holder Image
+     * Get the placeholder image URL
+     *
+     * @return string
      */
     public function getPlaceHolderImage()
     {

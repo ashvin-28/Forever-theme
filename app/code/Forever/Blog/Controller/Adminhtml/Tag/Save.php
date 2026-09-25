@@ -34,6 +34,11 @@ class Save extends Action
         parent::__construct($context);
     }
 
+    /**
+     * Save a tag
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
+     */
     public function execute()
     {
         $data = $this->getRequest()->getPost();
@@ -50,7 +55,10 @@ class Save extends Action
                 $this->tagResource->save($tagData);
                 $this->messageManager->addSuccessMessage(__('Row data has been successfully saved.'));
                 if ($this->getRequest()->getParam('back')) {
-                    return $resultRedirect->setPath('*/tag/edit', ['tag_id' => $tagData->getTagId(), '_current' => true]);
+                    return $resultRedirect->setPath(
+                        '*/tag/edit',
+                        ['tag_id' => $tagData->getTagId(), '_current' => true]
+                    );
                 }
                 return $resultRedirect->setPath('*/tag/index');
             } catch (\Magento\Framework\Exception\LocalizedException $e) {

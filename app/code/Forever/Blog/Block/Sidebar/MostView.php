@@ -16,40 +16,39 @@ use Magento\Catalog\Helper\ImageFactory;
  */
 class MostView extends Template
 {
-    const BLOG_RECENT_POST = 'blog/sidebar/number_recent_posts';
+    public const BLOG_RECENT_POST = 'blog/sidebar/number_recent_posts';
 
     /**
-     * @return scopeConfig
+     * @var ScopeConfigInterface
      */
     protected $scopeConfig;
 
     /**
-     * @return blogFactory
+     * @var BlogFactory
      */
     protected $blogFactory;
 
     /**
-     * @return storManager
+     * @var StoreManagerInterface
      */
     protected $storManager;
 
     /**
-     * @return helperImageFactory
+     * @var ImageFactory
      */
     protected $helperImageFactory;
 
     /**
-     * @return assetRepos
+     * @var Repository
      */
     protected $assetRepos;
 
     /**
-     *
      * @param Template\Context      $context
      * @param CollectionFactory     $collectionFactory
-     * @param BlogFactory           $blogFactory
      * @param ScopeConfigInterface  $scopeConfig
      * @param StoreManagerInterface $storManager
+     * @param BlogFactory           $blogFactory
      * @param Repository            $assetRepos
      * @param ImageFactory          $helperImageFactory
      * @param array                 $data
@@ -76,7 +75,10 @@ class MostView extends Template
     }
 
     /**
-     * @return getConfig value
+     * Get a store config value for the given path
+     *
+     * @param string $path
+     * @return mixed
      */
     public function getConfigData($path)
     {
@@ -85,7 +87,9 @@ class MostView extends Template
     }
 
     /**
-     * @return Blog Collection
+     * Get the active blog post collection
+     *
+     * @return \Forever\Blog\Model\ResourceModel\Blog\Collection
      */
     public function blogCollection()
     {
@@ -96,7 +100,9 @@ class MostView extends Template
     }
 
     /**
-     * @return Recent added Collection
+     * Get the recently added blog post collection
+     *
+     * @return \Forever\Blog\Model\ResourceModel\Blog\Collection
      */
     public function getRecentPost()
     {
@@ -107,7 +113,9 @@ class MostView extends Template
     }
 
     /**
-     * @return MediaUrl
+     * Get the current store's base media URL
+     *
+     * @return string
      */
     public function getMediaUrl()
     {
@@ -116,7 +124,10 @@ class MostView extends Template
     }
 
     /**
-     * @return Blog View URL
+     * Get the blog post view URL
+     *
+     * @param string $viewUrlKey
+     * @return string
      */
     public function getViewUrl($viewUrlKey)
     {
@@ -126,7 +137,9 @@ class MostView extends Template
     }
 
     /**
-     * @return Place Holder Image
+     * Get the placeholder image URL
+     *
+     * @return string
      */
     public function getPlaceHolderImage()
     {

@@ -12,7 +12,11 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
 {
+    /**
+     * @var \Forever\Blog\Model\ResourceModel\Blog\Collection
+     */
     protected $collection;
+
     /**
      * @var loadedData
      */
@@ -21,7 +25,16 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
       * @var storeManager
       */
     protected $storeManager;
-    
+
+    /**
+     * @param string $name
+     * @param string $primaryFieldName
+     * @param string $requestFieldName
+     * @param StoreManagerInterface $storeManager
+     * @param CollectionFactory $contactCollectionFactory
+     * @param array $meta
+     * @param array $data
+     */
     public function __construct(
         $name,
         $primaryFieldName,
@@ -42,9 +55,10 @@ class DataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
         );
     }
     /**
-     * @return getData
+     * Get the blog post grid data
+     *
+     * @return array
      */
-
     public function getData()
     {
         if (isset($this->loadedData)) {

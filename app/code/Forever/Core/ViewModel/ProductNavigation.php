@@ -10,15 +10,44 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class ProductNavigation implements ArgumentInterface
 {
-    const PRODUCT_THUMBNAIL_IMAGE_ID = 'product_thumbnail_image';
+    public const PRODUCT_THUMBNAIL_IMAGE_ID = 'product_thumbnail_image';
 
+    /**
+     * @var LoggerInterface
+     */
     protected LoggerInterface $logger;
+
+    /**
+     * @var array|null
+     */
     protected ?array $nextPrevious = null;
+
+    /**
+     * @var Category
+     */
     protected Category $categoryModel;
+
+    /**
+     * @var Image
+     */
     protected Image $imageHelper;
+
+    /**
+     * @var StoreManagerInterface
+     */
     protected StoreManagerInterface $storeManager;
+
+    /**
+     * @var mixed
+     */
     protected $productCollectionResource = null;
 
+    /**
+     * @param LoggerInterface $logger
+     * @param Category $categoryModel
+     * @param StoreManagerInterface $storeManager
+     * @param Image $imageHelper
+     */
     public function __construct(
         LoggerInterface $logger,
         Category $categoryModel,
@@ -31,6 +60,12 @@ class ProductNavigation implements ArgumentInterface
         $this->imageHelper = $imageHelper;
     }
 
+    /**
+     * Get the product collection of the given category, indexed by product id
+     *
+     * @param Category $category
+     * @return array|null
+     */
     public function getCategoryProductIds($category)
     {
         $categoryProducts = $category->getProductCollection()->addAttributeToSelect('*');
@@ -41,6 +76,12 @@ class ProductNavigation implements ArgumentInterface
         return $this->nextPrevious;
     }
 
+    /**
+     * Get the current active category the given product belongs to
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return Category|null
+     */
     public function getCurrentCategory($product)
     {
         $currentCategory = $product->getCategory();
@@ -57,6 +98,12 @@ class ProductNavigation implements ArgumentInterface
         return $currentCategory;
     }
 
+    /**
+     * Get the previous and next products relative to the given product within its category
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return array|null
+     */
     public function getPreviousAndNext($product)
     {
         if (!$this->nextPrevious) {
@@ -82,23 +129,46 @@ class ProductNavigation implements ArgumentInterface
         return [$prevProduct, next($nextPrevious)];
     }
 
+    /**
+     * Get the previous product relative to the given product within its category
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return mixed|string
+     */
     public function getPrevProduct($product)
     {
         $previousAndNext = $this->getPreviousAndNext($product);
         return $previousAndNext ? current($previousAndNext) : '';
     }
 
+    /**
+     * Get the next product relative to the given product within its category
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return mixed|string
+     */
     public function getNextProduct($product)
     {
         $previousAndNext = $this->getPreviousAndNext($product);
         return $previousAndNext ? next($previousAndNext) : '';
     }
 
+    /**
+     * Get the current store's base media URL
+     *
+     * @return string
+     */
     public function getMediaUrl()
     {
         return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
     }
 
+    /**
+     * Get the product thumbnail image URL
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return string|false
+     */
     public function getProductThumbnail($product)
     {
         try {

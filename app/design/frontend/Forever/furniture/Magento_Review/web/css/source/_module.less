@@ -33,7 +33,7 @@
         .review-list {
             .block-title {
                 strong {
-                    color: @SecondaryColor;
+                    color: @secondary__color;
                     font-size: 30px;
                     font-weight: 700;
                     letter-spacing: 1px;
@@ -91,7 +91,7 @@
             display: flex;
             width: 100%;
             legend.label {
-                color: @SecondaryColor;
+                color: @secondary__color;
                 font-size: 30px;
                 font-weight: 700;
                 letter-spacing: 1px;
@@ -421,8 +421,10 @@
             font-size: floor(.8 * @font-size__base);
             vertical-align: middle;
 
-            a:not(:last-child) {
-                margin-right: 30px;
+            a {
+                &:not(:last-child) {
+                    margin-right: 30px;
+                }
             }
             .action.add {
                 white-space: nowrap;

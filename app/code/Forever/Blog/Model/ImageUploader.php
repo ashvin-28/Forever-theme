@@ -25,32 +25,32 @@ use Psr\Log\LoggerInterface;
  */
 class ImageUploader
 {
-    const IMAGE_TMP_PATH = 'blog/image';
-    const IMAGE_PATH = 'blog/image';
+    public const IMAGE_TMP_PATH = 'blog/image';
+    public const IMAGE_PATH = 'blog/image';
 
     /**
-     * Core file storage database
+     * Database helper used to sync uploaded files across storage nodes
      *
      * @var Database
      */
     protected $coreFileStorageDatabase;
- 
+
     /**
      * Media directory object (writable).
      *
      * @var WriteInterface
      */
     protected $mediaDirectory;
- 
+
     /**
-     * Uploader factory
+     * Factory used to create the file uploader instance
      *
      * @var UploaderFactory
      */
     protected $uploaderFactory;
- 
+
     /**
-     * Store manager
+     * Instance used to resolve the current store's base media URL
      *
      * @var StoreManagerInterface
      */
@@ -62,21 +62,21 @@ class ImageUploader
     protected $logger;
  
     /**
-     * Base tmp path
+     * Relative path to the temporary upload directory
      *
      * @var string
      */
     protected $baseTmpPath;
- 
+
     /**
-     * Base path
+     * Relative path to the permanent upload directory
      *
      * @var string
      */
     protected $basePath;
- 
+
     /**
-     * Allowed extensions
+     * File extensions accepted by the uploader
      *
      * @var string
      */

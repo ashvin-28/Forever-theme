@@ -18,10 +18,15 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
 {
     /**
      * Define model & resource model
+     *
+     * @var string
      */
     protected $idFieldName = 'blog_id';
+
     /**
-     * @return construct
+     * Initialize the blog post collection
+     *
+     * @return void
      */
     protected function _construct()
     {

@@ -16,11 +16,20 @@ class TagDataProvider extends AbstractDataProvider
      * @var array
      */
     protected $tagCollectionFactory;
+
     /**
      * @var array
      */
     protected $loadedData;
-    
+
+    /**
+     * @param string $name
+     * @param string $primaryFieldName
+     * @param string $requestFieldName
+     * @param CollectionFactory $tagCollectionFactory
+     * @param array $meta
+     * @param array $data
+     */
     public function __construct(
         $name,
         $primaryFieldName,
@@ -32,6 +41,12 @@ class TagDataProvider extends AbstractDataProvider
         $this->collection = $tagCollectionFactory->create();
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
     }
+
+    /**
+     * Get data
+     *
+     * @return array
+     */
     public function getData()
     {
         if (!$this->getCollection()->isLoaded()) {

@@ -28,6 +28,9 @@ class Index extends Action implements HttpGetActionInterface
         parent::__construct($context);
     }
 
+    /**
+     * Execute the frontend brand page action.
+     */
     public function execute()
     {
         return $this->resultPageFactory->create();

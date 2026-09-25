@@ -5,9 +5,9 @@
 $isEnableModule = $block->getConfig();
 ?>
 <?php if ($isEnableModule == 1): ?>
-<?php $colletion = $block->getBlogCollection(); ?>
+    <?php $colletion = $block->getBlogCollection(); ?>
 <div class="blog-wrapper-container reveal">
-<h3 class="blog-heading"><?= __("Blog") ?></h3>
+<h3 class="blog-heading"><?= $escaper->escapeHtml(__("Blog")) ?></h3>
     <div class="blog-holder">
        <div class="blog-items owl-carousel owl-theme">    
             <?php if (count($colletion)): ?>
@@ -15,7 +15,7 @@ $isEnableModule = $block->getConfig();
                     <div class="item">
                         <div class="article-thumbnail owl-carousel owl-theme">
                             <div class="img-inner">
-                            <?php if($row->getBlogImage()): ?>
+                            <?php if ($row->getBlogImage()): ?>
                                 <img class="attachment-drile_blog_thumb size-drile_blog_thumb wp-post-image"
                                     src="<?= /* @noEscape */ $block->getBlogImage($row->getBlogImage()) ?>"
                                     alt="<?= /* @noEscape */ $row->getBlogImage() ?>"

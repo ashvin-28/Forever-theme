@@ -10,7 +10,7 @@ use Forever\Brand\Model\ResourceModel\Brand\CollectionFactory;
 
 class MassDelete extends \Magento\Backend\App\Action
 {
-    const ADMIN_RESOURCE = 'Forever_Brand::brand';
+    public const ADMIN_RESOURCE = 'Forever_Brand::brand';
 
     /**
      * @var Filter
@@ -46,6 +46,8 @@ class MassDelete extends \Magento\Backend\App\Action
     }
 
     /**
+     * Delete selected brands.
+     *
      * @return \Magento\Backend\Model\View\Result\Redirect
      */
     public function execute()

@@ -58,17 +58,19 @@
                 top: 0;
                 z-index: 2;
 
-                &[data-count]:after {
-                    .lib-css(color, @color-white);
-                    background: @theme__color__secondary;
-                    border-radius: 2px;
-                    content: attr(data-count);
-                    display: inline-block;
-                    font-size: .8em;
-                    line-height: 1;
-                    margin: 0 @indent__xs;
-                    min-width: 1em;
-                    padding: 2px;
+                &[data-count] {
+                    &:after {
+                        .lib-css(color, @color-white);
+                        background: @theme__color__secondary;
+                        border-radius: 2px;
+                        content: attr(data-count);
+                        display: inline-block;
+                        font-size: .8em;
+                        line-height: 1;
+                        margin: 0 @indent__xs;
+                        min-width: 1em;
+                        padding: 2px;
+                    }
                 }
 
                 &.disabled {
@@ -188,7 +190,7 @@
                     padding-right: 7px;
 
                     &:hover {
-                        color: @SecondaryColor;
+                        color: @secondary__color;
                         text-decoration: none;
                     }
                 }
@@ -269,8 +271,10 @@
             visibility: visible;
             z-index: 99;
 
-            .filter-options-item:last-child {
-                margin-bottom: @indent__xl;
+            .filter-options-item {
+                &:last-child {
+                    margin-bottom: @indent__xl;
+                }
             }
 
             .filter-title {
@@ -430,7 +434,7 @@
             margin-bottom: 0;
         }
         .filter-title strong {
-            background: @SecondaryColor;
+            background: @secondary__color;
             border: 0;
             box-sizing: border-box;
             color: @color-white;
@@ -450,7 +454,7 @@
             width: auto;
         }
         .filter.active .block-content.filter-content strong {
-            background: @SecondaryColor;
+            background: @secondary__color;
             border: 0;
             color: @color-white;
             font-weight: 600;

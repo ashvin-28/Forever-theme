@@ -8,7 +8,7 @@ use Magento\Framework\Event\ObserverInterface;
 
 class Topmenu implements ObserverInterface
 {
-    const XML_PATH_EMAIL_RECIPIENT = 'blog/general/enable';
+    public const XML_PATH_EMAIL_RECIPIENT = 'blog/general/enable';
 
     /**
      * @var \Magento\Framework\UrlInterface
@@ -28,11 +28,16 @@ class Topmenu implements ObserverInterface
         \Magento\Framework\UrlInterface $urlBuilder,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
     ) {
-
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
     }
 
+    /**
+     * Execute observer
+     *
+     * @param EventObserver $observer
+     * @return void
+     */
     public function execute(EventObserver $observer)
     {
         $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;

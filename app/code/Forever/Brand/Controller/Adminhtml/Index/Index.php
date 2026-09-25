@@ -9,7 +9,7 @@ class Index extends \Magento\Backend\App\Action
      *
      * @see _isAllowed()
      */
-    const ADMIN_RESOURCE = 'Forever_Brand::brand';
+    public const ADMIN_RESOURCE = 'Forever_Brand::brand';
 
     /**
      * @var \Magento\Framework\View\Result\PageFactory

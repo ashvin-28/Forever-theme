@@ -6,21 +6,41 @@ use Magento\Store\Model\ScopeInterface;
 
 class SystemConfigurations implements ArgumentInterface
 {
-    const XML_PATH_HEADER_STYLE = 'forever_general/header/style';
-    const XML_PATH_FOOTER_STYLE = 'forever_general/footer/style';
-    const XML_PATH_STICKY_HEADER_TYPE = 'forever_general/header/stickyheader';
-    const XML_PATH_STICKY_HEADER_TYPE_ENABLE = 'forever_general/header/sticky';
+    public const XML_PATH_HEADER_STYLE = 'forever_general/header/style';
+    public const XML_PATH_FOOTER_STYLE = 'forever_general/footer/style';
+    public const XML_PATH_STICKY_HEADER_TYPE = 'forever_general/header/stickyheader';
+    public const XML_PATH_STICKY_HEADER_TYPE_ENABLE = 'forever_general/header/sticky';
 
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
     protected \Psr\Log\LoggerInterface $logger;
+
+    /**
+     * @var array|null
+     */
     protected ?array $nextPrevious = null;
+
+    /**
+     * @var \Magento\Catalog\Model\Category
+     */
     protected \Magento\Catalog\Model\Category $categoryModel;
+
+    /**
+     * @var \Magento\Customer\Model\Session
+     */
     protected \Magento\Customer\Model\Session $customerSession;
+
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
     protected \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig;
 
     /**
-     * @param Psr\Log\LoggerInterface $logger
-     * @param Magento\Catalog\Model\Category $categoryModel
-     * @param Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param \Magento\Catalog\Model\Category $categoryModel
+     * @param \Magento\Customer\Model\Session $customerSession
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         \Psr\Log\LoggerInterface $logger,
@@ -35,9 +55,9 @@ class SystemConfigurations implements ArgumentInterface
     }
 
     /**
-     * get header stype from admin configuration
+     * Get header stype from admin configuration
      *
-     * @return string $headerStyle
+     * @return string
      */
     public function getHeaderStyle()
     {
@@ -48,9 +68,9 @@ class SystemConfigurations implements ArgumentInterface
     }
 
     /**
-     * get footer stype from admin configuration
+     * Get footer stype from admin configuration
      *
-     * @return string $footerStyle
+     * @return string
      */
     public function getfooterStyle()
     {
@@ -60,6 +80,12 @@ class SystemConfigurations implements ArgumentInterface
         );
     }
 
+    /**
+     * Get a store config value for the given path
+     *
+     * @param string $path
+     * @return mixed
+     */
     public function getconfigValue($path)
     {
         return $this->scopeConfig->getValue(
@@ -68,13 +94,18 @@ class SystemConfigurations implements ArgumentInterface
         );
     }
 
+    /**
+     * Check whether the current customer is logged in
+     *
+     * @return bool
+     */
     public function getCustomerLogin()
     {
         return $this->customerSession->isLoggedIn();
     }
 
     /**
-     * get sticky header type from system configuration
+     * Get sticky header type from system configuration
      *
      * @return string
      */
@@ -87,7 +118,7 @@ class SystemConfigurations implements ArgumentInterface
     }
 
     /**
-     * get sticky header type enable from system configuration
+     * Get sticky header type enable from system configuration
      *
      * @return integer
      */

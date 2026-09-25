@@ -7,10 +7,10 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class BlogData implements \Magento\Framework\View\Element\Block\ArgumentInterface
 {
-    const XML_PATH_EMAIL_RECIPIENT = 'blog/general/enable';
+    public const XML_PATH_EMAIL_RECIPIENT = 'blog/general/enable';
 
     /**
-     * @var \Magento\Customer\Model\CustomerFactory
+     * @var ScopeConfigInterface
      */
     protected $scopeConfig;
 
@@ -29,11 +29,12 @@ class BlogData implements \Magento\Framework\View\Element\Block\ArgumentInterfac
     ) {
         $this->storeScope = $storeScope;
         $this->scopeConfig = $scopeConfig;
-        
     }
 
     /**
-     * @return getConfig
+     * Get the blog module enable config value
+     *
+     * @return mixed
      */
     public function getConfig()
     {
@@ -42,7 +43,9 @@ class BlogData implements \Magento\Framework\View\Element\Block\ArgumentInterfac
     }
 
     /**
-     * @return getMediaUrl
+     * Get the current store's base media URL
+     *
+     * @return string
      */
     public function getMediaUrl()
     {

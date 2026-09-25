@@ -10,7 +10,7 @@ use Forever\Brand\Model\ResourceModel\Brand as BrandResource;
 
 class Edit extends Action
 {
-    const ADMIN_RESOURCE = 'Forever_Brand::brand';
+    public const ADMIN_RESOURCE = 'Forever_Brand::brand';
 
     /**
      * @var BrandFactory
@@ -37,6 +37,9 @@ class Edit extends Action
         $this->brandResource = $brandResource;
     }
 
+    /**
+     * Execute the edit action.
+     */
     public function execute()
     {
         $rowId   = (int) $this->getRequest()->getParam('id');

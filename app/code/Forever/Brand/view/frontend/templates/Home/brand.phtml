@@ -1,26 +1,40 @@
 <?php
+/**
+ * @var \Forever\Brand\Block\Home\Brand $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
 $isEnableModule = $block->getConfigValue();
 if ($isEnableModule == 1): ?>
-<div class="brand-holder-container reveal">
-    <div class="brand-title">
-        <h3><?= /* @noEscape */ __('Brands') ?></h3>
-    </div>
-    <div class="owl-carousel owl-theme brand-slider brand-section">
-        <?php foreach ($block->getItems() as $question): ?>
-            <?php $imageUrl = $block->getBrandImageUrl($question->getImage()); ?>
-            <?php if (!$imageUrl) {
-                continue;
-            } ?>
-            <div class="item">
-                <div class="brand-wraper d-flex align-items-center justify-content-center">
-                    <a class="brand-link" href="<?= /* @noEscape */ $block->getUrl('brand') ?>" target="_self">
-                        <img class="brand-image-hover" 
-                        src="<?= /* @noEscape */ $imageUrl ?>"
-                    alt="a" width="210" height="83"> </a>
+    <div class="brand-holder-container reveal">
+        <div class="brand-title">
+            <h3><?= $escaper->escapeHtml(__('Brands')) ?></h3>
+        </div>
+        <div class="owl-carousel owl-theme brand-slider brand-section">
+            <?php foreach ($block->getItems() as $question): ?>
+                <?php $imageUrl = $block->getBrandImageUrl($question->getImage()); ?>
+                <?php if (!$imageUrl) {
+                    continue;
+                } ?>
+                <div class="item">
+                    <div class="brand-wraper d-flex align-items-center justify-content-center">
+                        <a class="brand-link"
+                           href="<?= $escaper->escapeUrl($block->getUrl('brand')) ?>"
+                           target="_self">
+                            <img class="brand-image-hover"
+                                 src="<?= $escaper->escapeUrl($imageUrl) ?>"
+                                 alt="a"
+                                 width="210"
+                                 height="83">
+                        </a>
+                    </div>
                 </div>
-            </div>
-        <?php endforeach;?>
+            <?php endforeach; ?>
+        </div>
+        <div class="view-all">
+            <a class="view-all-btn action primary"
+               href="<?= $escaper->escapeUrl($block->getUrl('brand')) ?>">
+                <?= $escaper->escapeHtml(__('View All')) ?>
+            </a>
+        </div>
     </div>
-    <div class="view-all"><a class="view-all-btn action primary" href="<?= $block->escapeUrl($block->getUrl('brand')) ?>"><?= /* @noEscape */ __('View All') ?></a></div>
-</div>
-<?php endif;?>
+<?php endif; ?> 

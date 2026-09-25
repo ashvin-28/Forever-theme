@@ -169,9 +169,11 @@
             margin-left: 8px;
         }
         .header.panel > .header.links {
-            .customer-welcome + li:last-child a {
-                color: @color-black;
-                font-size: 14px;
+            .customer-welcome + li {
+                &:last-child a {
+                    color: @color-black;
+                    font-size: 14px;
+                }
             }
             .authorization-link {
                 height: 28px;

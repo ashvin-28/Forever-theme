@@ -6,7 +6,7 @@ use Magento\Store\Model\ScopeInterface;
 
 class Imageswitcher implements \Magento\Framework\View\Element\Block\ArgumentInterface
 {
-    const ISENABLE = 'themedesign/imageswitcher/enable';
+    public const ISENABLE = 'themedesign/imageswitcher/enable';
 
     /**
      * @var \Magento\Catalog\Helper\Image
@@ -29,10 +29,10 @@ class Imageswitcher implements \Magento\Framework\View\Element\Block\ArgumentInt
     protected $image;
 
     /**
-     * @param Magento\Catalog\Helper\Image $helperData
-     * @param Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Catalog\Helper\Image $helperData
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
      * @param \Magento\Catalog\Block\Product\Image $image
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         \Magento\Catalog\Helper\Image $helperData,
@@ -49,7 +49,8 @@ class Imageswitcher implements \Magento\Framework\View\Element\Block\ArgumentInt
     /**
      * Get Image URL
      *
-     * @return Image URL | string
+     * @param \Magento\Catalog\Model\Product $_product
+     * @return string
      */
     public function getImageUrl($_product)
     {
@@ -77,12 +78,26 @@ class Imageswitcher implements \Magento\Framework\View\Element\Block\ArgumentInt
         );
         return $value;
     }
+
+    /**
+     * Get the category page grid image width
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return int
+     */
     public function getImageWidth($product)
     {
         $imageId = 'category_page_grid';
         $attributes = [];
         return $this->helperData->init($product, $imageId, $attributes)->getWidth();
     }
+
+    /**
+     * Get the category page grid image padding ratio
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return float|int
+     */
     public function getImagePadding($product)
     {
         $imageId = 'category_page_grid';
@@ -94,6 +109,13 @@ class Imageswitcher implements \Magento\Framework\View\Element\Block\ArgumentInt
         }
         return 1;
     }
+
+    /**
+     * Get the category page grid image height
+     *
+     * @param \Magento\Catalog\Model\Product $product
+     * @return int
+     */
     public function getImageHeight($product)
     {
         $imageId = 'category_page_grid';

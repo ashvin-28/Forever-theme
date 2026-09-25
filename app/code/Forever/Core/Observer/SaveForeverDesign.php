@@ -12,7 +12,7 @@ class SaveForeverDesign implements ObserverInterface
     protected $cssGenerator;
 
     /**
-     * @param \Forever\Core\Model\Cssconfig\Generator $cssgenerator
+     * @param \Forever\Core\Model\Cssconfig\Generator $cssenerator
      */
     public function __construct(
         \Forever\Core\Model\Cssconfig\Generator $cssenerator

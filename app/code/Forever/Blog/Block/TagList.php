@@ -20,14 +20,18 @@ class TagList extends Template
      * @var $collectionFactory
      */
     protected $collectionFactory;
+
     /**
      * @var $scopeConfig
      */
     protected $scopeConfig;
+
     /**
-     * @param Template\Context                                         $context
+     * @param Template\Context $context
      * @param \Forever\Blog\Model\ResourceModel\Tag\CollectionFactory $collectionFactory
-     * @param array                                                    $data
+     * @param ScopeConfigInterface $scopeConfig
+     * @param StoreManagerInterface $storManager
+     * @param array $data
      */
     public function __construct(
         Template\Context $context,
@@ -36,25 +40,30 @@ class TagList extends Template
         StoreManagerInterface $storManager,
         array $data = []
     ) {
-
         parent::__construct($context, $data);
         $this->collectionFactory = $collectionFactory;
         $this->scopeConfig = $scopeConfig;
         $this->storManager = $storManager;
     }
+
     /**
-     * @return getTagList
+     * Get tag list
+     *
+     * @return \Forever\Blog\Model\ResourceModel\Tag\Collection
      */
     public function getTagList()
     {
-
         $collection = $this->collectionFactory->create()
         ->addFieldToSelect('*')
         ->addFieldToFilter('status', ['eq' => '1']);
         return $collection;
     }
+
     /**
-     * @return getTagViewUrl
+     * Get tag view URL
+     *
+     * @param string $tagviewUrlKey
+     * @return string
      */
     public function getTagViewUrl($tagviewUrlKey)
     {

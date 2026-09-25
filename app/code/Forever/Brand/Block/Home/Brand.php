@@ -2,114 +2,100 @@
 
 namespace Forever\Brand\Block\Home;
 
-use Magento\Framework\View\Element\Template;
+use Forever\Brand\Model\ResourceModel\Brand\Collection;
 use Forever\Brand\Model\ResourceModel\Brand\CollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Filesystem;
-use Magento\Framework\Filesystem\Driver\File;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
 class Brand extends Template
 {
-    /*
-    * This label won't be displayed in the frontend block
-    */
-    const MAIN_LABEL = 'Default';
-
-    const MODULE_ENABLE = 'brand/general/enable';
+    /**
+     * Config path for enabling the brand module on homepage
+     */
+    private const XML_PATH_BRAND_ENABLED = 'brand/general/enable';
 
     /**
      * @var CollectionFactory
      */
-    protected $collectionFactory;
+    protected CollectionFactory $brandCollectionFactory;
 
-    protected $storeManager;
-    protected $mediaDirectory;
-    protected $fileDriver;
+    /**
+     * @var StoreManagerInterface
+     */
+    protected StoreManagerInterface $storeManager;
 
+    /**
+     * @var ScopeConfigInterface
+     */
+    protected ScopeConfigInterface $scopeConfig;
+
+    /**
+     * @param Context $context
+     * @param CollectionFactory $brandCollectionFactory
+     * @param StoreManagerInterface $storeManager
+     * @param ScopeConfigInterface $scopeConfig
+     * @param array $data
+     */
     public function __construct(
-        Template\Context $context,
-        CollectionFactory $collectionFactory,
-        ScopeConfigInterface $scopeConfig,
-        Filesystem $filesystem,
-        File $fileDriver,
+        Context $context,
+        CollectionFactory $brandCollectionFactory,
         StoreManagerInterface $storeManager,
+        ScopeConfigInterface $scopeConfig,
         array $data = []
     ) {
-        parent::__construct($context, $data);
-        $this->collectionFactory = $collectionFactory;
-        $this->scopeConfig = $scopeConfig;
-        $this->mediaDirectory = $filesystem->getDirectoryRead(\Magento\Framework\App\Filesystem\DirectoryList::MEDIA);
-        $this->fileDriver = $fileDriver;
+        $this->brandCollectionFactory = $brandCollectionFactory;
         $this->storeManager = $storeManager;
+        $this->scopeConfig = $scopeConfig;
+        parent::__construct($context, $data);
     }
 
     /**
-     * Get All Questions
+     * Get all active brand items
      *
-     * @return \Magento\Framework\DataObject[]
+     * @return Collection
      */
-    public function getItems()
+    public function getItems(): Collection
     {
-        $questionCollection = $this->collectionFactory->create();
-        $questionCollection->addFieldToFilter('main_table.status', 1)
-        ->setOrder('main_table.orders', 'ASC')->setPageSize(4);
-
-        return $questionCollection->getItems();
-    }
-    public function getMediaUrl()
-    {
-        return $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+        /** @var Collection $collection */
+        $collection = $this->brandCollectionFactory->create();
+        $collection->addFieldToFilter('status', 1);
+        return $collection;
     }
 
-    public function getBrandImageUrl($imageName)
+    /**
+     * Get the media URL for a brand image
+     *
+     * @param string|null $imageName
+     * @return string
+     */
+    public function getBrandImageUrl(?string $imageName): string
     {
-        $relativePath = $this->resolveBrandImagePath((string) $imageName);
-
-        if (!$relativePath) {
+        if (!$imageName) {
             return '';
         }
-
-        return $this->getMediaUrl() . $relativePath;
-    }
-
-    public function getConfigValue()
-    {
-        $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
-        return $this->scopeConfig->getValue(self::MODULE_ENABLE, $storeScope);
-    }
-
-    private function resolveBrandImagePath(string $imageName): string
-    {
-        $imageName = trim($imageName);
-        if ($imageName === '') {
+        try {
+            $mediaUrl = $this->storeManager->getStore()->getBaseUrl(
+                \Magento\Framework\UrlInterface::URL_TYPE_MEDIA
+            );
+            return $mediaUrl . 'brand/image/' . ltrim($imageName, '/');
+        } catch (\Exception $e) {
             return '';
         }
+    }
 
-        $filename = basename($imageName);
-        $normalizedFilename = preg_replace('/_\d+(?=\.[^.]+$)/', '', $filename) ?: $filename;
-        $candidates = [
-            $imageName,
-            'brand/image/' . $filename,
-            'wysiwyg/forever/' . $filename,
-        ];
-
-        if ($normalizedFilename !== $filename) {
-            $candidates[] = 'brand/image/' . $normalizedFilename;
-            $candidates[] = 'wysiwyg/forever/' . $normalizedFilename;
-        }
-
-        foreach (array_unique($candidates) as $candidate) {
-            $candidate = ltrim($candidate, '/');
-            if ($candidate === '') {
-                continue;
-            }
-
-            if ($this->fileDriver->isExists($this->mediaDirectory->getAbsolutePath($candidate))) {
-                return $candidate;
-            }
-        }
-
-        return '';
+    /**
+     * Get config value for brand module enable/disable
+     *
+     * @return int
+     */
+    public function getConfigValue(): int
+    {
+        return (int) $this->scopeConfig->getValue(
+            self::XML_PATH_BRAND_ENABLED,
+            ScopeInterface::SCOPE_STORE
+        );
     }
 }

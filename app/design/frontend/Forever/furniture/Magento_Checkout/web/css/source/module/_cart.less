@@ -18,9 +18,11 @@
     //  ---------------------------------------------
 
     .checkout-cart-index {
-        .cart-container .form-cart .actions.main .clear:active,
-        .cart-container .form-cart .actions.main .clear:focus {
-            background: @primary__color;
+        .cart-container .form-cart .actions.main .clear {
+            &:active,
+            &:focus {
+                background: @primary__color;
+            }
         }
         .cart.table-wrapper {
             max-height: 757px;
@@ -75,13 +77,17 @@
             border: 0;
         }
         .cart.table-wrapper {
-            .actions-toolbar > .action-edit:before,
-            .actions-toolbar > .action-delete:before {
-                background-position: center;
-                background-repeat: no-repeat;
-                background-size: 100%;
-                content: '';
-                display: block;
+            .actions-toolbar {
+                > .action-edit,
+                > .action-delete {
+                    &:before {
+                        background-position: center;
+                        background-repeat: no-repeat;
+                        background-size: 100%;
+                        content: '';
+                        display: block;
+                    }
+                }
             }
             .action-edit:before {
                 background-image: url('../images/svg/edit.svg');
@@ -159,8 +165,10 @@
             line-height: 48px;
             margin: 0;
         }
-        .cart-discount .block > .title:after {
-            color: @primary__color;
+        .cart-discount .block > .title {
+            &:after {
+                color: @primary__color;
+            }
         }
         #shipping-zip-form {
             .field > .label {
@@ -205,9 +213,11 @@
             border-top: 0;
         }
         .block {
-            form:not(:last-of-type) {
-                .fieldset {
-                    margin: 0 0 @indent__m;
+            form {
+                &:not(:last-of-type) {
+                    .fieldset {
+                        margin: 0 0 @indent__m;
+                    }
                 }
             }
 
@@ -293,8 +303,12 @@
         .message {
             padding-left: @indent__base;
 
-            > *:first-child:before {
-                display: none;
+            > * {
+                &:first-child {
+                    &:before {
+                        display: none;
+                    }
+                }
             }
         }
 
@@ -473,7 +487,7 @@
                         text-decoration: none;
                         text-transform: capitalize;
                         &:hover {
-                            color: @SecondaryColor;
+                            color: @secondary__color;
                         }
                     }
                 }
@@ -575,8 +589,10 @@
                 &:extend(.abs-col-no-prefix all);
             }
 
-            tbody > tr > td:last-child {
-                &:extend(.abs-no-border-bottom-top all);
+            tbody > tr > td {
+                &:last-child {
+                    &:extend(.abs-no-border-bottom-top all);
+                }
             }
         }
     }
@@ -649,8 +665,10 @@
             padding-left: 0;
             padding-right: 0;
         }
-        .cart-discount .block > .title:after {
-            right: 0;
+        .cart-discount .block > .title {
+            &:after {
+                right: 0;
+            }
         }
         .cart-discount .actions-toolbar {
             display: block;
@@ -732,11 +750,13 @@
                     white-space: nowrap;
                     width: 33%;
 
-                    &[data-th]:before {
-                        content: attr(data-th);
-                        display: block;
-                        font-weight: @font-weight__semibold;
-                        padding-bottom: 5px;
+                    &[data-th] {
+                        &:before {
+                            content: attr(data-th);
+                            display: block;
+                            font-weight: @font-weight__semibold;
+                            padding-bottom: 5px;
+                        }
                     }
                 }
 
@@ -757,8 +777,10 @@
                 padding: 0 15px;
             }
 
-            tbody > tr > td:last-child {
-                border: 0;
+            tbody > tr > td {
+                &:last-child {
+                    border: 0;
+                }
             }
         }
     }
@@ -772,8 +794,14 @@
         }
 
         .totals {
-            tbody > tr:not(:last-child) > td:last-child {
-                border: 0;
+            tbody > tr {
+                &:not(:last-child) {
+                    > td {
+                        &:last-child {
+                            border: 0;
+                        }
+                    }
+                }
             }
         }
     }

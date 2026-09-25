@@ -16,11 +16,21 @@ class NewArrivalPlaceholder
      */
     private $layout;
 
+    /**
+     * @param LayoutInterface $layout
+     */
     public function __construct(LayoutInterface $layout)
     {
         $this->layout = $layout;
     }
 
+    /**
+     * Replace the new-arrival placeholder tag with the rendered category list block
+     *
+     * @param Filter $subject
+     * @param string $result
+     * @return string
+     */
     public function afterFilter(Filter $subject, string $result): string
     {
         if (strpos($result, self::PLACEHOLDER) === false) {
@@ -30,6 +40,11 @@ class NewArrivalPlaceholder
         return str_replace(self::PLACEHOLDER, $this->renderNewArrival(), $result);
     }
 
+    /**
+     * Render the new arrival category list block
+     *
+     * @return string
+     */
     private function renderNewArrival(): string
     {
         $this->configurePriceRenderer();
@@ -48,6 +63,11 @@ class NewArrivalPlaceholder
         return $block->toHtml();
     }
 
+    /**
+     * Configure the default price render block used by the placeholder block
+     *
+     * @return void
+     */
     private function configurePriceRenderer(): void
     {
         $priceRenderer = $this->layout->getBlock('product.price.render.default');

@@ -4,22 +4,22 @@
     <cms_item>
       <title>Footer Top Section</title>
       <identifier>footer-1-footer-top-section</identifier>
-      <content><![CDATA[<div class="footer-container__top">
+      <content><![CDATA[<div class="footer-container--top">
 <div class="footer_common_container d-flex align-items-center justify-content-between flex-wrap">
-<div class="footer-container__top__left">
+<div class="footer-container--top--left">
 <h3>We hace Recommendation For you</h3>
 <p>Take 30% When You Spend $150 Or More With Code Autima 11</p>
 </div>
-<div class="footer-container__top__right">{{block class="Magento\Newsletter\Block\Subscribe" name="static.newsletter" template="Magento_Newsletter::subscribe.phtml"}}</div>
+<div class="footer-container--top--right">{{block class="Magento\Newsletter\Block\Subscribe" name="static.newsletter" template="Magento_Newsletter::subscribe.phtml"}}</div>
 </div>
 </div>]]></content>
     </cms_item>
     <cms_item>
       <title>Footer Middle Section </title>
       <identifier>footer-1-footer-middle-section</identifier>
-      <content><![CDATA[<div class="footer-container__middle">
+      <content><![CDATA[<div class="footer-container--middle">
 <div class="footer_common_container d-flex flex-wrap">
-<div class="footer-container__middle__first">
+<div class="footer-container--middle--first">
 <div class="logo"><a href="#"><img src="{{media url=&quot;wysiwyg/forever/logo-furniture-white.png&quot;}}" alt="logo" width="170" height="40" /></a></div>
 <div class="contact-detail">Place Your Orders At
 <h3>+1 246-345-0695</h3>
@@ -76,10 +76,10 @@
     <cms_item>
       <title>Footer Bottom Section</title>
       <identifier>footer-1-footer-bottom-section</identifier>
-      <content><![CDATA[<div class="footer-container__bottom">
+      <content><![CDATA[<div class="footer-container--bottom">
 <div class="footer_common_container d-flex align-items-center justify-content-between flex-wrap">
-<div class="footer-container__bottom__left w-50">© 2022 FurnitureForever. All Rights Reserved.</div>
-<div class="footer-container__bottom__right w-50  d-flex justify-content-end align-items-center">Please Include Your Reference Number:
+<div class="footer-container--bottom--left w-50">© 2022 FurnitureForever. All Rights Reserved.</div>
+<div class="footer-container--bottom--right w-50  d-flex justify-content-end align-items-center">Please Include Your Reference Number:
 <h4 class="mt-0 mb-0">DNYDOJBI1B</h4>
 </div>
 </div>
@@ -89,8 +89,8 @@
     <cms_item>
       <title>Footer Top Section</title>
       <identifier>footer-2-footer-top-section</identifier>
-      <content><![CDATA[<div class="footer-container__top">
-<div class="footer-container__top__inner footer_common_container">
+      <content><![CDATA[<div class="footer-container--top">
+<div class="footer-container--top--inner footer_common_container">
 <div class="logo"><a href="#"><img src="{{media url="wysiwyg/forever/logo-furniture-white.png"}}" alt="logo" width="170" height="40"></a></div>
 <div class="address-detail">17 Irving Pl, New York, NY 10003</div>
 <div class="contact-detail"><a href="#">care@reytheme.com</a>
@@ -102,8 +102,8 @@
     <cms_item>
       <title>Footer Middle Section</title>
       <identifier>footer-2-footer-middle-section</identifier>
-      <content><![CDATA[<div class="footer-container__middle">
-<div class="footer-container__middle__inner footer_common_container">
+      <content><![CDATA[<div class="footer-container--middle">
+<div class="footer-container--middle--inner footer_common_container">
 <div class="newsletter-block">
 <h4 class="mt-0">RECEIVE EMAIL UPDATES</h4>
 {{block class="Magento\Newsletter\Block\Subscribe" name="static.newsletter" template="Magento_Newsletter::subscribe.phtml"}}</div>
@@ -630,7 +630,7 @@ Tables</a></li>
     <cms_item>
       <title>Footer Top 3</title>
       <identifier>footer-3-footer-top-section</identifier>
-      <content><![CDATA[<div class="footer-container__top">{{block class="Magento\Newsletter\Block\Subscribe" name="static.newsletter" template="Magento_Newsletter::subscribe.phtml"}}</div>]]></content>
+      <content><![CDATA[<div class="footer-container--top">{{block class="Magento\Newsletter\Block\Subscribe" name="static.newsletter" template="Magento_Newsletter::subscribe.phtml"}}</div>]]></content>
     </cms_item>
     <cms_item>
       <title>Footer 3 Middle </title>
@@ -788,7 +788,7 @@ Tables</a></li>
     <cms_item>
       <title>Footer 4 Top Section</title>
       <identifier>footer-4-footer-top-section</identifier>
-      <content><![CDATA[<div class="footer-container__top">
+      <content><![CDATA[<div class="footer-container--top">
 <div class="footer-top-inner">
 <div class="footer_left_newsletter">
 <div class="news_inner_content">

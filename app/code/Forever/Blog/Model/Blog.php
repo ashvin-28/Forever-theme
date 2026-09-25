@@ -13,7 +13,9 @@ use Magento\Framework\Model\AbstractModel;
 class Blog extends AbstractModel
 {
     /**
-     * @return construct
+     * Initialize the blog post resource model
+     *
+     * @return void
      */
     protected function _construct()
     {

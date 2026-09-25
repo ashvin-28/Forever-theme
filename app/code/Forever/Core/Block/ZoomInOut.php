@@ -6,7 +6,7 @@ use Magento\Store\Model\ScopeInterface;
 
 class ZoomInOut extends Template
 {
-    const ISENABLE = 'themedesign/zoominout/enable';
+    public const ISENABLE = 'themedesign/zoominout/enable';
 
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
@@ -19,8 +19,9 @@ class ZoomInOut extends Template
     protected $storeManager;
 
     /**
-     * @param Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param Template\Context $context
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      */
     public function __construct(
         Template\Context $context,
@@ -33,7 +34,9 @@ class ZoomInOut extends Template
     }
 
     /**
-     * @return Scope Config Value
+     * Get the zoom in/out enable config value
+     *
+     * @return string
      */
     public function getConfigData()
     {

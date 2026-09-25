@@ -16,7 +16,15 @@ class DataProvider extends AbstractDataProvider
      * @var array
      */
     protected $loadedData;
-    
+
+    /**
+     * @param string $name
+     * @param string $primaryFieldName
+     * @param string $requestFieldName
+     * @param CollectionFactory $blogCollectionFactory
+     * @param array $meta
+     * @param array $data
+     */
     public function __construct(
         $name,
         $primaryFieldName,
@@ -28,6 +36,12 @@ class DataProvider extends AbstractDataProvider
         $this->collection = $blogCollectionFactory->create();
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
     }
+
+    /**
+     * Get data
+     *
+     * @return array
+     */
     public function getData()
     {
         if (!$this->getCollection()->isLoaded()) {

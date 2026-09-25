@@ -18,10 +18,15 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
 {
     /**
      * Define model & resource model
+     *
+     * @var string
      */
     protected $idFieldName = 'tag_id';
+
     /**
-     * @return construct
+     * Initialize the tag collection
+     *
+     * @return void
      */
     protected function _construct()
     {

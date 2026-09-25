@@ -61,6 +61,8 @@ class TagView extends Template
     }
 
     /**
+     * Get tag post list
+     *
      * @param string $tagviewUrlKey
      * @return \Forever\Blog\Model\ResourceModel\Blog\Collection
      */
@@ -79,6 +81,8 @@ class TagView extends Template
     }
 
     /**
+     * Get tag ID by title
+     *
      * @param string $tagviewUrlKey
      * @return int|null
      */
@@ -96,6 +100,8 @@ class TagView extends Template
     }
 
     /**
+     * Get view URL
+     *
      * @param string $viewUrlKey
      * @return string
      */
@@ -106,6 +112,8 @@ class TagView extends Template
     }
 
     /**
+     * Get placeholder image URL
+     *
      * @return string
      */
     public function getPlaceHolderImage()

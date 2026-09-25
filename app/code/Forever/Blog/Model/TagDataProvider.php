@@ -12,6 +12,9 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class TagDataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
 {
+    /**
+     * @var \Forever\Blog\Model\ResourceModel\Tag\CollectionFactory
+     */
     protected $collectionFactory;
 
     /**
@@ -24,6 +27,15 @@ class TagDataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
       */
     protected $storeManager;
 
+    /**
+     * @param string $name
+     * @param string $primaryFieldName
+     * @param string $requestFieldName
+     * @param StoreManagerInterface $storeManager
+     * @param CollectionFactory $collectionFactory
+     * @param array $meta
+     * @param array $data
+     */
     public function __construct(
         $name,
         $primaryFieldName,
@@ -39,7 +51,9 @@ class TagDataProvider extends \Magento\Ui\DataProvider\AbstractDataProvider
     }
 
     /**
-     * @return getData
+     * Get the tag grid data
+     *
+     * @return array
      */
     public function getData()
     {

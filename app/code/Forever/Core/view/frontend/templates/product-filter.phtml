@@ -21,14 +21,13 @@ $isEnabled = $block->isModuleEnabled();
         <div class="home-product-tab-content">
                 <div class=" nav-tabs">
                     <?php $selectedCategory = $block->getSelectedCategory();
-                    if($selectedCategory):
-                    ?>
+                    if ($selectedCategory):
+                        ?>
                     <ul class="tab-list" id="tabs-nav">
                         <?php foreach ($selectedCategory as $key => $value):?>
                             <?php $category = $value; ?>
                             <?php
-                                $objectManager =  \Magento\Framework\App\ObjectManager::getInstance();
-                                $categorysFactory = $objectManager->get(Magento\Catalog\Model\CategoryFactory::class);
+                                $categorysFactory = $block->getCategoryFactory();
                                 $categoryData = $categorysFactory->create()->load($key);
                                 $categoryProducts = $categoryData->getProductCollection()
                                     ->addAttributeToFilter(
@@ -53,13 +52,13 @@ $isEnabled = $block->isModuleEnabled();
                         <?php endforeach ?>
                     </ul>
                 </div> 
-            <?php foreach ($selectedCategory as $key => $value):?>
+                        <?php foreach ($selectedCategory as $key => $value):?>
             <div class="tab-content" id="<?= /* @noEscape */'tab-'.$key?>">
                 <div class="products-grid">
-                    <?php $categoryProducts = $block->getCategoryProducts($key); ?>
-                    <?php if (!$categoryProducts->count()):?>
+                            <?php $categoryProducts = $block->getCategoryProducts($key); ?>
+                            <?php if (!$categoryProducts->count()):?>
                         <div class="message info empty"><div>
-                            <?= $block->escapeHtml(__('We can\'t find products matching the selection.')) ?></div>
+                                <?= $escaper->escapeHtml(__('We can\'t find products matching the selection.')) ?></div>
                         </div>
                     <?php else:?>
                     <div id="topseller-slider" class="products list items product-items owlslider"
@@ -91,7 +90,7 @@ $isEnabled = $block->isModuleEnabled();
                                         'productlabel/general/productlabelenable'
                                     );
                                     if ($confproductlabel && !empty($productlabel)):?>
-                                        <div class="product_label_wrapper <?= /* @noEscape */ $productoption ?>">
+                                        <div class="product-label-wrapper <?= /* @noEscape */ $productoption ?>">
                                         <?php foreach ($productlabel as $productlabelvalue):
                                             if ($productlabelvalue):?>
                                                 <span class="productlabel <?= /* @noEscape */
@@ -116,7 +115,7 @@ $isEnabled = $block->isModuleEnabled();
                                         <div class="flip-box">
                                             <div class="flip-box-inner">
                                                 <div class="flip-box-front">
-                                                    <a href="<?= $block->escapeUrl($product->getProductUrl()) ?>"
+                                                    <a href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
                                                        class="product photo product-item-photo"
                                                        tabindex="-1">
                                                         <?= $productImage->toHtml() ?>
@@ -124,7 +123,7 @@ $isEnabled = $block->isModuleEnabled();
                                                 </div>
                                                 <?php $productImageUrl = $block->getImageUrl($product); ?>
                                                 <div class="flip-box-back">
-                                                    <a href="<?= $block->escapeUrl($product->getProductUrl()) ?>"
+                                                    <a href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
                                                        class="product photo product-item-photo"
                                                        tabindex="-1">
                                                         <img src="<?= /* @noEscape */ $productImageUrl ?>"
@@ -163,7 +162,7 @@ $isEnabled = $block->isModuleEnabled();
                                                     <button type="submit"
                                                         title="
                                                             <?= /* @noEscape */
-                                                            $block->escapeHtml(__('Add to Cart')); ?>"
+                                                            $escaper->escapeHtml(__('Add to Cart')); ?>"
                                                         class="action tocart primary">
                                                     <span><?= /* @noEscape */ __('Add to Cart') ?></span>
                                                     </button>

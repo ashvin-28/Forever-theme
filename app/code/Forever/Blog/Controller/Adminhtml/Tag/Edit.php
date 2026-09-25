@@ -12,11 +12,12 @@ use Magento\Framework\Controller\ResultFactory;
 class Edit extends \Magento\Backend\App\Action
 {
     /**
+     * Render the tag edit/new form page
+     *
      * @return \Magento\Backend\Model\View\Result\Page
      */
     public function execute()
     {
-        
         $resultPage = $this->resultFactory->create(ResultFactory::TYPE_PAGE);
         $resultPage->getConfig()->getTitle()->prepend(__('Tag'));
         return $resultPage;

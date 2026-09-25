@@ -13,7 +13,9 @@ use Magento\Framework\Model\AbstractModel;
 class Tag extends AbstractModel
 {
     /**
-     * @return construct
+     * Initialize the tag resource model
+     *
+     * @return void
      */
     protected function _construct()
     {

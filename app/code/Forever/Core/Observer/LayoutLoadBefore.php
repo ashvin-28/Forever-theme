@@ -6,7 +6,7 @@ use Magento\Store\Model\ScopeInterface;
 
 class LayoutLoadBefore implements \Magento\Framework\Event\ObserverInterface
 {
-    const XML_PATH_HEADER_STYLE = 'forever_general/header/style';
+    public const XML_PATH_HEADER_STYLE = 'forever_general/header/style';
 
     /**
      * @var \Magento\Framework\Registry
@@ -19,8 +19,8 @@ class LayoutLoadBefore implements \Magento\Framework\Event\ObserverInterface
     protected $scopeConfig;
 
     /**
-     * @param Magento\Framework\Registry $_registry
-     * @param Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Framework\Registry $registry
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         \Magento\Framework\Registry $registry,
@@ -30,6 +30,12 @@ class LayoutLoadBefore implements \Magento\Framework\Event\ObserverInterface
         $this->scopeConfig = $scopeConfig;
     }
 
+    /**
+     * Add the configured header style layout handle before layout generation
+     *
+     * @param \Magento\Framework\Event\Observer $observer
+     * @return $this
+     */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $headerType = $this->getHeaderStyle();
@@ -44,6 +50,11 @@ class LayoutLoadBefore implements \Magento\Framework\Event\ObserverInterface
         return $this;
     }
 
+    /**
+     * Get the configured header style value from store config
+     *
+     * @return string|null
+     */
     public function getHeaderStyle()
     {
         return $this->scopeConfig->getValue(

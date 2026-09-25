@@ -10,7 +10,9 @@ class Template extends \Magento\Framework\View\Element\Template
     public $_coreRegistry;
 
     /**
+     * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry $coreRegistry
+     * @param array $data
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
@@ -21,6 +23,13 @@ class Template extends \Magento\Framework\View\Element\Template
         parent::__construct($context, $data);
     }
 
+    /**
+     * Get the store config value for the given path
+     *
+     * @param string $path
+     * @param string|null $storeCode
+     * @return mixed
+     */
     public function getConfig($path, $storeCode = null)
     {
         return $this->_scopeConfig->getValue(

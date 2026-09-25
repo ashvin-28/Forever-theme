@@ -21,14 +21,19 @@ class NewAction extends \Magento\Backend\App\Action
         parent::__construct($context);
     }
     /**
-     * @return _isAllowed
+     * Check whether the current admin user is allowed to save tags
+     *
+     * @return bool
      */
     public function isAllowed()
     {
         return $this->_authorization->isAllowed('Forever_Blog::save');
     }
+
     /**
-     * @return execute
+     * Forward to the edit action to render the new tag form
+     *
+     * @return \Magento\Backend\Model\View\Result\Forward
      */
     public function execute()
     {

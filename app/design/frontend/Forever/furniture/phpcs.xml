@@ -1,96 +1,86 @@
 <?xml version="1.0"?>
 <ruleset name="ForeverFurnitureTheme">
-    <description>Magento2 coding standard for the Forever/furniture theme, with documented exceptions for unavoidable patterns.</description>
+    <description>Magento2 coding standard for the Forever/furniture theme.</description>
 
     <rule ref="Magento2">
         <!--
-            Id selectors targeting core Magento-generated markup (e.g. #opc-sidebar,
-            #checkoutSteps, #product-addtocart-button) cannot be converted to class
-            selectors without overriding core templates just to add a class hook.
+            ID selectors targeting core Magento-generated markup that cannot be
+            renamed without overriding core templates:
+            #wishlist-sidebar, #product-addtocart-button, #product-review-container,
+            #opc-sidebar, #opc-shipping_method, #checkout-step-shipping,
+            #checkout-step-shipping_method, #checkout-payment-method-load,
+            #customer-email-fieldset, #co-shipping-method-form,
+            #shopping-cart-table, #shipping-zip-form, #block-shipping,
+            #newsletter-validate-detail-modal, #newsletter-error,
+            #layer-product-list, #reviews, #block_4,
+            and ol#checkoutSteps (core Magento checkout element).
         -->
         <exclude name="Magento2.Less.AvoidId"/>
 
         <!--
             False positive: this sniff misidentifies any selector ending in a
             pseudo-class/element before the opening brace (e.g. "a:hover {",
-            ":not(:last-child) {") as a declaration missing a semicolon. The
-            selectors are syntactically correct LESS/CSS.
+            ":not(:last-child) {") as a declaration missing a semicolon.
         -->
         <exclude name="Magento2.Less.SemicolonSpacing"/>
 
         <!--
-            Magento's own base UI library mixin definitions (Magento_Blank's
-            lib/_buttons.less, lib/_typography.less, lib/_messages.less, etc.,
-            reused verbatim in this theme) declare named parameters with
-            defaults across multiple lines, e.g.:
-                .lib-typography(
-                    @_color: ...,
-                    @_font-size: ...
-                ) {
-            This sniff misreads each parameter as a misplaced/uppercase local
-            variable declaration. Collapsing these multi-line mixin
-            definitions would diverge from Magento's own upstream file
-            structure for no functional benefit.
+            Magento's own base UI library mixin definitions declare named
+            parameters with defaults across multiple lines. This sniff misreads
+            each parameter as a misplaced variable declaration. Also covers
+            scoped variable declarations inside media-width mixin guards which
+            are correctly placed at the top of their enclosing block.
         -->
         <exclude name="Magento2.Less.Variables"/>
 
         <!--
-            Same multi-line named-parameter mixin definitions above also
-            trigger false "newline after colon" warnings for each parameter's
-            default-value colon, since the terminating semicolon/brace is
-            several lines below.
+            Same multi-line named-parameter mixin definitions trigger false
+            "newline after colon" warnings for each parameter's default-value
+            colon.
         -->
         <exclude name="Magento2.Less.ColonSpacing"/>
 
         <!--
-            Class names tied to the Forever_Core/Forever_DemoInstaller CMS
-            block content system (e.g. footer_common_container,
-            sales-end-main__title, all-categories-section__content__heading)
-            are literal identifiers referenced from etc/import/blocks.xml and
-            demo cms_blocks.xml content. Renaming them would desync the theme
-            from already-imported CMS block data.
+            Class names tied to CMS block content, core Magento templates, and
+            third-party module markup (e.g. footer_common_container,
+            sales-end-main__title, payment_icon, footer_inner1, footer_inner2,
+            additional-info, flex-direction-column, justify-content-between,
+            all-categories-section__content__heading) are literal identifiers
+            referenced from imported CMS blocks, core templates, or JS.
+            Renaming them would break functionality.
         -->
         <exclude name="Magento2.Less.ClassNaming"/>
 
         <!--
             Selector contains uppercase symbols: solely from core Magento's
-            own "#checkoutSteps" element id, which cannot be renamed.
+            own "ol#checkoutSteps" element id which cannot be renamed.
         -->
         <exclude name="Magento2.Less.TypeSelectors"/>
 
         <!--
-            False positive: commas inside a mixin definition's named-parameter
-            list (e.g. ".lib-message-icon-lateral(@_message-type: info,
-            @_message-position: right) {") are misread as CSS selector-list
-            delimiters needing a line break, because the sniff's own-line
-            function-call exemption only checks for another open-parenthesis
-            appearing later on the same line. All genuine multi-selector
-            comma-lists in this theme's own rules already have a line break.
+            False positive: commas inside mixin definition named-parameter
+            lists are misread as CSS selector-list delimiters needing a line
+            break.
         -->
         <exclude name="Magento2.Less.SelectorDelimiter"/>
     </rule>
 
     <!--
-        Long single-line mixin calls collapsed from Magento's own multi-line
-        named-parameter call convention (see above) can exceed the generic
-        line-length limit; this is a readability preference, not a defect,
-        for LESS partials.
+        Long single-line mixin calls can exceed the generic line-length limit.
+        This is a readability preference, not a defect, for LESS partials.
     -->
     <rule ref="Generic.Files.LineLength">
         <exclude-pattern>*.less</exclude-pattern>
     </rule>
 
     <!--
-        False positive: this sniff's property-collection window does not
-        reset cleanly across the three consecutive closing braces at the end
-        of the preceding ".article-thumbnail .img-inner img { ... } } }"
-        block, so it carries those unrelated properties over and compares
-        them against ".faq-list"'s single "padding" declaration, reporting a
-        sorting violation where none exists (a one-item list cannot be
-        "unsorted"). Verified by isolating both rules: each is independently
-        correctly ordered.
+        False positive in _extend.less: the sniff's property-collection window
+        does not reset cleanly across consecutive closing braces, causing it to
+        compare unrelated properties and report a sorting violation where none
+        exists.
     -->
     <rule ref="Magento2.Less.PropertiesSorting">
         <exclude-pattern>*/Magento_Cms/web/css/source/_extend\.less</exclude-pattern>
     </rule>
+
 </ruleset>

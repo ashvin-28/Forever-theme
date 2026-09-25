@@ -4,9 +4,9 @@ $viewModel = $block->getViewModel();
 $isEnableModule = $viewModel->getConfig();
 ?>
 <?php if ($isEnableModule == 1): ?>
-<?php if ($block->getPagerHtml()): ?>
+    <?php if ($block->getPagerHtml()): ?>
 <div class="order-products-toolbar toolbar bottom">
-    <?= $block->getPagerHtml(); ?>
+        <?= $block->getPagerHtml(); ?>
 </div>
 <?php endif; ?>
     <?php foreach ($collections as $item): ?>
@@ -37,7 +37,7 @@ $isEnableModule = $viewModel->getConfig();
                 <div><?= /* @noEscape */ $item->getContentHeading(); ?></div>
             </div>             
             <a class="read-more-btn action primary" href="<?= /* @noEscape */ $block->getViewUrl($item->getUrlKey())?>">
-                <?= /* @noEscape */ $block->escapeHtml(__('Read More')) ?>     
+                <?= /* @noEscape */ $escaper->escapeHtml(__('Read More')) ?>     
             </a>
         </div> 
     </div>
@@ -47,6 +47,6 @@ $isEnableModule = $viewModel->getConfig();
 <?php endif; ?>
 <?php else: ?>
     <div class="message info empty"><span>
-        <?= $block->escapeHtml(__('You have no any records in your custom collection.')); ?>            
+        <?= $escaper->escapeHtml(__('You have no any records in your custom collection.')); ?>            
         </span></div>
 <?php endif; ?>

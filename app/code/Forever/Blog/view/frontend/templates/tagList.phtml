@@ -18,15 +18,15 @@ $tags = $block->getTagList();
             <div class="row">
                 <div class="block-title col-xs-12 sidebar-tags">
                     <p class="block-mp-sidebar-heading" role="heading" aria-level="2">
-                        <?= $block->escapeHtml(__('Tags')) ?>
+                        <?= $escaper->escapeHtml(__('Tags')) ?>
                     </p>
                 </div>
                 <div class="col-xs-12">
                     <?php foreach ($tags as $tag): ?>
                         <a class="label label-default tags-list"
-                           style="font-size:<?= $block->escapeHtmlAttr($block->getTagSize($tag)) . 'px'; ?>"
+                           style="font-size:<?= $escaper->escapeHtmlAttr($block->getTagSize($tag)) . 'px'; ?>"
                            href="<?= /* @noEscape */ $block->getTagViewUrl($tag->getTitle())?>">
-                            <?= $block->escapeHtml($tag->getTitle()) ?>
+                            <?= $escaper->escapeHtml($tag->getTitle()) ?>
                         </a>
                     <?php endforeach; ?>
                 </div>

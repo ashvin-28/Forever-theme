@@ -19,7 +19,7 @@ $isEnabled = $block->isModuleEnabled();
                     </h3>
                 </div>
                 <div class="message info empty"><div>
-                    <?= $block->escapeHtml(__('We can\'t find products matching the selection.')) ?></div>
+                    <?= $escaper->escapeHtml(__('We can\'t find products matching the selection.')) ?></div>
                 </div>
     <?php else:?>
         <div class="page-title-wrapper">
@@ -77,7 +77,7 @@ $isEnabled = $block->isModuleEnabled();
                             $productlabel = $block->getProductlabel($product);
                             $confproductlabel = $block->getScopeconfig('productlabel/general/productlabelenable');
                             if ($confproductlabel && !empty($productlabel)):?>
-                            <div class="product_label_wrapper <?= /* @noEscape */ $productoption ?>"><?php
+                            <div class="product-label-wrapper <?= /* @noEscape */ $productoption ?>"><?php
                             foreach ($productlabel as $productlabelvalue):
                                 if ($productlabelvalue):?>
                                     <span class="productlabel <?= /* @noEscape */
@@ -99,7 +99,7 @@ $isEnabled = $block->isModuleEnabled();
                                 <div class="flip-box">
                                     <div class="flip-box-inner">
                                         <div class="flip-box-front">
-                                            <a href="<?= $block->escapeUrl($product->getProductUrl()) ?>"
+                                            <a href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
                                                class="product photo product-item-photo"
                                                tabindex="-1">
                                                 <?= $productImage->toHtml() ?>
@@ -107,7 +107,7 @@ $isEnabled = $block->isModuleEnabled();
                                         </div>
                                         <?php $productImageUrl = $block->getImageUrl($product); ?>
                                         <div class="flip-box-back">
-                                            <a href="<?= $block->escapeUrl($product->getProductUrl()) ?>"
+                                            <a href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
                                                class="product photo product-item-photo"
                                                tabindex="-1">
                                                 <img src="<?= /* @noEscape */ $productImageUrl ?>"
@@ -126,15 +126,16 @@ $isEnabled = $block->isModuleEnabled();
                             <div class="product-item-inner">
                                 <div class="product actions product-item-actions"
                                 <?= ($pos && strpos($pos, $viewMode . '-actions')) ?
-                                $block->escapeHtmlAttr($position) : '' ?>>
+                                $escaper->escapeHtmlAttr($position) : '' ?>>
                                             
                                 <div class="actions-primary"
-                                <?= ($pos && strpos($pos, $viewMode . '-primary')) ? $block->escapeHtmlAttr($position) : '' ?>>
+                                <?= ($pos && strpos($pos, $viewMode . '-primary'))
+                                    ? $escaper->escapeHtmlAttr($position) : '' ?>>
                                     <?php if ($product->isSaleable()):?>
                                         <?php $postParams = $block->getAddToCartPostParams($product); ?>
                                         <form data-role="tocart-form"
-                                                data-product-sku="<?= $block->escapeHtmlAttr($product->getSku()) ?>"
-                                                action="<?= $block->escapeUrl($postParams['action']) ?>"
+                                                data-product-sku="<?= $escaper->escapeHtmlAttr($product->getSku()) ?>"
+                                                action="<?= $escaper->escapeUrl($postParams['action']) ?>"
                                                 method="post">
                                             <input type="hidden"
                                                     name="product"
@@ -143,19 +144,19 @@ $isEnabled = $block->isModuleEnabled();
                                                     value="<?= /* @noEscape */ $postParams['data']['uenc'] ?>">
                                             <?= $block->getBlockHtml('formkey') ?>
                                             <button type="submit"
-                                                    title="<?= $block->escapeHtmlAttr(__('Add to Cart')) ?>"
+                                                    title="<?= $escaper->escapeHtmlAttr(__('Add to Cart')) ?>"
                                                     class="action tocart primary">
-                                                <span><?= $block->escapeHtml(__('Add to Cart')) ?></span>
+                                                <span><?= $escaper->escapeHtml(__('Add to Cart')) ?></span>
                                             </button>
                                         </form>
                                     <?php else:?>
                                         <?php if ($product->isAvailable()):?>
                                             <div class="stock available">
-                                                <span><?= $block->escapeHtml(__('In stock')) ?></span>
+                                                <span><?= $escaper->escapeHtml(__('In stock')) ?></span>
                                             </div>
                                         <?php else:?>
                                             <div class="stock unavailable">
-                                                <span><?= $block->escapeHtml(__('Out of stock')) ?></span>
+                                                <span><?= $escaper->escapeHtml(__('Out of stock')) ?></span>
                                             </div>
                                         <?php endif; ?>
                                     <?php endif; ?>
@@ -249,9 +250,9 @@ $isEnabled = $block->isModuleEnabled();
                                             $product->getShortDescription(),
                                             'short_description'
                                         ) ?>
-                                        <a href="<?= $block->escapeUrl($product->getProductUrl()) ?>"
+                                        <a href="<?= $escaper->escapeUrl($product->getProductUrl()) ?>"
                                            title="<?= /* @noEscape */ $productNameStripped ?>"
-                                           class="action more"><?= $block->escapeHtml(__('Learn More')) ?></a>
+                                           class="action more"><?= $escaper->escapeHtml(__('Learn More')) ?></a>
                                     </div>
                                 <?php endif; ?>
                                    
@@ -264,7 +265,7 @@ $isEnabled = $block->isModuleEnabled();
                             <strong class="product name product-item-name">
                                 <a class="product-item-link"
                                    href="
-                                   <?= $block->escapeUrl($product->getProductUrl()) ?>">
+                                   <?= $escaper->escapeUrl($product->getProductUrl()) ?>">
                                     <?= /* @noEscape */ $block->productAttribute(
                                         $product,
                                         $product->getName(),
@@ -289,7 +290,7 @@ $isEnabled = $block->isModuleEnabled();
             {
                 "[data-role=tocart-form], .form.map.checkout": {
                     "catalogAddToCart": {
-                        "product_sku": "<?= $block->escapeJs($product->getSku()) ?>"
+                        "product_sku": "<?= $escaper->escapeJs($product->getSku()) ?>"
                     }
                 }
             }

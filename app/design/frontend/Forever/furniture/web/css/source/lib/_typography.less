@@ -18,8 +18,7 @@
 ) when (@font-format = false) {
     @font-face {
         font-family: @family-name;
-        src: url('@{font-path}.woff2') format('woff2'),
-        url('@{font-path}.woff') format('woff');
+        src: url('@{font-path}.woff2') format('woff2'), url('@{font-path}.woff') format('woff');
         font-display: @font-display;
         font-style: @font-style;
         font-weight: @font-weight;
@@ -50,31 +49,31 @@
 }
 
 //  Rem font size
-.lib-font-size(@sizeValue) when not (ispercentage(@sizeValue)) and not (@sizeValue = false) and (isunit(@sizeValue, @font-size-unit)) {
-    .lib-css(font-size, @sizeValue);
+.lib-font-size(@size-value) when not (ispercentage(@size-value)) and not (@size-value = false) and (isunit(@size-value, @font-size-unit)) {
+    .lib-css(font-size, @size-value);
 }
 
-.lib-font-size(@sizeValue) when not (ispercentage(@sizeValue)) and not (@sizeValue = false) and (isunit(@sizeValue, em)) {
-    .lib-css(font-size, @sizeValue);
+.lib-font-size(@size-value) when not (ispercentage(@size-value)) and not (@size-value = false) and (isunit(@size-value, em)) {
+    .lib-css(font-size, @size-value);
 }
 
-.lib-font-size(@sizeValue) when not (ispercentage(@sizeValue)) and not (@sizeValue = false) and not (isunit(@sizeValue, em)) and not (isunit(@sizeValue, @font-size-unit)) {
-    .lib-font-size-value(@sizeValue);
+.lib-font-size(@size-value) when not (ispercentage(@size-value)) and not (@size-value = false) and not (isunit(@size-value, em)) and not (isunit(@size-value, @font-size-unit)) {
+    .lib-font-size-value(@size-value);
     .lib-css(font-size, @fontValue);
 }
 
 //  Rem line height
-.lib-line-height(@heightValue) when not (@heightValue = false) and not (@heightValue = normal) and not (ispercentage(@heightValue)) {
-    .lib-font-size-value(@heightValue);
+.lib-line-height(@height-value) when not (@height-value = false) and not (@height-value = normal) and not (ispercentage(@height-value)) {
+    .lib-font-size-value(@height-value);
     .lib-css(line-height, @fontValue);
 }
 
-.lib-line-height(@heightValue) when (ispercentage(@heightValue)) and not (@heightValue = false) {
-    .lib-css(line-height, @heightValue);
+.lib-line-height(@height-value) when (ispercentage(@height-value)) and not (@height-value = false) {
+    .lib-css(line-height, @height-value);
 }
 
-.lib-line-height(@heightValue) when (@heightValue = normal) {
-    .lib-css(line-height, @heightValue);
+.lib-line-height(@height-value) when (@height-value = normal) {
+    .lib-css(line-height, @height-value);
 }
 
 .lib-wrap-words() {

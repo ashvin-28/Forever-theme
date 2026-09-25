@@ -15,6 +15,8 @@ use Magento\Framework\View\Element\UiComponent\Control\ButtonProviderInterface;
 class SaveButton extends GenericButton implements ButtonProviderInterface
 {
     /**
+     * Get button data
+     *
      * @return array
      */
     public function getButtonData()
@@ -29,8 +31,14 @@ class SaveButton extends GenericButton implements ButtonProviderInterface
             'sort_order' => 90,
         ];
     }
+
+    /**
+     * Get save URL
+     *
+     * @return string
+     */
     public function getSaveUrl()
     {
-        return $this->getUrl('*/tag/save', []) ;
+        return $this->getUrl('*/tag/save', []);
     }
 }

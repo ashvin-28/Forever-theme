@@ -5,7 +5,7 @@ namespace Forever\Core\Block\System\Config\Form\Button\Import;
 class Cms extends \Magento\Config\Block\System\Config\Form\Field
 {
     /**
-     * Button Label
+     * Default label shown on the import button
      *
      * @var string
      */
@@ -15,25 +15,17 @@ class Cms extends \Magento\Config\Block\System\Config\Form\Field
      * @var string
      */
     protected $_actionUrl;
-    
+
     /**
      * @var string
      */
     protected $_importType;
-    
-    private $_helper;
-    
+
     /**
-     * @param  \Magento\Backend\Block\Template\Context $context
+     * @var mixed
      */
-    
-    // public function __construct(
-    //     \Magento\Backend\Block\Template\Context $context
-    // ) {
-        
-    //     parent::__construct($context);
-    // }
-    
+    private $_helper;
+
     /**
      * Set Button Label
      *
@@ -57,9 +49,9 @@ class Cms extends \Magento\Config\Block\System\Config\Form\Field
     }
 
     /**
-     * Set Validate VAT Button Label
+     * Set Action Url
      *
-     * @param string $vatButtonLabel
+     * @param string $actionUrl
      * @return \Forever\Core\Block\System\Config\Form\Button\Import\Cms
      */
     public function setActionUrl($actionUrl)
@@ -67,7 +59,7 @@ class Cms extends \Magento\Config\Block\System\Config\Form\Field
         $this->_actionUrl = $actionUrl;
         return $this;
     }
-    
+
     /**
      * Get Import Type
      *
@@ -79,9 +71,9 @@ class Cms extends \Magento\Config\Block\System\Config\Form\Field
     }
 
     /**
-     * Set Validate VAT Button Label
+     * Set Import Type
      *
-     * @param string $vatButtonLabel
+     * @param string $importType
      * @return \Forever\Core\Block\System\Config\Form\Button\Import\Cms
      */
     public function setImportType($importType)
@@ -89,7 +81,7 @@ class Cms extends \Magento\Config\Block\System\Config\Form\Field
         $this->_importType = $importType;
         return $this;
     }
-    
+
     /**
      * Set template to itself
      *
