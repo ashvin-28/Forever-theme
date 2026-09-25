@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var $block \Forever\Dailydeals\Block\Dailydeals
  * @var $escaper \Magento\Framework\Escaper
@@ -36,14 +37,15 @@
 
     $stockItem = $product->getExtensionAttributes()->getStockItem();
     $isInStock = $stockItem && $stockItem->getIsInStock();
+    $allowedTags = ['b', 'strong', 'span', 'i', 'em'];
     ?>
     <?php if ($isInStock): ?>
-        <script type="text/javascript">
+        <script>
             var saleExpDate = '<?= $escaper->escapeJs($saleExpDate) ?>';
             var saleExpTime = '<?= $escaper->escapeJs($timeFormat) ?>';
             CountDownTimer((saleExpDate + ' ' + saleExpTime), 'countdown');
-            function CountDownTimer(dt, id)
-            {
+
+            function CountDownTimer(dt, id) {
                 var end = new Date(dt);
                 var _second = 1000;
                 var _minute = _second * 60;
@@ -51,8 +53,7 @@
                 var _day = _hour * 24;
                 var timer;
 
-                function showRemaining()
-                {
+                function showRemaining() {
                     var now = new Date();
                     var distance = end - now;
                     if (distance < 0) {
@@ -69,9 +70,15 @@
                     var minutes = Math.floor((distance % _hour) / _minute);
                     var seconds = Math.floor((distance % _minute) / _second);
 
-                    if (String(hours).length < 2) { hours = '0' + String(hours); }
-                    if (String(minutes).length < 2) { minutes = '0' + String(minutes); }
-                    if (String(seconds).length < 2) { seconds = '0' + String(seconds); }
+                    if (String(hours).length < 2) {
+                        hours = '0' + String(hours);
+                    }
+                    if (String(minutes).length < 2) {
+                        minutes = '0' + String(minutes);
+                    }
+                    if (String(seconds).length < 2) {
+                        seconds = '0' + String(seconds);
+                    }
 
                     var datestr = '<div class="counter">';
                     datestr += '<div class="counter-timer">';
@@ -97,14 +104,18 @@
                 <div id="sale-description" class="daily-deals-title bestseller-slider-section">
                     <div class="page-title-wrapper">
                         <h3 class="sale-description-text page-title">
-                            <span><?= $block->getConfigSaleText() ?></span>
+                            <span><?= $escaper->escapeHtml($block->getConfigSaleText(), $allowedTags) ?></span>
+
                         </h3>
                     </div>
                 </div>
                 <div class="daily-deals-left">
                     <div id="sale-header">
                         <div id="product-image">
-                            <img width="200" height="170" src="<?= $escaper->escapeUrl($image_url) ?>" alt="<?= $escaper->escapeHtmlAttr($product->getName()) ?>">
+                            <img width="200"
+                                height="170"
+                                src="<?= $escaper->escapeUrl($image_url) ?>"
+                                alt="<?= $escaper->escapeHtmlAttr($product->getName()) ?>">
                         </div>
                     </div>
                 </div>
@@ -179,19 +190,19 @@
 <?php endif; ?>
 
 <script>
-require(['jquery', 'jquery/ui'], function ($) {
-    $(document).ready(function () {
-        var $section = $('.daily-deals-section');
-        if ($section.length) {
-            var elementPosition = $section.offset();
-            $(window).on('scroll', function () {
-                if ($(window).scrollTop() > elementPosition.top) {
-                    $section.addClass('stick');
-                } else {
-                    $section.removeClass('stick');
-                }
-            });
-        }
+    require(['jquery', 'jquery/ui'], function($) {
+        $(document).ready(function() {
+            var $section = $('.daily-deals-section');
+            if ($section.length) {
+                var elementPosition = $section.offset();
+                $(window).on('scroll', function() {
+                    if ($(window).scrollTop() > elementPosition.top) {
+                        $section.addClass('stick');
+                    } else {
+                        $section.removeClass('stick');
+                    }
+                });
+            }
+        });
     });
-});
 </script>

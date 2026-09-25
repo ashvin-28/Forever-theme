@@ -16,6 +16,9 @@ class Information extends Field
 
     /**
      * Remove scope checkboxes and render field
+     *
+     * @param AbstractElement $element
+     * @return string
      */
     public function render(AbstractElement $element): string
     {
@@ -25,6 +28,9 @@ class Information extends Field
 
     /**
      * Return rendered HTML for the element
+     *
+     * @param AbstractElement $element
+     * @return string
      */
     protected function _getElementHtml(AbstractElement $element): string
     {

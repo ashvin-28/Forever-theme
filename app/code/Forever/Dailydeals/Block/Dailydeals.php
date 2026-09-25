@@ -26,6 +26,19 @@ class Dailydeals extends Template
     public const THUMBNAIL_IMAGE = 'product_thumbnail_image';
     public const TIMEZONE = 'general/locale/timezone';
 
+    /**
+     * Dailydeals constructor
+     *
+     * @param Context $context
+     * @param ScopeConfigInterface $config
+     * @param StoreManagerInterface $storeManager
+     * @param Product $productObj
+     * @param ProductRepository $productRepository
+     * @param ListProduct $listProduct
+     * @param Image $productImage
+     * @param PriceHelper $priceHelper
+     * @param array $data
+     */
     public function __construct(
         Context $context,
         protected readonly ScopeConfigInterface $config,
@@ -42,6 +55,9 @@ class Dailydeals extends Template
 
     /**
      * Get store config value
+     *
+     * @param string $path
+     * @return mixed
      */
     public function getConfigData(string $path): mixed
     {
@@ -52,37 +68,69 @@ class Dailydeals extends Template
         );
     }
 
+    /**
+     * Get configured SKU
+     *
+     * @return string|null
+     */
     public function getConfigSKU(): ?string
     {
         return $this->getConfigData(self::PRODUCTSKU);
     }
 
+    /**
+     * Check if module is enabled
+     *
+     * @return bool
+     */
     public function isEnable(): bool
     {
         return (bool) $this->getConfigData(self::ENABLE);
     }
 
+    /**
+     * Get configured expiration date time
+     *
+     * @return string|null
+     */
     public function getConfigExpDateTime(): ?string
     {
         return $this->getConfigData(self::EXPDATETIME);
     }
 
+    /**
+     * Get configured sale text
+     *
+     * @return string|null
+     */
     public function getConfigSaleText(): ?string
     {
         return $this->getConfigData(self::SALETEXT);
     }
 
+    /**
+     * Get configured button text
+     *
+     * @return string|null
+     */
     public function getConfigButtonText(): ?string
     {
         return $this->getConfigData(self::BUTTONTEXT);
     }
 
+    /**
+     * Get configured timezone
+     *
+     * @return string|null
+     */
     public function getConfigTimeZone(): ?string
     {
         return $this->getConfigData(self::TIMEZONE);
     }
 
     /**
+     * Get specific product model by configured SKU
+     *
      * @return Product|string
      */
     public function getSpecificProduct(): Product|string
@@ -100,6 +148,9 @@ class Dailydeals extends Template
 
     /**
      * Get product image URL
+     *
+     * @param Product $product
+     * @return string
      */
     public function getProductImage(Product $product): string
     {
@@ -115,6 +166,9 @@ class Dailydeals extends Template
 
     /**
      * Get add-to-cart URL
+     *
+     * @param Product $product
+     * @return string
      */
     public function getAddCartUrl(Product $product): string
     {
@@ -127,6 +181,9 @@ class Dailydeals extends Template
 
     /**
      * Format price with currency
+     *
+     * @param float|int|string $price
+     * @return string
      */
     public function getFormatedPrice(float|int|string $price): string
     {
@@ -135,6 +192,8 @@ class Dailydeals extends Template
 
     /**
      * Check if the configured product exists
+     *
+     * @return bool
      */
     public function isProductAvailable(): bool
     {

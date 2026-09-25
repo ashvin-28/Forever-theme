@@ -1,34 +1,38 @@
 @primary__color: #000;
+@secondary__color: #dfa34a;
+@color-gray-border: #ccc;
+@color-gray-light: #bdbdbd;
+@color-shadow-light: #ececec;
+@color-white: #fff;
 @screen__ml: 993px;
-@SecondaryColor: #dfa34a;
+
 & when (@media-common = true) {
     .daily-deals-section {
         .daily-deals-inner {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 30px 0;
             align-items: center;
+            margin: 0 auto;
+            max-width: 1280px;
+            padding: 30px 0;
             .daily-deals-title {
-                text-align: center;
                 font-size: 28px;
-                letter-spacing: 1px;
                 font-weight: 600;
-                width: 100%;
+                letter-spacing: 1px;
                 margin-bottom: 10px;
-                margin-top:0;
+                margin-top: 0;
+                text-align: center;
+                width: 100%;
                 .page-title-wrapper {
                     margin-bottom: 20px;
                 }
                 b {
-                    color: @SecondaryColor;
+                    color: @secondary__color;
                     text-transform: capitalize;
                 }
             }
             .sale-body {
                 width: 25%;
-                  @media(max-width: 1199px) {
+                @media (max-width: 1199px) {
                     width: 30%;
-
                 }
                 .product-name {
                     span {
@@ -39,74 +43,74 @@
                 }
                 .product-price {
                     span {
-                        font-weight: 300;
                         font-size: 16px;
+                        font-weight: 300;
+                        letter-spacing: .5px;
                         line-height: 16px;
-                        letter-spacing: 0.5px;
                     }
                     span.regular-price {
-                        color: #BDBDBD;
-                        text-decoration: line-through;
+                        color: @color-gray-light;
                         padding: 0 5px;
+                        text-decoration: line-through;
                     }
                 }
             }
-            div#countdown {
-                width: 75%;
+            div[id='countdown'] {
                 display: flex;
                 padding: 0 0 0 50px;
-                @media(max-width: 1199px) {
-                    width: 70%;
+                width: 75%;
+                @media (max-width: 1199px) {
                     padding: 0 0 0 40px;
+                    width: 70%;
                 }
                 .counter {
-                    display: flex;
                     align-items: center;
+                    display: flex;
                     width: 100%;
                     .counter-timer {
-                        width: 25%;
-                        background: @SecondaryColor;
-                        margin: 0 8px;
+                        background: @secondary__color;
                         border-radius: 5px;
+                        box-shadow: 1px 4px 7px 2px @color-gray-border;
+                        margin: 0 8px;
+                        padding: 7px 0;
                         text-align: center;
-                        padding: 7px 0px;
-                        box-shadow: 1px 4px 7px 2px #ccc;
+                        width: 25%;
                         p.number {
                             font-size: 36px;
-                            letter-spacing: 0;
                             font-weight: 700;
+                            letter-spacing: 0;
                             margin-bottom: 0;
                         }
                         p {
+                            color: @color-white;
                             font-size: 17px;
                             font-weight: 300;
                             letter-spacing: 1px;
                             margin: 0;
                             text-transform: uppercase;
-                            color: #fff;
                         }
                     }
                 }
             }
             .daily-deals-right {
-                width: 75%;
+                align-items: center;
                 display: flex;
                 justify-content: flex-start;
-                align-items: center;
+                width: 75%;
                 .product-price {
-                    margin-top: 7px;
                     margin-bottom: 10px;
+                    margin-top: 7px;
                 }
             }
             .daily-deals-left {
                 width: 25%;
                 img {
-                    width: 100%;
-                    max-width: 201px;
-                    margin: 0 0 0 auto;
                     display: block;
-                    @media(max-width: 1500px) {
-                        margin: 0 auto 0 auto;
+                    margin: 0 0 0 auto;
+                    max-width: 201px;
+                    width: 100%;
+                    @media (max-width: 1500px) {
+                        margin: 0 auto;
                     }
                 }
             }
@@ -115,72 +119,72 @@
     .daily-deals-section.exipary {
         display: none;
     }
-    //sticky
+    //  Sticky
     .daily-deals-section.stick {
-        position: fixed;
+        background: @secondary__color;
         bottom: 0;
-        z-index: 9999;
-        background: @SecondaryColor;
+        box-shadow: 0 0 4px 2px @color-shadow-light;
         left: 0;
+        position: fixed;
         width: 100%;
-        box-shadow: 0 0 4px 2px #ececec;
+        z-index: 9999;
     }
 
     .daily-deals-section.stick .daily-deals-inner {
-        background: @SecondaryColor;
+        background: @secondary__color;
         padding: 7px 0;
     }
 
     .daily-deals-section.stick .daily-deals-inner .daily-deals-title {
-        visibility: hidden;
         display: none;
-        transition-delay: 0.08s;
+        transition-delay: .08s;
+        visibility: hidden;
     }
 
     .daily-deals-section.stick .daily-deals-inner .daily-deals-left img {
+        background: @color-white;
         max-width: 70px;
-        background: #fff;
     }
     .stick.daily-deals-section .daily-deals-inner .daily-deals-left {
         width: 15%;
     }
     .stick.daily-deals-section .daily-deals-inner .daily-deals-right {
-        width: 85%;
-        padding-left: 20px;
         box-sizing: border-box;
+        padding-left: 20px;
+        width: 85%;
     }
     .stick.daily-deals-section .daily-deals-inner .daily-deals-right .sale-body {
-        display:flex;
-        width: auto;
+        display: flex;
         flex-wrap: wrap;
+        width: auto;
     }
-    .stick.daily-deals-section .daily-deals-inner .daily-deals-right div#countdown {
-        width: 45%;
+    .stick.daily-deals-section .daily-deals-inner .daily-deals-right div[id='countdown'] {
         padding-left: 20px;
+        width: 45%;
     }
     .stick.daily-deals-section .daily-deals-inner .daily-deals-right .sale-body .product-name {
-        width: 100%;
+        color: @color-white;
         margin-bottom: 6px;
-        color: #fff;
+        width: 100%;
     }
     .stick.daily-deals-section .daily-deals-inner .daily-deals-right .sale-body .product-price {
         padding-right: 12px;
     }
     .stick.daily-deals-section .daily-deals-inner .daily-deals-right .sale-body .sale-footer button {
+        background: @primary__color;
+        border-color: @primary__color;
         height: 32px;
-        background: #000;
-        border-color: #000;
     }
-    .stick.daily-deals-section .daily-deals-inner .daily-deals-right div#countdown .counter .counter-timer p.number {
+    .stick.daily-deals-section .daily-deals-inner .daily-deals-right div[id='countdown'] .counter .counter-timer p.number {
         font-size: 20px;
     }
-    .stick.daily-deals-section .daily-deals-inner .daily-deals-right div#countdown .counter .counter-timer p.text {
+    .stick.daily-deals-section .daily-deals-inner .daily-deals-right div[id='countdown'] .counter .counter-timer p.text {
         font-size: 12px;
     }
     .stick.daily-deals-section .daily-deals-inner .sale-body .product-price span.regular-price {
-        color: #fff;
+        color: @color-white;
     }
-    .stick.daily-deals-section .daily-deals-inner .daily-deals-right div#countdown .counter .counter-timer {
+    .stick.daily-deals-section .daily-deals-inner .daily-deals-right div[id='countdown'] .counter .counter-timer {
         background: @primary__color;
         box-shadow: none;
     }
@@ -190,13 +194,13 @@
         .daily-deals-section .daily-deals-inner .daily-deals-right {
             flex-wrap: wrap;
             .sale-body {
-                width: 100%;
-                display: flex;
                 align-items: center;
+                display: flex;
                 margin-bottom: 15px;
+                width: 100%;
             }
         }
-        .daily-deals-section .daily-deals-inner div#countdown {
+        .daily-deals-section .daily-deals-inner div[id='countdown'] {
             padding: 0;
             .counter {
                 .counter-timer {
@@ -212,26 +216,26 @@
             }
         }
         .daily-deals-section .daily-deals-inner .daily-deals-right .product-price {
-            margin-top: 0;
             margin-bottom: 0;
-               padding: 0 17px;
+            margin-top: 0;
+            padding: 0 17px;
         }
     }
     body .daily-deals-section.stick .daily-deals-inner .daily-deals-right {
         flex-wrap: nowrap;
     }
-    body .stick.daily-deals-section .daily-deals-inner .daily-deals-right div#countdown {
+    body .stick.daily-deals-section .daily-deals-inner .daily-deals-right div[id='countdown'] {
         width: 76%;
     }
 }
 
 .media-width(@extremum, @break) when (@extremum = 'max') and (@break = @screen__m) {
     body {
-        .daily-deals-section .daily-deals-inner div#countdown {
-            width: 100%;
-        }
         .daily-deals-section .daily-deals-inner {
-            justify-content:center;
+            justify-content: center;
+        }
+        .daily-deals-section .daily-deals-inner div[id='countdown'] {
+            width: 100%;
         }
         .daily-deals-section .daily-deals-inner .daily-deals-left {
             width: 50%;
@@ -243,8 +247,8 @@
         .daily-deals-section .daily-deals-inner .sale-body {
             flex-wrap: wrap;
             .product-name {
-                width: 100%;
                 margin-bottom: 10px;
+                width: 100%;
             }
         }
         .daily-deals-section .daily-deals-inner .daily-deals-right .product-price {
@@ -254,8 +258,8 @@
             display: none;
         }
         .stick.daily-deals-section .daily-deals-inner .daily-deals-right {
-            width: 100%;
             padding-left: 0;
+            width: 100%;
         }
         .stick.daily-deals-section .daily-deals-inner .sale-body .product-price span.regular-price {
             display: none;
@@ -263,22 +267,22 @@
         .stick.daily-deals-section .daily-deals-inner .daily-deals-right .sale-body {
             margin-bottom: 0;
         }
-        .stick.daily-deals-section .daily-deals-inner .daily-deals-right div#countdown .counter .counter-timer {
+        .stick.daily-deals-section .daily-deals-inner .daily-deals-right div[id='countdown'] .counter .counter-timer {
             margin: 0 6px 0 0;
         }
-        .stick.daily-deals-section .daily-deals-inner .daily-deals-right div#countdown .counter .counter-timer p.number {
+        .stick.daily-deals-section .daily-deals-inner .daily-deals-right div[id='countdown'] .counter .counter-timer p.number {
             font-size: 14px;
         }
-        .stick.daily-deals-section .daily-deals-inner .daily-deals-right div#countdown .counter .counter-timer p.text {
+        .stick.daily-deals-section .daily-deals-inner .daily-deals-right div[id='countdown'] .counter .counter-timer p.text {
             font-size: 10px;
         }
         .stick.daily-deals-section .daily-deals-inner .sale-body .product-name span,
         .stick.daily-deals-section .daily-deals-inner .daily-deals-right .sale-body .sale-footer button {
-            font-size: 15px
+            font-size: 15px;
         }
     }
 }
-@media(max-width: 374px) {
+@media (max-width: 374px) {
     body .daily-deals-section.stick {
         display: none;
     }
